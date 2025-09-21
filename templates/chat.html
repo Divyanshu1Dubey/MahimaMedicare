@@ -1,0 +1,563 @@
+{% load static %}
+{% load custom_tags %}
+{%load tz%}
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HealthStack | Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    
+    <link type="image/x-icon" href=" {% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon">
+    
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+
+    <style>
+        /* --- MODERN DESIGN & ACCENT COLOR --- */
+        :root {
+            --accent-color: #95C270;
+            --accent-light: #eaf4e1;
+            --page-bg: #f8f9fa;
+            --container-bg: #ffffff;
+            --border-color: #dee2e6;
+            --text-primary: #343a40;
+            --text-secondary: #6c757d;
+            --font-family: 'Poppins', sans-serif;
+            --sent-bg: var(--accent-color);
+            --sent-text: #ffffff;
+            --received-bg: #f1f1f1;
+            --received-text: #212529;
+        }
+
+        body.chat-page {
+            font-family: var(--font-family);
+            background-color: var(--page-bg);
+            color: var(--text-primary);
+        }
+
+        .content {
+            padding: 30px 0;
+        }
+
+        .chat-window {
+    display: flex;
+    flex: 1;
+    min-height: 400px; /* mas maliit lang para safe sa maliit na screen */
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: var(--container-bg);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid var(--border-color);
+}
+
+        /* --- Left Panel: User List --- */
+        .chat-cont-left {
+            width: 300px;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-cont-left .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: #fcfcfc;
+        }
+        
+        .chat-cont-left .chat-header span {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .chat-search {
+            padding: 15px;
+        }
+        
+        .chat-search .input-group .form-control {
+            border-radius: 20px !important;
+            padding-left: 40px;
+            border-color: var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .chat-search .input-group .form-control:focus {
+            box-shadow: 0 0 0 2px var(--accent-light);
+            border-color: var(--accent-color);
+        }
+        
+        .chat-search .input-group-prepend {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 4;
+            color: var(--text-secondary);
+        }
+
+        .chat-users-list {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        
+        .chat-users-list .media {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s ease;
+            text-decoration: none !important;
+        }
+        
+        .chat-users-list .media:hover {
+            background-color: var(--page-bg);
+        }
+
+        /* Active chat user style */
+        .chat-users-list .media.active {
+            background-color: var(--accent-light);
+        }
+        .chat-users-list .media.active .user-name {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .media-img-wrap .avatar img {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+        }
+
+        .avatar-online::after, .avatar-away::after {
+            border: 2px solid var(--container-bg);
+        }
+        .avatar-online::after { background-color: var(--accent-color); }
+        .avatar-away::after { background-color: #f46a6a; }
+
+        .media-body .user-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        .media-body .user-last-chat {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* --- Right Panel: Chat Area --- */
+        .chat-cont-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative; /* importante para gumana yung sticky child */
+}
+        
+        .chat-cont-right .chat-header {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            z-index: 10;
+        }
+
+        .chat-body {
+     flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: var(--page-bg);
+}
+        .chat-scroll .list-unstyled {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .media.sent {
+            justify-content: flex-end;
+            margin-left: auto;
+        }
+        .media.received {
+            justify-content: flex-start;
+        }
+        
+        .media.sent .media-body { flex-grow: 0; }
+        .media.received .avatar { margin-right: 15px; }
+        
+        .msg-box {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sent .msg-box { align-items: flex-end; }
+        .received .msg-box { align-items: flex-start; }
+
+        .chat-bubble {
+            padding: 10px 15px;
+            border-radius: 18px;
+            margin-bottom: 5px;
+            max-width: 450px;
+            word-wrap: break-word;
+        }
+        
+        .sent .chat-bubble {
+            background-color: var(--sent-bg);
+            color: var(--sent-text);
+            border-top-right-radius: 5px;
+        }
+
+        .received .chat-bubble {
+            background-color: var(--received-bg);
+            color: var(--received-text);
+            border-top-left-radius: 5px;
+        }
+
+        .chat-msg-info {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+        
+        .chat-box-form {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--container-bg);
+    padding: 10px 15px;
+    border-top: 1px solid var(--border-color);
+    z-index: 5;
+}
+.chat-box-form form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.chat-box-form textarea {
+    flex: 1;
+    resize: none;
+    min-height: 40px;
+    max-height: 120px;
+}
+        
+        #chat-submit textarea {
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            resize: none;
+        }
+        #chat-submit textarea:focus {
+            border-color: var(--accent-color);
+            box-shadow: none;
+        }
+        
+        #chat-submit button {
+            background-color: var(--accent-color);
+            border: none;
+            width: 45px !important;
+            height: 45px !important;
+            border-radius: 50%;
+            margin-left: 10px;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            color: white;
+            transition: background-color 0.2s ease;
+        }
+        #chat-submit button:hover {
+            background-color: #7fab5a; /* Darker accent for hover */
+        }
+
+    </style>
+</head>
+<body class="chat-page">
+
+    <div class="main-wrapper">
+    
+        <header class="header">{% include 'patient_navbar.html' %}</header>
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xl-12">
+                        <div class="chat-window">
+                        
+                            <div class="chat-cont-left">
+                                <div class="chat-header">
+                                    <span>Chats</span>
+                                </div>
+                                <form class="chat-search" method="GET" action="{% url 'chat-home' pk=user.id %}">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            
+                                        </div>
+                                        <input type="text" class="form-control" placeholder="Search Doctors" name="search" value="{{ request.GET.search }}">
+                                    </div>
+                                </form>
+                                <div class="chat-users-list">
+    <div class="chat-scroll">
+        {% for d in doctor %} 
+        {% if not d.id == 1 and not d.id == user.id %}
+            <a href="{% url 'chat-home' pk=user.id %}?u={{d.user.id}}" class="media {% if d.user.id == chat_id %}active{% endif %}">
+                <div class="media-img-wrap">
+                    {% if d.user.login_status %}
+                        <div class="avatar avatar-online">
+                            <img src="{{ d.featured_image.url }}" alt="User Image" class="avatar-img rounded-circle">
+                        </div>
+                    {% else %}
+                        <div class="avatar avatar-away">
+                            <img src="{{ d.featured_image.url }}" alt="User Image" class="avatar-img rounded-circle">
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="media-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="user-name {% if d.user.id|unread_count:user.id > 0 %}font-weight-bold{% endif %}">
+                            {{ d.name }}
+                        </div>
+                        <div class="user-last-chat">
+                            {% if d.user.login_status %}Online{% else %}Offline{% endif %}
+                        </div>
+                    </div>
+                    {% if d.user.id|unread_count:user.id > 0 %}
+                        <div class="badge badge-primary rounded-circle p-1">
+                            {{ d.user.id|unread_count:user.id }}
+                        </div>
+                    {% endif %}
+                </div>
+            </a>
+        {% endif %}
+        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chat-cont-right">
+                                {% if not chat_id > 0 %}
+                                    <div class="d-flex flex-column h-100 justify-content-center align-items-center text-center">
+                                        
+                                        <h3 class="mt-3">Welcome to HealthStack Chat</h3>
+                                        <p class="text-secondary">Select a doctor from the list to start a conversation.</p>
+                                    </div>
+                                {% else %}
+                                <div class="chat-header">
+                                    <a id="back_user_list" href="javascript:void(0)" class="back-user-list">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                    <div class="media">
+                                        <div class="media-img-wrap">
+                                            <div class="avatar avatar-online">
+                                                <img src="{{ doc.featured_image.url }}" alt="User Image" class="avatar-img rounded-circle">
+                                            </div>
+                                        </div>
+                                        <div class="media-body ml-3">
+                                            <div class="user-name">{{ doc.name }}</div>
+                                            <div class="user-status text-success" style="font-size: 0.8rem;">online</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="chat-body">
+    <div class="chat-scroll">
+        <ul class="list-unstyled" id="chat-box-ul">
+            {% for chat in chats %} 
+            {% if chat.user_from == user %}
+            <!-- Sender side -->
+            <li class="media sent">
+                <div class="media-body">
+                    <div class="msg-box">
+                        <div class="chat-bubble" data-id="{{chat.id}}">
+                            <p class="m-0">{{chat.message}}</p>
+                            <ul class="chat-msg-info">
+                                <li>
+                                    <div class="chat-time">
+                                        <span>{{chat.date_created|date:"g:i A"}}</span>
+                                        
+                                        <!-- Messenger-style checkmarks -->
+                                        {% if chat.is_read %}
+                                            <span style="color:#0084ff; margin-left:5px;">✔✔</span>
+                                        {% else %}
+                                            <span style="color:gray; margin-left:5px;">✔</span>
+                                        {% endif %}
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {% else %}
+            <!-- Receiver side -->
+            <li class="media received">
+                <div class="avatar">
+                    <img src="{{ doc.featured_image.url }}" alt="User Image" class="avatar-img rounded-circle">
+                </div>
+                <div class="media-body">
+                    <div class="msg-box">
+                        <div class="chat-bubble" data-id="{{chat.id}}">
+                            <p class="m-0">{{chat.message}}</p>
+                            <ul class="chat-msg-info">
+                                <li>
+                                    <div class="chat-time">
+                                        <span>{{chat.date_created|date:"g:i A"}}</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {% endif %} 
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+                                <div class="chat-box-form">
+                                    <form action="" id="chat-submit" class="w-100 d-flex align-items-center">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="user_from" value="{{ user.id }}">
+                                        <input type="hidden" name="user_to" value="{{ chat_id }}">
+                                        <textarea name="message" class="form-control" placeholder="Type a message..." rows="1"></textarea>
+                                        <button type="submit" class="btn"><i class="fas fa-paper-plane"></i></button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div> 
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>      
+    </div>
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <script>
+    $(function() {
+        var chatBox = $('.chat-body .chat-scroll');
+
+        // --- Function to scroll to the bottom of the chat box ---
+        function scrollToBottom() {
+            if (chatBox.length > 0) {
+                chatBox.scrollTop(chatBox[0].scrollHeight);
+            }
+        }
+
+        // --- Initial scroll to bottom ---
+        scrollToBottom();
+
+        // --- Handle chat submission ---
+        $('#chat-submit').submit(function(e) {
+            e.preventDefault();
+            var form = $(this);
+            var messageInput = form.find('textarea[name="message"]');
+            if (messageInput.val().trim() === '') {
+                return; // Don't send empty messages
+            }
+
+            $.ajax({
+                headers: { "X-CSRFToken": '{{csrf_token}}' },
+                url: "{% url 'chat-send' %}",
+                method: "POST",
+                data: form.serialize(),
+                dataType: "json",
+                success: function(resp) {
+                    if (resp.status == 'success') {
+                        // Append the new message dynamically
+                        var newBubble = `
+                            <li class="media sent">
+                                <div class="media-body">
+                                    <div class="msg-box">
+                                        <div class="chat-bubble" data-id="${resp.chat_id}">
+                                            <p class="m-0">${messageInput.val()}</p>
+                                            <ul class="chat-msg-info">
+                                                <li><div class="chat-time"><span>Just now</span></div></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>`;
+                        $('#chat-box-ul').append(newBubble);
+                        messageInput.val(''); // Clear the textarea
+                        scrollToBottom(); // Scroll to the new message
+                    } else {
+                        console.error("Error sending message:", resp);
+                        alert('An error occurred while sending your message.');
+                    }
+                },
+                error: function(err) {
+                    console.error("AJAX Error:", err);
+                    alert('A server error occurred.');
+                }
+            });
+        });
+
+        // --- Function to fetch new chats periodically ---
+        function renewChats() {
+            var last_id = $('#chat-box-ul .chat-bubble').last().data('id') || 0;
+            var chat_id_val = '{{ chat_id }}';
+
+            if (!chat_id_val || chat_id_val <= 0) {
+                return; // Don't poll if no chat is active
+            }
+
+            $.ajax({
+                headers: { "X-CSRFToken": '{{csrf_token}}' },
+                url: "{% url 'chat-get-messages' %}",
+                method: "POST",
+                data: {
+                    last_id: last_id,
+                    chat_id: chat_id_val
+                },
+                dataType: 'json',
+                success: function(resp) {
+                    if (resp && resp.length > 0) {
+                        let newMessages = false;
+                        resp.forEach(function(chat) {
+                            // Skip if message already exists
+                            if ($('#chat-box-ul .chat-bubble[data-id="'+chat.id+'"]').length > 0) return;
+                            
+                            // Prevent displaying our own sent messages again
+                            if (chat.user_from_id != '{{user.id}}') {
+                                var bubble = `
+                                <li class="media received" data-id="${chat.id}">
+                                    <div class="avatar">
+                                        <img src="${chat.user_from_avatar || '{{ doc.featured_image.url }}'}" alt="User Image" class="avatar-img rounded-circle">
+                                    </div>
+                                    <div class="media-body">
+                                        <div class="msg-box">
+                                            <div class="chat-bubble">
+                                                <p class="m-0">${chat.message}</p>
+                                                <ul class="chat-msg-info">
+                                                    <li><div class="chat-time"><span>${chat.date_created}</span></div></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>`;
+                                $('#chat-box-ul').append(bubble);
+                                newMessages = true;
+                            }
+                        });
+                        if (newMessages) {
+                            scrollToBottom();
+                        }
+                    }
+                },
+                error: function(err) {
+                    // Fail silently on poll error to avoid interrupting user
+                    console.log("Polling error, will retry.", err);
+                }
+            });
+        }
+
+        // --- Start polling for new messages ---
+        setInterval(renewChats, 3000); // Check for new messages every 3 seconds
+    });
+</script>
+</body>
+</html>

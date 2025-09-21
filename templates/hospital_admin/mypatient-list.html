@@ -1,0 +1,224 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=0"
+    />
+    <title>Mahima Medicare</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}"/>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}"> 
+		
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}">
+    
+    <!-- Feathericon CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css'%}">
+
+    <!-- Datatables CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}" />
+
+    <!-- Patient Table Custom Styles -->
+    <style>
+      :root {
+        --primary-color: #95C270; /* Green */
+        --hover-bg-color: #e6f0c8; /* Light green hover */
+        --text-color: #333;
+      }
+
+      .card-table {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      }
+
+      .card-header {
+        background: var(--primary-color);
+        color: #95C270;
+        border-bottom: none;
+        border-radius: 12px 12px 0 0;
+        padding: 20px;
+      }
+
+      .card-header h4 {
+        margin: 0;
+        font-weight: 600;
+      }
+
+      .table thead th {
+        background-color: #f8f9fa;
+        color: var(--text-color);
+        font-weight: 600;
+        border: none;
+        padding: 14px;
+        text-transform: uppercase;
+        font-size: 13px;
+      }
+
+      .table tbody td {
+        vertical-align: middle;
+        padding: 14px;
+        border-top: 1px solid #eee;
+      }
+
+      .table-hover tbody tr:hover {
+        background-color: var(--hover-bg-color);
+      }
+
+      .table-avatar img {
+        border: 2px solid var(--primary-color);
+      }
+
+      .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 14px;
+        transition: background 0.3s;
+      }
+
+      .btn-primary:hover {
+        background-color: #7ea65d;
+        border-color: #7ea65d;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <!-- Header -->
+      <header class="header">{% include 'hospital_admin/labworker-navbar.html' %}</header>            
+      <!-- /Header -->
+			
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        {% include 'hospital_admin/labworker-sidebar.html' %}
+      </aside>
+      <!-- /Sidebar -->
+			
+      <!-- Page Wrapper -->
+      <div class="page-wrapper">
+        <div class="content container-fluid">
+          <div class="row">
+            <div class="col-md-12 d-flex">
+              <!-- Feed Activity -->
+              <div class="card card-table flex-fill">
+                <div class="card-header">
+                  <div class="row align-items-center">
+                    <div class="col-md-6">
+                      <h4 class="card-title mb-0">Patient List</h4>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="btn-group float-right" role="group">
+                        <a href="?show=pending" class="btn btn-sm {% if show_filter == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                          <i class="fas fa-clock"></i> Pending Reports
+                        </a>
+                        <a href="?show=completed" class="btn btn-sm {% if show_filter == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
+                          <i class="fas fa-check"></i> Completed
+                        </a>
+                        <a href="?show=all" class="btn btn-sm {% if show_filter == 'all' %}btn-info{% else %}btn-outline-info{% endif %}">
+                          <i class="fas fa-list"></i> All Patients
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p class="card-text mb-0">Create reports from <b>Prescriptions</b> or upload <b>PDF Reports</b> directly</p>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-hover table-center mb-0">
+                      <thead>
+                        <tr>													
+                          <th>Patient Name</th>
+                          <th>Phone</th>
+                          <th>Email</th>
+                          <th>Report Status</th>
+                          <th>Actions</th>														
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for p in patient %}
+                        <tr>
+                          <td>
+                            <h2 class="table-avatar">
+                              <a href="#" class="avatar avatar-sm mr-2">
+                                <img class="avatar-img rounded-circle" src="{{p.featured_image.url}}" alt="User Image">
+                              </a>
+                              <a href="{% url 'prescription-list' pk=p.patient_id %}">{{p.name}}</a>
+                            </h2>
+                          </td>
+                          <td>{{p.phone_number}}</td>
+                          <td>{{p.email}}</td>
+                          <td>
+                            {% if p.latest_report %}
+                              <span class="badge badge-{{ p.latest_report.get_status_display_color }}">
+                                {{ p.latest_report.get_status_display }}
+                              </span>
+                              {% if p.latest_report.priority != 'normal' %}
+                                <br><span class="badge badge-{{ p.latest_report.get_priority_display_color }} mt-1">
+                                  {{ p.latest_report.get_priority_display }}
+                                </span>
+                              {% endif %}
+                            {% else %}
+                              <span class="badge badge-secondary">No Report</span>
+                            {% endif %}
+                          </td>
+                          <td>
+                            {% if not p.latest_report or p.latest_report.status != 'completed' and p.latest_report.status != 'delivered' %}
+                            <div class="btn-group" role="group">
+                              <a href="{% url 'prescription-list' pk=p.patient_id %}" class="btn btn-primary btn-sm" title="Create Report from Prescription">
+                                <i class="fas fa-file-medical"></i> Create Report
+                              </a>
+                              <a href="{% url 'direct-upload-pdf-report' patient_id=p.patient_id %}" class="btn btn-success btn-sm ml-1" title="Upload PDF Report Directly">
+                                <i class="fas fa-upload"></i> Upload PDF
+                              </a>
+                            </div>
+                            {% else %}
+                              <span class="text-success">
+                                <i class="fas fa-check-circle"></i> Report Completed
+                              </span>
+                              {% if p.latest_report.report_pdf %}
+                                <br><a href="{% url 'download-report-pdf' p.latest_report.report_id %}" class="btn btn-outline-info btn-sm mt-1">
+                                  <i class="fas fa-download"></i> Download
+                                </a>
+                              {% endif %}
+                            {% endif %}
+                          </td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <!-- /Feed Activity -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /Page Wrapper -->
+    </div>
+    <!-- /Main Wrapper -->
+
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js'%}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/popper.min.js'%}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js'%}"></script>
+    <script src="{% static 'HealthStack-System/plugins/admin/slimscroll/jquery.slimscroll.min.js'%}"></script>
+    <script src="{% static 'HealthStack-System/plugins/admin/raphael/raphael.min.js'%}"></script>
+    <script src=" {% static 'HealthStack-System/plugins/admin/morris/morris.min.js'%}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/chart.morris.js'%}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/script.js'%}"></script>
+  </body>
+</html>

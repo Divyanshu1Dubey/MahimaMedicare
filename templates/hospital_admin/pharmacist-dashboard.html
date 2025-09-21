@@ -1,0 +1,816 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+  <title>Mahima Medicare</title>
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}"/>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+
+  <!-- Fontawesome CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}">
+  <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+
+  <!-- Feathericon CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css'%}">
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}" />
+
+  <style>
+    :root {
+      --accent-color: #95C270;
+    }
+
+    body {
+      background: #f9fafb;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    .page-title {
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+
+    .card {
+      border: none;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    .dash-widget-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      background: var(--accent-color);
+      color: #fff !important;
+    }
+
+    .dash-widget-header .dash-count h3 {
+      color: #333;
+      font-weight: 700;
+    }
+
+    .progress-bar {
+      background-color: var(--accent-color) !important;
+    }
+
+    .breadcrumb-item a {
+      color: var(--accent-color);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .breadcrumb-item.active {
+      color: #6c757d;
+    }
+
+    .table thead {
+      background: var(--accent-color);
+      color: #fff;
+    }
+    .table-hover tbody tr:hover {
+      background: rgba(149, 194, 112, 0.1);
+    }
+
+    .avatar-img {
+      border: 2px solid var(--accent-color);
+    }
+
+    .pagination .page-link {
+      color: var(--accent-color);
+    }
+
+    .pagination .page-item.active .page-link {
+      background-color: var(--accent-color);
+      border-color: var(--accent-color);
+      color: #fff;
+    }
+
+    .pagination .page-link:hover {
+      color: var(--accent-color);
+      background-color: rgba(149, 194, 112, 0.1);
+      border-color: var(--accent-color);
+    }
+
+    .pagination .page-item.disabled .page-link {
+      color: #6c757d;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Main Wrapper -->
+  <div class="main-wrapper">
+    <!-- Header -->
+    <header class="header">{% include 'hospital_admin/pharmacist-navbar.html' %}</header>
+    <!-- /Header -->
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      {% include 'hospital_admin/pharmacist-sidebar.html' %}
+    </aside>
+    <!-- /Sidebar -->
+
+    <!-- Page Wrapper -->
+    <div class="page-wrapper">
+      <div class="content container-fluid">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div class="row">
+            <div class="col-sm-12">
+              <h3 class="page-title">Welcome Pharmacist!</h3>
+
+              <div class="row">
+                <!-- Total Pharmacist -->
+                <div class="col-xl-3 col-sm-6 col-12">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="dash-widget-header">
+                        <span class="dash-widget-icon">
+                          <i class="fe fe-users"></i>
+                        </span>
+                        <div class="dash-count">
+                          <h3>{{total_pharmacist_count.count}}</h3>
+                        </div>
+                      </div>
+                      <div class="dash-widget-info">
+                        <h6 class="text-muted">Total Pharmacist</h6>
+                        <div class="progress progress-sm">
+                          <div class="progress-bar w-50"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Total Medicines -->
+                <div class="col-xl-3 col-sm-6 col-12">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="dash-widget-header">
+                        <span class="dash-widget-icon">
+                          <i class="fe fe-credit-card"></i>
+                        </span>
+                        <div class="dash-count">
+                          <h3>{{total_medicine_count.count}}</h3>
+                        </div>
+                      </div>
+                      <div class="dash-widget-info">
+                        <h6 class="text-muted">Total Medicines</h6>
+                        <div class="progress progress-sm">
+                          <div class="progress-bar w-50"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Total Orders -->
+                <div class="col-xl-3 col-sm-6 col-12">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="dash-widget-header">
+                        <span class="dash-widget-icon">
+                          <i class="fe fe-money"></i>
+                        </span>
+                        <div class="dash-count">
+                          <h3>{{total_order_count.count}}</h3>
+                        </div>
+                      </div>
+                      <div class="dash-widget-info">
+                        <h6 class="text-muted">Total Order</h6>
+                        <div class="progress progress-sm">
+                          <div class="progress-bar w-50"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Cart Items -->
+                <div class="col-xl-3 col-sm-6 col-12">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="dash-widget-header">
+                        <span class="dash-widget-icon">
+                          <i class="fe fe-folder"></i>
+                        </span>
+                        <div class="dash-count">
+                          <h3>{{total_cart_count.count}}</h3>
+                        </div>
+                      </div>
+                      <div class="dash-widget-info">
+                        <h6 class="text-muted">Number of Cart Item</h6>
+                        <div class="progress progress-sm">
+                          <div class="progress-bar w-50"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Inventory Stock Levels Graph Section -->
+              <div class="row mt-4">
+                <div class="col-12">
+                  <div class="card">
+                    <div class="card-header">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Stock Levels Tracking</h4>
+                        <div class="low-stock-widget d-flex align-items-center">
+                          <div class="legend-dot" style="width: 12px; height: 12px; background-color: #FF6384; border-radius: 50%; margin-right: 8px;"></div>
+                          <span class="text-muted" style="font-size: 14px; font-weight: 600;">Low Stock: {{ inventory_data.low_stock }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <div class="chart-container" style="position: relative; height: 400px;">
+                            <canvas id="stockLevelsChart"></canvas>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="row mt-3">
+                        <div class="col-md-12">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sales Summary & Expiring Alerts -->
+              <div class="row mt-4">
+                <!-- Sales Summary Cards -->
+                <div class="col-xl-8 col-lg-7">
+                  <div class="row">
+                    <div class="col-md-4">
+                      <div class="card">
+                        <div class="card-body">
+                          <div class="dash-widget-header">
+                            <span class="dash-widget-icon"><i class="fe fe-trending-up"></i></span>
+                            <div class="dash-count">
+                              <h3>₱ {{ sales_today }}</h3>
+                            </div>
+                          </div>
+                          <div class="dash-widget-info">
+                            <h6 class="text-muted">Sales Today</h6>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="card">
+                        <div class="card-body">
+                          <div class="dash-widget-header">
+                            <span class="dash-widget-icon"><i class="fe fe-bar-chart"></i></span>
+                            <div class="dash-count">
+                              <h3>₱ {{ sales_7d }}</h3>
+                            </div>
+                          </div>
+                          <div class="dash-widget-info">
+                            <h6 class="text-muted">Sales (7 days)</h6>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="card">
+                        <div class="card-body">
+                          <div class="dash-widget-header">
+                            <span class="dash-widget-icon"><i class="fe fe-activity"></i></span>
+                            <div class="dash-count">
+                              <h3>₱ {{ sales_30d }}</h3>
+                            </div>
+                          </div>
+                          <div class="dash-widget-info">
+                            <h6 class="text-muted">Sales (30 days)</h6>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Expiring Medicines Alert -->
+                <div class="col-xl-4 col-lg-5">
+                  <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                      <h4 class="card-title mb-0">Expiring Soon</h4>
+                      <span class="badge badge-danger">{{ expiring_medicines|length }}</span>
+                    </div>
+                    <div class="card-body" style="max-height: 340px; overflow-y: auto;">
+                      {% if expiring_medicines %}
+                        <ul class="list-group list-group-flush">
+                          {% for med in expiring_medicines %}
+                          <li class="list-group-item d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                              <img src="{{ med.featured_image.url }}" class="avatar-img rounded-circle mr-2" style="width:36px;height:36px;object-fit:cover;" alt=""/>
+                              <div>
+                                <div class="font-weight-600">{{ med.name }}</div>
+                                <small class="text-muted">Exp: {{ med.expiry_date }}</small>
+                              </div>
+                            </div>
+                            <span class="badge badge-danger">{{ med.stock_quantity }} in stock</span>
+                          </li>
+                          {% endfor %}
+                        </ul>
+                      {% else %}
+                        <div class="text-muted">No medicines expiring in the next 30 days.</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Top Selling Medicines -->
+              <div class="row mt-4">
+                <div class="col-12">
+                  <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                      <h4 class="card-title mb-0">Top Selling Medicines</h4>
+                    </div>
+                    <div class="card-body">
+                      <div class="table-responsive">
+                        <table class="table table-hover">
+                          <thead>
+                            <tr>
+                              <th>#</th>
+                              <th>Medicine</th>
+                              <th>Quantity Sold</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for row in top_selling %}
+                            <tr>
+                              <td>{{ forloop.counter }}</td>
+                              <td>{{ row.item__name }}</td>
+                              <td>{{ row.total_qty }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted">No sales yet.</td></tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Medicine List -->
+              <div class="page-header mt-4">
+                <div class="row">
+                  <div class="col-sm-12">
+                    <h3 class="page-title">List of Medicine</h3>
+                    <ul class="breadcrumb">
+                      <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+                      <li class="breadcrumb-item active">Medicine</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-sm-12">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="table-responsive">
+                        <table class="datatable table table-hover table-center mb-0">
+                          <thead>
+                            <tr>
+                              <th>Medicine Name</th>
+                              <th>Available Qty</th>
+                              <th>Medicine Type</th>
+                              <th>Medicine Category</th>
+                              <th>Price</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          {% for medicine in medicine %}
+                          <tr class="medicine-row {% if medicine.quantity <= 15 %}low-stock-row{% endif %}" data-stock="{{medicine.quantity}}">
+                            <td>
+                              <h2 class="table-avatar">
+                                <a href="" class="avatar avatar-sm mr-2">
+                                  <img class="avatar-img rounded-circle" src="{{medicine.featured_image.url}}" alt="Medicine Image">
+                                </a>
+                                <a href="">{{medicine.name}}</a>
+                              </h2>
+                            </td>
+                            <td>
+                              <span class="stock-quantity">{{medicine.quantity}}</span>
+                            </td>
+                            <td>{{medicine.medicine_type}}</td>
+                            <td>{{medicine.medicine_category}}</td>
+                            <td>{{medicine.price}}</td>
+                            <td>
+                              <form method="post" action="{% url 'decrease-medicine-stock' medicine.serial_number %}" class="inline-form d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="count" value="1" />
+                                <button type="button" class="btn btn-sm btn-outline-danger open-adjust-modal" data-action="decrease" data-medid="{{ medicine.serial_number }}" title="Decrease">
+                                  <i class="fe fe-minus"></i>
+                                </button>
+                              </form>
+                              <form method="post" action="{% url 'increase-medicine-stock' medicine.serial_number %}" class="inline-form d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="count" value="1" />
+                                <button type="button" class="btn btn-sm btn-outline-success open-adjust-modal" data-action="increase" data-medid="{{ medicine.serial_number }}" title="Increase">
+                                  <i class="fe fe-plus"></i>
+                                </button>
+                              </form>
+                            </td>
+                          </tr>
+                          {% endfor %}
+                        </table>
+                      </div>
+
+                      <!-- Pagination Controls -->
+                      {% if medicine.paginator.num_pages > 1 %}
+                      <div class="pagination-container mt-4">
+                        <nav aria-label="Page navigation">
+                          <ul class="pagination justify-content-center">
+                            {% if medicine.has_previous %}
+                            <li class="page-item">
+                              <a class="page-link" href="?page=1" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                              </a>
+                            </li>
+                            <li class="page-item">
+                              <a class="page-link" href="?page={{ medicine.previous_page_number }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                              </a>
+                            </li>
+                            {% endif %}
+
+                            {% for num in medicine.paginator.page_range %}
+                              {% if num == medicine.number %}
+                              <li class="page-item active">
+                                <span class="page-link">{{ num }}<span class="sr-only">(current)</span></span>
+                              </li>
+                              {% elif num > medicine.number|add:'-3' and num < medicine.number|add:'3' %}
+                              <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                              </li>
+                              {% endif %}
+                            {% endfor %}
+
+                            {% if medicine.has_next %}
+                            <li class="page-item">
+                              <a class="page-link" href="?page={{ medicine.next_page_number }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                              </a>
+                            </li>
+                            <li class="page-item">
+                              <a class="page-link" href="?page={{ medicine.paginator.num_pages }}" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                              </a>
+                            </li>
+                            {% endif %}
+                          </ul>
+                        </nav>
+                        <div class="text-center mt-2">
+                          <small class="text-muted">
+                            Showing {{ medicine.start_index }} to {{ medicine.end_index }} of {{ medicine.paginator.count }} entries
+                          </small>
+                        </div>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        <!-- /Page Header -->
+      </div>
+    </div>
+    <!-- /Page Wrapper -->
+  </div>
+
+  <!-- jQuery -->
+  <script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js'%}"></script>
+
+  <!-- Bootstrap Core JS -->
+  <script src="{% static 'HealthStack-System/js/admin/popper.min.js'%}"></script>
+  <script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js'%}"></script>
+
+  <!-- Slimscroll JS -->
+  <script src="{% static 'HealthStack-System/plugins/admin/slimscroll/jquery.slimscroll.min.js'%}"></script>
+  <script src="{% static 'HealthStack-System/plugins/admin/raphael/raphael.min.js'%}"></script>
+  <script src="{% static 'HealthStack-System/plugins/admin/morris/morris.min.js'%}"></script>
+  <script src="{% static 'HealthStack-System/js/admin/chart.morris.js'%}"></script>
+
+  <!-- Custom JS -->
+  <script src="{% static 'HealthStack-System/js/admin/script.js'%}"></script>
+
+  <!-- Chart JS -->
+  <script src="{% static 'HealthStack-System/js/admin/Chart.bundle.min.js'%}"></script>
+  <script src="{% static 'HealthStack-System/js/admin/raphael.min.js'%}"></script>
+  <script src="{% static 'HealthStack-System/js/admin/morris.min.js'%}"></script>
+  <script src="{% static 'HealthStack-System/js/admin/morris_init.js'%}"></script>
+
+  <!-- Medicine data for JavaScript -->
+  <script id="medicines-data" type="application/json">{{ medicines_json|safe }}</script>
+  
+  <script>
+    // Stock Levels Graph Chart
+    document.addEventListener('DOMContentLoaded', function() {
+      const ctx = document.getElementById('stockLevelsChart');
+      if (!ctx) return;
+      
+      // Get medicine data from JSON script
+      const medicinesDataElement = document.getElementById('medicines-data');
+      let medicineData = [];
+      
+      if (medicinesDataElement) {
+        try {
+          medicineData = JSON.parse(medicinesDataElement.textContent);
+        } catch (e) {
+          console.error('Error parsing medicine data:', e);
+          medicineData = [];
+        }
+      }
+      
+      // Filter to show top medicines or all if few
+      const displayData = medicineData.slice(0, 20);
+      
+      const labels = [];
+      const stockValues = [];
+      const backgroundColors = [];
+      
+      for (let i = 0; i < displayData.length; i++) {
+        labels.push(displayData[i].name);
+        stockValues.push(displayData[i].stock);
+        
+        if (displayData[i].stock >= 50) {
+          backgroundColors.push('#36A2EB'); // High Stock - Blue
+        } else if (displayData[i].stock >= 15) {
+          backgroundColors.push('#FFCE56'); // Medium Stock - Orange
+        } else {
+          backgroundColors.push('#FF6384'); // Low Stock - Red
+        }
+      }
+      
+      // Create bar chart
+      const stockLevelsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Stock Levels',
+            data: stockValues,
+            backgroundColor: backgroundColors,
+            borderColor: backgroundColors,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Stock Quantity'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Medicines'
+              },
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                generateLabels: function(chart) {
+                  return [
+                    {
+                      text: 'High Stock: 50+ units',
+                      fillStyle: '#36A2EB',
+                      strokeStyle: '#36A2EB',
+                      lineWidth: 0
+                    },
+                    {
+                      text: 'Medium Stock: 15-49 units',
+                      fillStyle: '#FFCE56',
+                      strokeStyle: '#FFCE56',
+                      lineWidth: 0
+                    },
+                    {
+                      text: 'Low Stock: <15 units',
+                      fillStyle: '#FF6384',
+                      strokeStyle: '#FF6384',
+                      lineWidth: 0
+                    }
+                  ];
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const value = context.parsed.y;
+                  let status;
+                  if (value >= 50) {
+                    status = 'High Stock';
+                  } else if (value >= 15) {
+                    status = 'Medium Stock';
+                  } else {
+                    status = 'Low Stock';
+                  }
+                  return context.label + ': ' + value + ' units (' + status + ')';
+                }
+              }
+            }
+          }
+        }
+      });
+      
+      stockLevelsChart.update();
+    });
+
+    // Low stock highlighting for medicine table
+    document.addEventListener('DOMContentLoaded', function() {
+      const medicineRows = document.querySelectorAll('.medicine-row');
+      const LOW_STOCK_THRESHOLD = 15;
+      
+      medicineRows.forEach(row => {
+        const stockQuantity = parseInt(row.dataset.stock);
+        if (stockQuantity <= LOW_STOCK_THRESHOLD) {
+          row.classList.add('low-stock-row');
+        }
+      });
+    });
+  </script>
+
+  <style>
+    .chart-legend {
+      padding: 20px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      margin-right: 10px;
+    }
+    
+    .card-header h4 {
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+    
+    /* Low stock highlighting styles - only for 15< units */
+    .low-stock-row {
+      background-color: rgba(220, 53, 69, 0.08) !important;
+      transition: background-color 0.3s ease;
+      border-left: 3px solid #dc3545;
+    }
+    
+    .low-stock-row .stock-quantity {
+      color: #dc3545 !important;
+      font-weight: bold;
+      background-color: #ffebee;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    
+    .low-stock-row:hover {
+      background-color: rgba(220, 53, 69, 0.15) !important;
+    }
+    
+    .badge-danger {
+      background-color: #dc3545;
+      color: white;
+      padding: 0.25em 0.4em;
+      font-size: 75%;
+      border-radius: 0.25rem;
+    }
+    
+    .low-stock-indicator {
+      position: relative;
+    }
+    
+    .low-stock-indicator::after {
+      content: "Low Stock";
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: #dc3545;
+      color: white;
+      font-size: 10px;
+      padding: 2px 5px;
+      border-radius: 3px;
+      opacity: 0.9;
+    }
+    
+    /* Normal stock styling */
+    .normal-stock-row .stock-quantity {
+      color: #28a745 !important;
+      font-weight: 500;
+    }
+    
+    .medium-stock-row .stock-quantity {
+      color: #ffc107 !important;
+      font-weight: 500;
+    }
+  </style>
+</body>
+</html>
+<!-- Bulk Adjust Modal -->
+<div class="modal fade" id="adjustModal" tabindex="-1" aria-labelledby="adjustModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="adjustModalLabel">Adjust Stock Quantity</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="adjustCount">Enter quantity</label>
+          <input type="number" id="adjustCount" class="form-control" value="1" min="1" />
+          <small class="form-text text-muted">Specify how many units to add or remove.</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmAdjust">Apply</button>
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+<script>
+  (function() {
+    // jQuery needed for Bootstrap modal already included by admin scripts
+    let targetForm = null;
+    let adjustInput = null;
+    document.addEventListener('DOMContentLoaded', function() {
+      adjustInput = document.getElementById('adjustCount');
+      const modalEl = $('#adjustModal');
+      // Open modal on any adjust button
+      $(document).on('click', '.open-adjust-modal', function() {
+        const btn = $(this);
+        // Find sibling form to submit
+        targetForm = btn.closest('form');
+        // Reset value
+        adjustInput.value = 1;
+        modalEl.modal('show');
+      });
+
+      // Confirm and submit
+      $('#confirmAdjust').on('click', function() {
+        if (!targetForm) return;
+        const count = parseInt(adjustInput.value || '1');
+        const finalCount = isNaN(count) || count < 1 ? 1 : count;
+        // Ensure hidden count input exists and set
+        let hidden = targetForm.find('input[name="count"]');
+        if (!hidden.length) {
+          hidden = $('<input>', { type: 'hidden', name: 'count', value: finalCount });
+          targetForm.append(hidden);
+        } else {
+          hidden.val(finalCount);
+        }
+        modalEl.modal('hide');
+        targetForm.trigger('submit');
+      });
+    });
+  })();
+</script>

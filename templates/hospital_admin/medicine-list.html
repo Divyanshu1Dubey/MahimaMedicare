@@ -1,0 +1,328 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+    
+<head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+        <title>Mahima - Medicine List</title>
+
+        <link
+        type="image/x-icon"
+        href="{% static 'HealthStack-System/images/Normal/favicon.png' %}"
+        rel="icon"
+        />
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+		<link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css'%}"> 
+		
+		<link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css'%}">
+		
+		<link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css'%}">
+		
+		<link rel="stylesheet" href="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.css'%}"> 
+		
+		<link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}"> 
+		<link rel="stylesheet"href="{% static 'HealthStack-System/css/Normal/search2.css' %}">
+		
+		<style>
+			:root {
+				--accent-color: #95C270;
+				--accent-hover: #82ab61;
+				--accent-light: #f4f8f0;
+				--danger-color: #f26161;
+				--danger-hover: #e04848;
+				--text-dark: #34495e;
+				--text-light: #7f8c8d;
+				--card-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+				--card-border-radius: 12px;
+				--body-bg: #f9fafb;
+			}
+	
+			body {
+				font-family: 'Poppins', sans-serif;
+				background-color: var(--body-bg);
+			}
+
+			/* --- Layout & Typography --- */
+			.page-wrapper {
+				background-color: var(--body-bg);
+			}
+			.page-header .page-title {
+				font-weight: 600;
+				color: var(--text-dark);
+			}
+			.page-header .breadcrumb-item.active {
+				color: var(--accent-color);
+			}
+			.page-header .breadcrumb-item a {
+				color: var(--text-light);
+			}
+
+			/* --- Sidebar --- */
+			.sidebar {
+				box-shadow: 0 0 20px rgba(0,0,0,0.05);
+			}
+			.sidebar-menu li.active > a {
+				background-color: var(--accent-color);
+				color: #fff;
+			}
+			.sidebar-menu li a:hover {
+				color: var(--accent-color);
+			}
+			.sidebar-menu > li > a {
+				color: #666;
+			}
+
+			/* --- Card --- */
+			.card {
+				border: none;
+				border-radius: var(--card-border-radius);
+				box-shadow: var(--card-shadow);
+				margin-bottom: 1.5rem;
+			}
+			
+			/* --- Search Bar --- */
+			.top-nav-search {
+				border-radius: 50px;
+				box-shadow: var(--card-shadow);
+			}
+			.top-nav-search input {
+				border-radius: 50px 0 0 50px;
+			}
+			.top-nav-search button {
+				border-radius: 0 50px 50px 0;
+				background-color: var(--accent-color);
+				color: #fff;
+			}
+			.top-nav-search button:hover {
+				background-color: var(--accent-hover);
+			}
+			.form-control:focus {
+				border-color: var(--accent-color);
+			}
+
+			/* --- Modern Data Table --- */
+			.table-responsive {
+				padding: 0.5rem;
+			}
+			.table thead th {
+				background-color: #f8f9fa;
+				border-bottom: 2px solid #e9ecef;
+				color: var(--text-dark);
+				font-weight: 600;
+				font-size: 0.8rem;
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
+			}
+			.table tbody tr:hover {
+				background-color: var(--accent-light);
+			}
+			.table td, .table th {
+				vertical-align: middle;
+				padding: 1rem;
+				white-space: nowrap;
+			}
+			.table-avatar .avatar {
+				width: 36px;
+				height: 36px;
+			}
+			.table-avatar > a {
+				color: var(--text-dark);
+				font-weight: 500;
+			}
+			.datatable {
+				border: none;
+			}
+
+			/* --- Action Buttons --- */
+			.btn {
+				border-radius: 8px;
+				font-weight: 500;
+				padding: 0.5rem 1rem;
+			}
+			.btn-primary {
+				background-color: var(--accent-color);
+				border-color: var(--accent-color);
+			}
+			.btn-primary:hover {
+				background-color: var(--accent-hover);
+				border-color: var(--accent-hover);
+			}
+			.btn-danger {
+				background-color: var(--danger-color);
+				border-color: var(--danger-color);
+			}
+			.btn-danger:hover {
+				background-color: var(--danger-hover);
+				border-color: var(--danger-hover);
+			}
+			.pagination .page-link {
+				color: var(--accent-color);
+			}
+
+			.pagination .page-item.active .page-link {
+				background-color: var(--accent-color);
+				border-color: var(--accent-color);
+				color: #fff;
+			}
+
+			.pagination .page-link:hover {
+				color: var(--accent-color);
+				background-color: rgba(149, 194, 112, 0.1);
+				border-color: var(--accent-color);
+			}
+
+			.pagination .page-item.disabled .page-link {
+				color: #6c757d;
+			}
+
+		</style>
+    </head>
+    <body>
+	
+		<div class="main-wrapper">
+			<header class="header">{% include 'hospital_admin/pharmacist-navbar.html' %}</header>
+          
+			<aside class="sidebar" id="sidebar">
+				{% include 'hospital_admin/pharmacist-sidebar.html' %} 
+			</aside>
+			<div class="page-wrapper">
+                <div class="content container-fluid">
+
+					<div class="page-header">
+						<div class="row align-items-center">
+							<div class="col-md-6">
+								<h3 class="page-title">List of Medicines</h3>
+								<ul class="breadcrumb">
+									<li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+									<li class="breadcrumb-item active">Medicine</li>
+								</ul>
+							</div>
+							<div class="col-md-6 text-right">
+								<div class="top-nav-search">
+								  <form action="{% url 'medicine-list' %}" method="GET">
+									<input type="text" class="form-control" placeholder="Search medicine" name="search_query" value="{{search_query}}">
+									<button class="btn" type="submit"><i class="fa fa-search"></i></button>
+								  </form>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						 <div class="col-sm-12">
+							 <div class="card">
+								 <div class="card-body">
+									 <div class="table-responsive">
+										<table class="datatable table table-hover table-center mb-0">
+											 <thead>
+												<tr>
+													<th>Medicine Name</th>
+													<th>Stock Qty</th>
+													<th>Type</th>
+													<th>Category</th>
+													<th>Price</th>
+													<th>Unit Qty</th>
+													<th class="text-center">Actions</th>
+												</tr>
+											 </thead>
+											 <tbody>
+											 {% for medicine in medicine %}
+												<tr>
+													<td>
+														<h2 class="table-avatar">
+															<a href="#" class="avatar avatar-sm mr-2"><img class="avatar-img rounded-circle" src="{{medicine.featured_image.url}}" alt="Medicine Image"></a>															
+															<a href="#">{{medicine.name}}</a>
+														</h2>
+													</td>
+													<td>{{medicine.stock_quantity}}</td>
+													<td>{{medicine.medicine_type}}</td>
+													<td>{{medicine.medicine_category}}</td>
+													<td>₱{{medicine.price}}</td>
+													<td>{{medicine.quantity}}</td>
+													<td class="text-center">
+														<a href="{% url 'edit-medicine' pk=medicine.serial_number %}" class="btn btn-sm btn-primary mr-1">Edit</a>
+														<a href="{% url 'delete-medicine' pk=medicine.serial_number %}" onclick="return confirm('Are you sure you want to Delete?');" class="btn btn-sm btn-danger">Delete</a>
+													</td>
+												</tr>
+											  {% endfor %}
+											</tbody>
+										</table>
+										<!-- Pagination Controls -->
+{% if medicine.paginator.num_pages > 1 %}
+<div class="pagination-container mt-4">
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if medicine.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ medicine.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in medicine.paginator.page_range %}
+                {% if num == medicine.number %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}<span class="sr-only">(current)</span></span>
+                </li>
+                {% elif num > medicine.number|add:'-3' and num < medicine.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if medicine.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ medicine.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ medicine.paginator.num_pages }}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    <div class="text-center mt-2">
+        <small class="text-muted">
+            Showing {{ medicine.start_index }} to {{ medicine.end_index }} of {{ medicine.paginator.count }} entries
+        </small>
+    </div>
+</div>
+{% endif %}
+
+									</div>
+								</div>
+							</div>	
+					    </div>
+					</div>
+				</div>
+			</div>
+			</div>
+		<script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js' %}"></script> 
+		
+		<script src="{% static 'HealthStack-System/js/admin/popper.min.js' %}"></script> 
+        <script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js' %}"></script> 
+		
+		<script src="{% static 'HealthStack-System/plugins/admin/slimscroll/jquery.slimscroll.min.js' %}"></script>
+		
+
+		
+		<script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
+		
+    </body>
+
+</html>

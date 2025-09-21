@@ -1,0 +1,280 @@
+{% load static %}
+<style>
+  :root {
+    --primary-color: #95C270;
+    --text-color: #2c3e50;
+    --bg-color: #fff;
+    --hover-bg-color: #e6f0c8;
+    --border-radius: 8px;
+    --transition-speed: 0.3s;
+  }
+  .profile-sidebar {
+    background: var(--bg-color);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+    padding: 1.5rem 1rem;
+    max-width: 400px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  .widget-profile {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .booking-doc-img img {
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid var(--primary-color);
+    transition: transform var(--transition-speed);
+  }
+  .booking-doc-img img:hover {
+    transform: scale(1.05);
+  }
+  .profile-det-info h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--text-color);
+  }
+  .patient-details h5 {
+  
+    margin-bottom: 0.5rem;
+    font-weight: 400;
+    font-size: 1rem;
+    color: var(--text-color);
+  }
+  .patient-details h5 i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+  }
+  .dashboard-menu.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .dashboard-menu.sidebar ul li {
+    margin-bottom: 0.5rem;
+  }
+  .dashboard-menu.sidebar ul li a {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.65rem 1rem;
+    border-radius: var(--border-radius);
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+  }
+  .dashboard-menu.sidebar ul li a i {
+    font-size: 1.3rem;
+    width: 25px;
+    text-align: center;
+    color: var(--primary-color);
+  }
+  .dashboard-menu.sidebar ul li a:hover {
+    background-color: var(--hover-bg-color);
+    color: var(--primary-color) !important;
+  }
+  .dashboard-menu.sidebar ul li.active > a {
+    background-color: var(--active-bg-color);
+    color: var(--primary-color) !important;
+    box-shadow: inset 4px 0 0 var(--primary-color);
+  }
+  /* Modal Styles */
+  .logout-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  .logout-modal-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    text-align: center;
+  }
+  .logout-modal h3 {
+    margin-top: 0;
+    color: var(--text-color);
+  }
+  .logout-modal p {
+    margin-bottom: 1.5rem;
+    color: #555;
+  }
+  .logout-modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+  .logout-modal-btn {
+    padding: 0.5rem 1.5rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all var(--transition-speed);
+    border: none;
+  }
+  .logout-modal-confirm {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  .logout-modal-confirm:hover {
+    background-color: #85b05c;
+  }
+  .logout-modal-cancel {
+    background-color: #f1f1f1;
+    color: var(--text-color);
+  }
+  .logout-modal-cancel:hover {
+    background-color: #e1e1e1;
+  }
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .profile-sidebar {
+      max-width: 100%;
+      padding: 1rem;
+    }
+    .dashboard-menu.sidebar ul li a {
+      font-size: 0.95rem;
+      padding: 0.55rem 0.8rem;
+    }
+    .dashboard-menu.sidebar ul li a i {
+      font-size: 1.1rem;
+      width: 20px;
+    }
+  }
+</style>
+<div class="profile-sidebar">
+  <div class="widget-profile pro-widget-content">
+    <div class="profile-info-widget">
+      <a href="#" class="booking-doc-img">
+        <img
+          src="{{ doctor.featured_image.url }}"
+          alt="User Image"
+        />
+      </a>
+      <div class="profile-det-info">
+        <h3>{{ doctor.name }}</h3>
+
+        <div class="patient-details">
+          <h5 class="mb-0">{{doctor.specialization.specialization_name}}</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="dashboard-widget">
+    <nav class="dashboard-menu sidebar">
+      <ul>
+        <li class="active">
+          <a href="{% url 'doctor-dashboard' %}">
+            <i class="fas fa-columns"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+
+        <li>
+        <a href="{% url 'doctor-profile' pk=doctor.doctor_id %}">
+          <i class="fas fa-user"></i>
+          <span>Profile</span>
+        </a>
+      </li>
+
+
+        <li>
+          <a href="{% url 'appointments'%}">
+            <i class="fas fa-user-circle"></i>
+            <span>Appoinment</span>
+          </a>
+        </li>
+        <li class="nav-item has-submenu">
+          
+            <a href="#" class="nav-link"><i class="fas fa-search"></i><span>Patient ID</span></a>
+              <ul class="submenu collapse" style="padding:19px">
+                  <!-- <li><a class="nav-link" href="#">Search</a></li> -->
+                  <form action="{% url 'patient-search' pk=doctor.doctor_id%}"   method="GET"> 
+                  <input type="text" class="form-control" placeholder="search" name="search_query" value="{{search_query}}">
+                  </form>
+                </ul>
+          
+        </li>
+        
+        <li>
+          <a href="{% url 'multiple-hospital' %}">
+            <i class="fas fa-hospital"></i>
+            <span>Multiple Hospital</span>
+          </a>
+      </li>
+        <li>
+          <a href="{% url 'my-patients' %}">
+            <i class="fas fa-user-injured"></i>
+            <span>My Patients</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'doctor-test-list'%}" target="_blank">
+            <i class="fas fa-hourglass-start"></i>
+            <span>Test Information</span>
+          </a>
+        </li>
+        <!-- <li>
+          <a href="invoices.html">
+            <i class="fas fa-file-invoice"></i>
+            <span>Invoices</span>
+          </a>
+        </li> -->
+        <!-- <li>
+          <a href="reviews.html">
+            <i class="fas fa-star"></i>
+            <span>Reviews</span>
+          </a>
+        </li> -->
+        <!-- <li>
+          <a href="chat-doctor.html">
+            <i class="fas fa-comments"></i>
+            <span>Message</span>
+            <small class="unread-msg">23</small>
+          </a>
+        </li> -->
+        <li>
+          <a
+            href="{% url 'doctor-profile-settings' %}"
+          >
+            <i class="fas fa-user-cog"></i>
+            <span>Profile Settings</span>
+          </a>
+        </li>
+        <!-- <li>
+          <a href="social-media.html">
+            <i class="fas fa-share-alt"></i>
+            <span>Social Media</span>
+          </a>
+        </li> -->
+        <li>
+          <a href="{% url 'doctor-change-password' pk=user.id%}">
+            <i class="fas fa-lock"></i>
+            <span>Change Password</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'doctor-logout'%}">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>

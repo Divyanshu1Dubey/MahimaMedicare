@@ -1,0 +1,225 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Mahima Medicare - Hospital Departments</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+
+    <link href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon">
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+    
+    <style>
+        :root {
+            --accent-color: #95C270;
+            --accent-hover: #7eb152;
+            --text-dark: #2c3e50;
+            --text-muted: #7f8c8d;
+            --bg-light: #f8f9fa;
+            --white-bg: #ffffff;
+            --border-color: #e_a_ecf0;
+            --card-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+            --font-family-main: 'Poppins', sans-serif;
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            font-family: var(--font-family-main);
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        /* --- Breadcrumb --- */
+        .breadcrumb-bar {
+            background-color: var(--accent-color);
+            padding: 1.25rem 0;
+        }
+
+        .breadcrumb-title {
+            color: var(--white-bg);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .breadcrumb-item a {
+            color: rgba(255, 255, 255, 0.85);
+            transition: color var(--transition-speed) ease;
+        }
+
+        .breadcrumb-item a:hover {
+            color: var(--white-bg);
+        }
+
+        .breadcrumb-item.active {
+            color: var(--white-bg);
+            font-weight: 500;
+        }
+
+        /* --- Page Title --- */
+        .page-title {
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--text-dark);
+        }
+        
+        .page-title::after {
+            content: '';
+            display: block;
+            width: 70px;
+            height: 4px;
+            background-color: var(--accent-color);
+            margin: 0.5rem auto 0;
+            border-radius: 2px;
+        }
+
+        /* --- Department Card --- */
+        .department-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            background-color: var(--white-bg);
+            transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .department-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .department-card .card-img-top {
+            height: 200px;
+            object-fit: cover;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .department-card .card-body {
+            text-align: center;
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .department-card .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        .department-card .btn-explore {
+            background-color: var(--accent-color);
+            color: var(--white-bg);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: background-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+            align-self: center;
+        }
+
+        .department-card .btn-explore:hover {
+            background-color: var(--accent-hover);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main-wrapper">
+
+        <header class="header">
+            {% if user.is_authenticated and user.is_patient %}
+                {% include 'patient_navbar.html' %}
+            {% elif user.is_authenticated and user.is_doctor %}
+                {% include 'doctor-navbar.html' %}
+            {% endif %}
+        </header>
+        <div class="breadcrumb-bar">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <nav aria-label="breadcrumb" class="page-breadcrumb">
+                            <ol class="breadcrumb">
+                                {% if user.is_authenticated and user.is_patient %}
+                                <li class="breadcrumb-item"><a href="{% url 'patient-dashboard' %}">Home</a></li>
+                                {% elif user.is_authenticated and user.is_doctor %}
+                                <li class="breadcrumb-item"><a href="{% url 'doctor-dashboard' %}">Home</a></li>
+                                {% endif %}
+                                <li class="breadcrumb-item active" aria-current="page">Hospital Departments</li>
+                            </ol>
+                        </nav>
+                        <h2 class="breadcrumb-title">Hospital Departments</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-5 col-lg-4 col-xl-3 theiaStickySidebar">
+                        {% if user.is_authenticated and user.is_patient %}
+                            {% include 'patient-sidebar.html' %}
+                        {% elif user.is_authenticated and user.is_doctor %}
+                            {% include 'doctor-sidebar.html' %}
+                        {% endif %}
+                        </div>
+
+                    <div class="col-md-7 col-lg-8 col-xl-9">
+                        <h2 class="page-title">All Departments</h2>
+                        
+                        <div class="row row-grid">
+                            {% for department in departments %}
+                            <div class="col-12 col-md-6 col-lg-4 d-flex align-items-stretch">
+                                <div class="card department-card">
+                                    <img alt="{{ department.hospital_department_name }}" src="{{ department.featured_image.url }}" class="card-img-top">
+                                    <div class="card-body">
+                                        <h3 class="card-title">{{ department.hospital_department_name }}</h3>
+                                        <a href="{% url 'hospital-doctor-list' pk=department.hospital_department_id %}" class="btn btn-explore">
+                                            Explore
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="col-12">
+                                <p class="text-center text-muted">No departments found.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% include 'footer.html' %}
+        </div>
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/ResizeSensor.js' %}"></script>
+    <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/theia-sticky-sidebar.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/Outside_assets/js/script.js' %}"></script>
+
+</body>
+</html>

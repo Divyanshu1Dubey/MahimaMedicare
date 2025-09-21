@@ -1,0 +1,227 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Payment Success - Mahima Medicare</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+    
+    <style>
+        .success-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 40px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .success-icon {
+            font-size: 80px;
+            color: #28a745;
+            margin-bottom: 20px;
+            animation: checkmark 0.6s ease-in-out;
+        }
+        
+        @keyframes checkmark {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .success-title {
+            color: #28a745;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .success-message {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        
+        .payment-details {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #95C270;
+        }
+        
+        .btn-dashboard {
+            background: #95C270;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-dashboard:hover {
+            background: #7ea65d;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <nav class="navbar navbar-expand-lg header-nav">
+                <div class="navbar-header">
+                    <a href="{% url 'hospital_home' %}" class="navbar-brand logo">
+                        <img src="{% static 'HealthStack-System/images/Normal/logo.png' %}" class="img-fluid" alt="Logo">
+                    </a>
+                </div>
+            </nav>
+        </header>
+        <!-- /Header -->
+        
+        <!-- Page Content -->
+        <div class="content">
+            <div class="container">
+                <div class="success-container">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    
+                    <h1 class="success-title">Payment Successful!</h1>
+                    <p class="success-message">
+                        Thank you for your payment. Your transaction has been completed successfully.
+                    </p>
+                    
+                    <div class="payment-details">
+                        <h4><i class="fas fa-receipt"></i> Payment Details</h4>
+                        <div class="detail-row">
+                            <span>Payment ID:</span>
+                            <span>{{ payment.razorpay_payment_id }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Order ID:</span>
+                            <span>{{ payment.razorpay_order_id }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Payment Type:</span>
+                            <span>{{ payment.get_payment_type_display }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Customer:</span>
+                            <span>{{ payment.name }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Date:</span>
+                            <span>{{ payment.created_at|date:"M d, Y H:i" }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Amount Paid:</span>
+                            <span>₹{{ payment.amount }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        {% if invoice %}
+                            <a href="{% url 'download-invoice' invoice.id %}" class="btn-dashboard">
+                                <i class="fas fa-download"></i> Download Invoice
+                            </a>
+                            <a href="{% url 'view-invoice' invoice.id %}" class="btn-secondary">
+                                <i class="fas fa-eye"></i> View Invoice
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'patient-dashboard' %}" class="btn-dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                        </a>
+                        
+                        {% if payment.payment_type == 'pharmacy' %}
+                            <a href="{% url 'pharmacy_shop' %}" class="btn-secondary">
+                                <i class="fas fa-pills"></i> Continue Shopping
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            A confirmation email has been sent to {{ payment.email }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Content -->
+    </div>
+
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <script>
+        // Auto redirect to dashboard after 10 seconds
+        setTimeout(function() {
+            window.location.href = "{% url 'patient-dashboard' %}";
+        }, 10000);
+    </script>
+</body>
+</html>

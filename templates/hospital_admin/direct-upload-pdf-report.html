@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+  <title>Upload PDF Report - Direct</title>
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}" />
+</head>
+<body>
+<div class="main-wrapper">
+  <header class="header">{% include 'hospital_admin/labworker-navbar.html' %}</header>
+  <aside class="sidebar" id="sidebar">{% include 'hospital_admin/labworker-sidebar.html' %}</aside>
+  <div class="page-wrapper">
+    <div class="content container-fluid">
+      <div class="page-header">
+        <div class="row">
+          <div class="col-sm-12">
+            <h3 class="page-title">Upload PDF Report</h3>
+            <ul class="breadcrumb">
+              <li class="breadcrumb-item"><a href="{% url 'labworker-dashboard' %}">Dashboard</a></li>
+              <li class="breadcrumb-item"><a href="{% url 'mypatient-list' %}">Patients</a></li>
+              <li class="breadcrumb-item active">Upload PDF Report</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-8 offset-md-2">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title mb-0">Patient Information</h4>
+            </div>
+            <div class="card-body">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <strong>Patient Name:</strong> {{ patient.name }}
+                </div>
+                <div class="col-md-6">
+                  <strong>Patient ID:</strong> {{ patient.patient_id }}
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <strong>Phone:</strong> {{ patient.phone_number }}
+                </div>
+                <div class="col-md-6">
+                  <strong>Email:</strong> {{ patient.email }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title mb-0">Upload PDF Report</h4>
+            </div>
+            <div class="card-body">
+              <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="test_name">Test Name <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" id="test_name" name="test_name" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="specimen_type">Specimen Type</label>
+                      <select class="form-control" id="specimen_type" name="specimen_type">
+                        <option value="">Select Specimen Type</option>
+                        <option value="Blood">Blood</option>
+                        <option value="Urine">Urine</option>
+                        <option value="Stool">Stool</option>
+                        <option value="Saliva">Saliva</option>
+                        <option value="Sputum">Sputum</option>
+                        <option value="Tissue">Tissue</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="collection_date">Collection Date</label>
+                      <input type="date" class="form-control" id="collection_date" name="collection_date">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="delivery_date">Delivery Date</label>
+                      <input type="date" class="form-control" id="delivery_date" name="delivery_date">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="other_information">Additional Information</label>
+                  <textarea class="form-control" id="other_information" name="other_information" rows="3" placeholder="Any additional notes or information..."></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="report_pdf">Select PDF Report <span class="text-danger">*</span></label>
+                  <input type="file" class="form-control-file" id="report_pdf" name="report_pdf" accept=".pdf" required>
+                  <small class="form-text text-muted">Please upload a PDF file only. Maximum file size: 10MB</small>
+                </div>
+                
+                <div class="form-group mt-4">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-upload"></i> Upload PDF Report
+                  </button>
+                  <a href="{% url 'mypatient-list' %}" class="btn btn-secondary ml-2">
+                    <i class="fas fa-arrow-left"></i> Back to Patient List
+                  </a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js'%}"></script>
+<script src="{% static 'HealthStack-System/js/admin/popper.min.js'%}"></script>
+<script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js'%}"></script>
+<script src="{% static 'HealthStack-System/js/admin/script.js'%}"></script>
+
+<script>
+document.getElementById('report_pdf').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    if (file.type !== 'application/pdf') {
+      alert('Please select a PDF file only.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      alert('File size must be less than 10MB.');
+      e.target.value = '';
+      return;
+    }
+  }
+});
+
+// Set today's date as default for delivery date
+document.getElementById('delivery_date').valueAsDate = new Date();
+</script>
+</body>
+</html>

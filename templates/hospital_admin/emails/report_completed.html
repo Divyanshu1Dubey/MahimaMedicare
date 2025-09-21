@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Report Ready - Mahima Medicare</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .success-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        .download-section {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .download-btn {
+            background: white;
+            color: #007bff;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: bold;
+            margin: 10px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎉 Great News!</h1>
+        <h2>Your Lab Report is Ready</h2>
+    </div>
+    
+    <div class="content">
+        <h3>Dear {{ patient.name }},</h3>
+        
+        <p>We're pleased to inform you that your lab report has been completed and is now ready for download!</p>
+        
+        <div class="info-box">
+            <h4>📋 Report Details:</h4>
+            <strong>Report ID:</strong> #{{ report.report_id }}<br>
+            <strong>Test Name:</strong> {{ report.test_name }}<br>
+            <strong>Completion Date:</strong> {{ report.delivery_date|date:"F d, Y at H:i" }}<br>
+            <strong>Status:</strong> <span class="success-badge">✅ Report Ready</span>
+        </div>
+        
+        {% if report.result %}
+        <div class="info-box">
+            <h4>🔬 Test Results Summary:</h4>
+            <strong>Result:</strong> {{ report.result }}<br>
+            {% if report.unit %}<strong>Unit:</strong> {{ report.unit }}<br>{% endif %}
+            {% if report.referred_value %}<strong>Reference Value:</strong> {{ report.referred_value }}<br>{% endif %}
+        </div>
+        {% endif %}
+        
+        <div class="download-section">
+            <h4>📄 Download Your Report</h4>
+            <p>Your complete lab report is available as a PDF document. Click the button below to download:</p>
+            <a href="#" class="download-btn">
+                📥 Download PDF Report
+            </a>
+            <p style="margin-top: 15px; font-size: 14px;">
+                You can also access your report anytime from your patient dashboard.
+            </p>
+        </div>
+        
+        <div class="info-box">
+            <h4>📝 Important Notes:</h4>
+            <ul>
+                <li>Please review your results carefully</li>
+                <li>Consult with your doctor for proper interpretation</li>
+                <li>Keep this report for your medical records</li>
+                <li>Contact us if you have any questions about the results</li>
+            </ul>
+        </div>
+        
+        <div class="info-box">
+            <h4>📞 Need Help?</h4>
+            <p>If you have any questions about your report or need assistance, please contact us:</p>
+            <ul>
+                <li><strong>Phone:</strong> 9348221721</li>
+                <li><strong>Email:</strong> info@mahimamedicare.com</li>
+                <li><strong>Address:</strong> ORTI, BAGHUNI, NEMALA, CUTTACK</li>
+                <li><strong>Hours:</strong> Monday - Saturday, 8:00 AM - 8:00 PM</li>
+            </ul>
+        </div>
+        
+        <p><strong>Thank you for choosing Mahima Medicare for your healthcare needs!</strong></p>
+    </div>
+    
+    <div class="footer">
+        <p>This is an automated notification from Mahima Medicare Lab Management System.</p>
+        <p>Report generated and sent automatically upon completion.</p>
+        <p>© {{ "now"|date:"Y" }} Mahima Medicare. All rights reserved.</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,303 @@
+{% load static %}
+<style>
+  :root {
+    --primary-color: #95C270;
+    --text-color: #2c3e50;
+    --bg-color: #fff;
+    --hover-bg-color: #e6f0c8;
+
+    --border-radius: 8px;
+    --transition-speed: 0.3s;
+  }
+
+  .profile-sidebar {
+    background: var(--bg-color);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+    padding: 1.5rem 1rem;
+    max-width: 400px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  .widget-profile {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .booking-doc-img img {
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid var(--primary-color);
+    transition: transform var(--transition-speed);
+  }
+
+  .booking-doc-img img:hover {
+    transform: scale(1.05);
+  }
+
+  .profile-det-info h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--text-color);
+  }
+
+  .patient-details h5 {
+    color: #555;
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin: 0.2rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .patient-details h5 i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+  }
+
+  .dashboard-menu.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .dashboard-menu.sidebar ul li {
+    margin-bottom: 0.5rem;
+  }
+
+  .dashboard-menu.sidebar ul li a {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.65rem 1rem;
+    border-radius: var(--border-radius);
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+  }
+
+  .dashboard-menu.sidebar ul li a i {
+    font-size: 1.3rem;
+    width: 25px;
+    text-align: center;
+    color: var(--primary-color);
+  }
+
+  .dashboard-menu.sidebar ul li a:hover {
+    background-color: var(--hover-bg-color);
+    color: var(--primary-color) !important;
+  }
+
+  .dashboard-menu.sidebar ul li.active > a {
+    background-color: var(--active-bg-color);
+    color: var(--primary-color) !important;
+    box-shadow: inset 4px 0 0 var(--primary-color);
+  }
+
+  /* Modal Styles */
+  .logout-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .logout-modal-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    text-align: center;
+  }
+
+  .logout-modal h3 {
+    margin-top: 0;
+    color: var(--text-color);
+  }
+
+  .logout-modal p {
+    margin-bottom: 1.5rem;
+    color: #555;
+  }
+
+  .logout-modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .logout-modal-btn {
+    padding: 0.5rem 1.5rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all var(--transition-speed);
+    border: none;
+  }
+
+  .logout-modal-confirm {
+    background-color: var(--primary-color);
+    color: white;
+  }
+
+  .logout-modal-confirm:hover {
+    background-color: #85b05c;
+  }
+
+  .logout-modal-cancel {
+    background-color: #f1f1f1;
+    color: var(--text-color);
+  }
+
+  .logout-modal-cancel:hover {
+    background-color: #e1e1e1;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .profile-sidebar {
+      max-width: 100%;
+      padding: 1rem;
+    }
+
+    .dashboard-menu.sidebar ul li a {
+      font-size: 0.95rem;
+      padding: 0.55rem 0.8rem;
+    }
+
+    .dashboard-menu.sidebar ul li a i {
+      font-size: 1.1rem;
+      width: 20px;
+    }
+  }
+</style>
+
+<div class="profile-sidebar">
+  <div class="widget-profile pro-widget-content">
+    <div class="profile-info-widget">
+      <a href="#" class="booking-doc-img">
+        <img src="{{ patient.featured_image.url }}" alt="User Image" loading="lazy" />
+      </a>
+      <div class="profile-det-info">
+        <h3>{{ patient.name }}</h3>
+        <div class="patient-details">
+          <h5>
+            <i class="fas fa-birthday-cake"></i> {{ patient.dob }}
+          </h5>
+          <h5>
+            <i class="fas fa-map-marker-alt"></i> {{ patient.address }}
+          </h5>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="dashboard-menu sidebar">
+    <ul>
+      <li class="{% if request.resolver_match.url_name == 'patient-dashboard' %}active{% endif %}">
+        <a href="{% url 'patient-dashboard' %}">
+          <i class="fas fa-columns"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="{% if request.resolver_match.url_name == 'search' %}active{% endif %}">
+        <a href="{% url 'search' %}">
+          <i class="fas fa-user-md"></i>
+          <span>Search Doctor</span>
+        </a>
+      </li>
+      <li class="{% if request.resolver_match.url_name == 'pharmacy_shop' %}active{% endif %}">
+        <a href="{% url 'pharmacy_shop' %}">
+          <i class="fas fa-capsules"></i>
+          <span>Medical Shop</span>
+        </a>
+      </li>
+      <li class="{% if request.resolver_match.url_name == 'multiple-hospital' %}active{% endif %}">
+        <a href="{% url 'multiple-hospital' %}">
+          <i class="fas fa-hospital"></i>
+          <span>Multiple Hospital</span>
+        </a>
+      </li>
+      <li class="{% if request.resolver_match.url_name == 'doctor-test-list' %}active{% endif %}">
+        <a href="{% url 'doctor-test-list' %}" target="_blank">
+          <i class="fas fa-hourglass-start"></i>
+          <span>Test Information</span>
+        </a>
+      </li>
+      <li class="{% if request.resolver_match.url_name == 'profile-settings' %}active{% endif %}">
+        <a href="{% url 'profile-settings' %}">
+          <i class="fas fa-user-cog"></i>
+          <span>Profile Settings</span>
+        </a>
+      </li>
+      <li class="{% if request.resolver_match.url_name == 'change-password' %}active{% endif %}">
+        <a href="{% url 'change-password' pk=user.id %}">
+          <i class="fas fa-lock"></i>
+          <span>Change Password</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" id="logout-link">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</div>
+
+<!-- Logout Confirmation Modal -->
+<div class="logout-modal" id="logoutModal">
+  <div class="logout-modal-content">
+    <h3>Confirm Logout</h3>
+    <p>Are you sure you want to log out of your account?</p>
+    <div class="logout-modal-buttons">
+      <button class="logout-modal-btn logout-modal-cancel" id="logoutCancel">Cancel</button>
+      <button class="logout-modal-btn logout-modal-confirm" id="logoutConfirm">Logout</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const logoutLink = document.getElementById('logout-link');
+    const logoutModal = document.getElementById('logoutModal');
+    const logoutCancel = document.getElementById('logoutCancel');
+    const logoutConfirm = document.getElementById('logoutConfirm');
+
+    logoutLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      logoutModal.style.display = 'flex';
+    });
+
+    logoutCancel.addEventListener('click', function() {
+      logoutModal.style.display = 'none';
+    });
+
+    logoutConfirm.addEventListener('click', function() {
+      window.location.href = "{% url 'logout' %}";
+    });
+
+    // Close modal when clicking outside the content
+    logoutModal.addEventListener('click', function(e) {
+      if (e.target === logoutModal) {
+        logoutModal.style.display = 'none';
+      }
+    });
+  });
+</script>

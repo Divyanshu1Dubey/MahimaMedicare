@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Lab Report Ready - Mahima Medicare</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #6f42c1;
+        }
+        .patient-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #28a745;
+            color: white;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🩺 Mahima Medicare</h1>
+        <h2>Patient Lab Report Notification</h2>
+    </div>
+    
+    <div class="content">
+        <h3>Dear Dr. {{ doctor.name }},</h3>
+        
+        <p>We would like to inform you that a lab report for your patient has been completed and is now available for review.</p>
+        
+        <div class="patient-info">
+            <h4>👤 Patient Information:</h4>
+            <strong>Name:</strong> {{ patient.name }}<br>
+            <strong>Patient ID:</strong> {{ patient.patient_id }}<br>
+            {% if patient.phone_number %}<strong>Phone:</strong> {{ patient.phone_number }}<br>{% endif %}
+            {% if patient.email %}<strong>Email:</strong> {{ patient.email }}<br>{% endif %}
+        </div>
+        
+        <div class="info-box">
+            <h4>📋 Report Details:</h4>
+            <strong>Report ID:</strong> #{{ report.report_id }}<br>
+            <strong>Test Name:</strong> {{ report.test_name }}<br>
+            <strong>Completion Date:</strong> {{ report.delivery_date|date:"F d, Y at H:i" }}<br>
+            <strong>Status:</strong> <span class="status-badge">✅ Completed</span>
+        </div>
+        
+        {% if report.result %}
+        <div class="info-box">
+            <h4>🔬 Test Results Summary:</h4>
+            <strong>Result:</strong> {{ report.result }}<br>
+            {% if report.unit %}<strong>Unit:</strong> {{ report.unit }}<br>{% endif %}
+            {% if report.referred_value %}<strong>Reference Value:</strong> {{ report.referred_value }}<br>{% endif %}
+        </div>
+        {% endif %}
+        
+        {% if report.technician_comments %}
+        <div class="info-box">
+            <h4>💬 Lab Technician Comments:</h4>
+            <p>{{ report.technician_comments }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="info-box">
+            <h4>📄 Report Access:</h4>
+            <p>The complete lab report is available for download and has been automatically sent to the patient. You can access the full report through the hospital management system.</p>
+            
+            <p><strong>Patient Notification Status:</strong></p>
+            <ul>
+                <li>✅ Patient has been notified via email</li>
+                <li>✅ Report is available in patient dashboard</li>
+                <li>✅ PDF report ready for download</li>
+            </ul>
+        </div>
+        
+        <div class="info-box">
+            <h4>📞 Contact Information:</h4>
+            <p>If you need any clarification about the test results or have questions, please contact our lab department:</p>
+            <ul>
+                <li><strong>Lab Phone:</strong> 9348221721</li>
+                <li><strong>Email:</strong> lab@mahimamedicare.com</li>
+                <li><strong>Lab Hours:</strong> Monday - Saturday, 7:00 AM - 7:00 PM</li>
+            </ul>
+        </div>
+        
+        <p>Thank you for your continued collaboration with Mahima Medicare.</p>
+        
+        <p><strong>Best regards,</strong><br>
+        Mahima Medicare Lab Department</p>
+    </div>
+    
+    <div class="footer">
+        <p>This is an automated notification from Mahima Medicare Lab Management System.</p>
+        <p>Sent automatically when patient lab reports are completed.</p>
+        <p>© {{ "now"|date:"Y" }} Mahima Medicare. All rights reserved.</p>
+    </div>
+</body>
+</html>

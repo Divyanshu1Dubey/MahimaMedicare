@@ -1,0 +1,101 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+  <title>Pharmacist Sales</title>
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}" />
+</head>
+<body>
+<div class="main-wrapper">
+  <header class="header">{% include 'hospital_admin/pharmacist-navbar.html' %}</header>
+  <aside class="sidebar" id="sidebar">{% include 'hospital_admin/pharmacist-sidebar.html' %}</aside>
+  <div class="page-wrapper">
+    <div class="content container-fluid">
+      <div class="page-header">
+        <div class="row">
+          <div class="col-sm-12">
+            <h3 class="page-title">Sales Summary</h3>
+          </div>
+        </div>
+      </div>
+
+      <form method="get" class="mb-3">
+        <div class="form-row">
+          <div class="col-auto">
+            <label>Start</label>
+            <input type="date" name="start" value="{{ start }}" class="form-control" />
+          </div>
+          <div class="col-auto">
+            <label>End</label>
+            <input type="date" name="end" value="{{ end }}" class="form-control" />
+          </div>
+          <div class="col-auto align-self-end">
+            <button class="btn btn-primary" type="submit"><i class="fa fa-search"></i> Filter</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="row mb-4">
+        <div class="col-md-4">
+          <div class="card"><div class="card-body"><h6>Total Revenue</h6><h3>₱ {{ total_revenue }}</h3></div></div>
+        </div>
+        <div class="col-md-4">
+          <div class="card"><div class="card-body"><h6>Total Orders</h6><h3>{{ total_orders }}</h3></div></div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header"><h4 class="card-title">Top Selling Medicines</h4></div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead><tr><th>#</th><th>Medicine</th><th>Qty Sold</th></tr></thead>
+              <tbody>
+              {% for row in top_items %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ row.item__name }}</td>
+                  <td>{{ row.total_qty }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="3" class="text-muted text-center">No data</td></tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h4 class="card-title">Orders</h4></div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead><tr><th>#</th><th>User</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody>
+                {% for o in orders %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ o.user.username }}</td>
+                  <td>{{ o.created }}</td>
+                  <td>₱ {{ o.get_totals }}</td>
+                  <td>{{ o.payment_status }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted">No orders</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

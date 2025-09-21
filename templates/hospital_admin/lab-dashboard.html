@@ -1,0 +1,384 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Lab Dashboard - Mahima Medicare</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+    
+    <style>
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stats-card.pending {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .stats-card.processing {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .stats-card.completed {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        .stats-card.delivered {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stats-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .urgent-badge {
+            background: #dc3545;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .stat-badge {
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .recent-activity {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .activity-item {
+            padding: 10px;
+            border-left: 3px solid #007bff;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .activity-item.completed {
+            border-left-color: #28a745;
+        }
+        
+        .activity-item.processing {
+            border-left-color: #ffc107;
+        }
+        
+        .activity-item.pending {
+            border-left-color: #dc3545;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <a href="{% url 'lab-dashboard' %}" class="logo">
+                    <img src="{% static 'HealthStack-System/images/Normal/logo.png' %}" alt="Logo">
+                </a>
+            </div>
+            
+            <a href="javascript:void(0);" id="toggle_btn">
+                <i class="fe fe-text-align-left"></i>
+            </a>
+            
+            <ul class="nav user-menu">
+                <li class="nav-item dropdown has-arrow">
+                    <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
+                        <span class="user-img">
+                            <img class="rounded-circle" src="{% static 'HealthStack-System/images/Normal/user.jpg' %}" width="31" alt="{{ lab_worker.name }}">
+                        </span>
+                    </a>
+                    <div class="dropdown-menu">
+                        <div class="user-header">
+                            <div class="avatar avatar-sm">
+                                <img src="{% static 'HealthStack-System/images/Normal/user.jpg' %}" alt="User Image" class="avatar-img rounded-circle">
+                            </div>
+                            <div class="user-text">
+                                <h6>{{ lab_worker.name }}</h6>
+                                <p class="text-muted mb-0">Lab Technician</p>
+                            </div>
+                        </div>
+                        <a class="dropdown-item" href="{% url 'admin-logout' %}">Logout</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- /Header -->
+        
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-inner slimscroll">
+                <div id="sidebar-menu" class="sidebar-menu">
+                    <ul>
+                        <li class="menu-title">
+                            <span>Lab Management</span>
+                        </li>
+                        <li class="active">
+                            <a href="{% url 'lab-dashboard' %}"><i class="fe fe-home"></i> <span>Dashboard</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'lab-report-queue' %}"><i class="fe fe-list"></i> <span>Report Queue</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'my-assigned-reports' %}"><i class="fe fe-user"></i> <span>My Reports</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'mypatient-list' %}"><i class="fe fe-users"></i> <span>Patients</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'test-list' %}"><i class="fe fe-clipboard"></i> <span>Test Catalog</span></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- /Sidebar -->
+        
+        <!-- Page Wrapper -->
+        <div class="page-wrapper">
+            <div class="content container-fluid">
+                
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h3 class="page-title">Lab Dashboard</h3>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item active">Dashboard</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Page Header -->
+                
+                <!-- Statistics Cards -->
+                <div class="row">
+                    <div class="col-xl-3 col-sm-6 col-12">
+                        <div class="stats-card pending">
+                            <div class="stats-number">{{ pending_reports }}</div>
+                            <div class="stats-label">Pending Reports</div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-sm-6 col-12">
+                        <div class="stats-card processing">
+                            <div class="stats-number">{{ processing_reports }}</div>
+                            <div class="stats-label">Processing</div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-sm-6 col-12">
+                        <div class="stats-card completed">
+                            <div class="stats-number">{{ completed_reports }}</div>
+                            <div class="stats-label">Completed</div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-sm-6 col-12">
+                        <div class="stats-card delivered">
+                            <div class="stats-number">{{ delivered_reports }}</div>
+                            <div class="stats-label">Delivered</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- My Work Statistics -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">My Work Statistics</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h3 class="text-warning">{{ my_pending }}</h3>
+                                            <p class="mb-0">My Pending</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h3 class="text-info">{{ my_processing }}</h3>
+                                            <p class="mb-0">Processing</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h3 class="text-success">{{ my_completed }}</h3>
+                                            <p class="mb-0">Completed</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h3 class="text-primary">{{ weekly_completed }}</h3>
+                                            <p class="mb-0">This Week</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions and Recent Activity -->
+                <div class="row">
+                    <!-- Quick Actions -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Quick Actions</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6 mb-3">
+                                        <a href="{% url 'lab-report-queue' %}?assigned=unassigned" class="btn btn-primary btn-block">
+                                            <i class="fe fe-plus"></i> View Unassigned
+                                            {% if unassigned_reports > 0 %}
+                                                <span class="badge badge-light ml-2">{{ unassigned_reports }}</span>
+                                            {% endif %}
+                                        </a>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <a href="{% url 'my-assigned-reports' %}?status=active" class="btn btn-success btn-block">
+                                            <i class="fe fe-user"></i> My Active Reports
+                                        </a>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <a href="{% url 'lab-report-queue' %}?priority=urgent" class="btn btn-warning btn-block">
+                                            <i class="fe fe-alert-triangle"></i> Urgent Reports
+                                        </a>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <a href="{% url 'mypatient-list' %}" class="btn btn-info btn-block">
+                                            <i class="fe fe-users"></i> View Patients
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Urgent Reports -->
+                        {% if urgent_reports %}
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title text-danger">
+                                    <i class="fe fe-alert-triangle"></i> Urgent Reports
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                {% for report in urgent_reports %}
+                                <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                                    <div>
+                                        <strong>Report #{{ report.report_id }}</strong><br>
+                                        <small>{{ report.patient.name }} - {{ report.test_name }}</small>
+                                    </div>
+                                    <div>
+                                        {% if report.priority == 'stat' %}
+                                            <span class="urgent-badge">STAT</span>
+                                        {% else %}
+                                            <span class="stat-badge">URGENT</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Recent Activity</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="recent-activity">
+                                    {% for report in recent_reports %}
+                                    <div class="activity-item {{ report.status }}">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <strong>Report #{{ report.report_id }}</strong>
+                                                <br>
+                                                <small>{{ report.patient.name }} - {{ report.test_name }}</small>
+                                            </div>
+                                            <div class="text-right">
+                                                <span class="badge badge-{{ report.get_status_display_color }}">
+                                                    {{ report.get_status_display }}
+                                                </span>
+                                                <br>
+                                                <small class="text-muted">{{ report.updated_at|timesince }} ago</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <p class="text-muted text-center">No recent activity</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        <!-- /Page Wrapper -->
+        
+    </div>
+    
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <!-- Slimscroll JS -->
+    <script src="{% static 'HealthStack-System/plugins/Normal/slimscroll/jquery.slimscroll.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/script.js' %}"></script>
+    
+    <script>
+        // Auto-refresh dashboard every 30 seconds
+        setInterval(function() {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>

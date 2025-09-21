@@ -1,0 +1,552 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Report Details - Mahima Medicare</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+    
+    <style>
+        .detail-card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .status-timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 20px;
+        }
+        
+        .timeline-item:before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e9ecef;
+        }
+        
+        .timeline-item.active:before {
+            background: #28a745;
+        }
+        
+        .timeline-item.current:before {
+            background: #007bff;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 123, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
+        }
+        
+        .timeline-item:not(:last-child):after {
+            content: '';
+            position: absolute;
+            left: -17px;
+            top: 20px;
+            width: 2px;
+            height: calc(100% - 8px);
+            background: #e9ecef;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .info-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .info-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 1.1rem;
+            color: #495057;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+        
+        .action-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <a href="{% url 'lab-dashboard' %}" class="logo">
+                    <img src="{% static 'HealthStack-System/images/Normal/logo.png' %}" alt="Logo">
+                </a>
+            </div>
+            
+            <a href="javascript:void(0);" id="toggle_btn">
+                <i class="fe fe-text-align-left"></i>
+            </a>
+            
+            <ul class="nav user-menu">
+                <li class="nav-item dropdown has-arrow">
+                    <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
+                        <span class="user-img">
+                            <img class="rounded-circle" src="{% static 'HealthStack-System/images/Normal/user.jpg' %}" width="31" alt="{{ lab_worker.name }}">
+                        </span>
+                    </a>
+                    <div class="dropdown-menu">
+                        <div class="user-header">
+                            <div class="avatar avatar-sm">
+                                <img src="{% static 'HealthStack-System/images/Normal/user.jpg' %}" alt="User Image" class="avatar-img rounded-circle">
+                            </div>
+                            <div class="user-text">
+                                <h6>{{ lab_worker.name }}</h6>
+                                <p class="text-muted mb-0">Lab Technician</p>
+                            </div>
+                        </div>
+                        <a class="dropdown-item" href="{% url 'admin-logout' %}">Logout</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- /Header -->
+        
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-inner slimscroll">
+                <div id="sidebar-menu" class="sidebar-menu">
+                    <ul>
+                        <li class="menu-title">
+                            <span>Lab Management</span>
+                        </li>
+                        <li>
+                            <a href="{% url 'lab-dashboard' %}"><i class="fe fe-home"></i> <span>Dashboard</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'lab-report-queue' %}"><i class="fe fe-list"></i> <span>Report Queue</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'my-assigned-reports' %}"><i class="fe fe-user"></i> <span>My Reports</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'mypatient-list' %}"><i class="fe fe-users"></i> <span>Patients</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'test-list' %}"><i class="fe fe-clipboard"></i> <span>Test Catalog</span></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- /Sidebar -->
+        
+        <!-- Page Wrapper -->
+        <div class="page-wrapper">
+            <div class="content container-fluid">
+                
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h3 class="page-title">Report #{{ report.report_id }} Details</h3>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{% url 'lab-dashboard' %}">Dashboard</a></li>
+                                <li class="breadcrumb-item"><a href="{% url 'lab-report-queue' %}">Report Queue</a></li>
+                                <li class="breadcrumb-item active">Report Details</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Page Header -->
+                
+                <div class="row">
+                    <!-- Report Information -->
+                    <div class="col-lg-8">
+                        <!-- Basic Information -->
+                        <div class="detail-card">
+                            <h5 class="mb-4">
+                                <i class="fe fe-file-text text-primary"></i> Report Information
+                            </h5>
+                            
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <div class="info-label">Report ID</div>
+                                    <div class="info-value">#{{ report.report_id }}</div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">Patient Name</div>
+                                    <div class="info-value">{{ report.patient.name }}</div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">Test Name</div>
+                                    <div class="info-value">{{ report.test_name|default:"Not specified" }}</div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">Priority</div>
+                                    <div class="info-value">
+                                        <span class="badge badge-{{ report.get_priority_display_color }}">
+                                            {{ report.get_priority_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">Current Status</div>
+                                    <div class="info-value">
+                                        <span class="badge badge-{{ report.get_status_display_color }}">
+                                            {{ report.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">Assigned Technician</div>
+                                    <div class="info-value">
+                                        {% if report.assigned_technician %}
+                                            {{ report.assigned_technician.name }}
+                                        {% else %}
+                                            <span class="text-muted">Unassigned</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Specimen Information -->
+                        {% if report.specimen_type or report.collection_date %}
+                        <div class="detail-card">
+                            <h5 class="mb-4">
+                                <i class="fe fe-droplet text-info"></i> Specimen Information
+                            </h5>
+                            
+                            <div class="info-grid">
+                                {% if report.specimen_id %}
+                                <div class="info-item">
+                                    <div class="info-label">Specimen ID</div>
+                                    <div class="info-value">{{ report.specimen_id }}</div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if report.specimen_type %}
+                                <div class="info-item">
+                                    <div class="info-label">Specimen Type</div>
+                                    <div class="info-value">{{ report.specimen_type }}</div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if report.collection_date %}
+                                <div class="info-item">
+                                    <div class="info-label">Collection Date</div>
+                                    <div class="info-value">{{ report.collection_date|date:"M d, Y H:i" }}</div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if report.receiving_date %}
+                                <div class="info-item">
+                                    <div class="info-label">Receiving Date</div>
+                                    <div class="info-value">{{ report.receiving_date|date:"M d, Y H:i" }}</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Test Results -->
+                        {% if report.result or report.unit or report.referred_value %}
+                        <div class="detail-card">
+                            <h5 class="mb-4">
+                                <i class="fe fe-activity text-success"></i> Test Results
+                            </h5>
+                            
+                            <div class="info-grid">
+                                {% if report.result %}
+                                <div class="info-item">
+                                    <div class="info-label">Result</div>
+                                    <div class="info-value">{{ report.result }}</div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if report.unit %}
+                                <div class="info-item">
+                                    <div class="info-label">Unit</div>
+                                    <div class="info-value">{{ report.unit }}</div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if report.referred_value %}
+                                <div class="info-item">
+                                    <div class="info-label">Reference Value</div>
+                                    <div class="info-value">{{ report.referred_value }}</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Comments and Notes -->
+                        {% if report.technician_comments or report.lab_notes or report.other_information %}
+                        <div class="detail-card">
+                            <h5 class="mb-4">
+                                <i class="fe fe-message-square text-warning"></i> Comments & Notes
+                            </h5>
+                            
+                            {% if report.technician_comments %}
+                            <div class="alert alert-info">
+                                <strong>Technician Comments:</strong><br>
+                                {{ report.technician_comments }}
+                            </div>
+                            {% endif %}
+                            
+                            {% if report.lab_notes %}
+                            <div class="alert alert-secondary">
+                                <strong>Lab Notes:</strong><br>
+                                {{ report.lab_notes }}
+                            </div>
+                            {% endif %}
+                            
+                            {% if report.other_information %}
+                            <div class="alert alert-light">
+                                <strong>Additional Information:</strong><br>
+                                {{ report.other_information }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Status Timeline & Actions -->
+                    <div class="col-lg-4">
+                        <!-- Status Timeline -->
+                        <div class="detail-card">
+                            <h5 class="mb-4">
+                                <i class="fe fe-clock text-primary"></i> Status Timeline
+                            </h5>
+                            
+                            <div class="status-timeline">
+                                <div class="timeline-item {% if report.status == 'pending' %}current{% elif report.status != 'pending' %}active{% endif %}">
+                                    <h6>Pending Collection</h6>
+                                    <small class="text-muted">{{ report.uploaded_at|date:"M d, Y H:i" }}</small>
+                                </div>
+                                
+                                <div class="timeline-item {% if report.status == 'collected' %}current{% elif report.status in 'processing,completed,delivered' %}active{% endif %}">
+                                    <h6>Sample Collected</h6>
+                                    {% if report.status != 'pending' %}
+                                        <small class="text-muted">Sample ready for processing</small>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="timeline-item {% if report.status == 'processing' %}current{% elif report.status in 'completed,delivered' %}active{% endif %}">
+                                    <h6>Under Processing</h6>
+                                    {% if report.status in 'processing,completed,delivered' %}
+                                        <small class="text-muted">Analysis in progress</small>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="timeline-item {% if report.status == 'completed' %}current{% elif report.status == 'delivered' %}active{% endif %}">
+                                    <h6>Report Ready</h6>
+                                    {% if report.status in 'completed,delivered' %}
+                                        <small class="text-muted">{{ report.delivery_date|date:"M d, Y H:i" }}</small>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="timeline-item {% if report.status == 'delivered' %}current active{% endif %}">
+                                    <h6>Report Delivered</h6>
+                                    {% if report.status == 'delivered' %}
+                                        <small class="text-muted">Patient notified</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        {% if report.assigned_technician.technician_id == lab_worker.technician_id or not report.assigned_technician %}
+                        <div class="action-section">
+                            <h5 class="mb-4">
+                                <i class="fe fe-zap"></i> Quick Actions
+                            </h5>
+                            
+                            {% if not report.assigned_technician %}
+                            <a href="{% url 'assign-report-to-me' report.report_id %}" class="btn btn-light btn-block mb-3">
+                                <i class="fe fe-user-plus"></i> Assign to Me
+                            </a>
+                            {% endif %}
+                            
+                            {% if report.assigned_technician.technician_id == lab_worker.technician_id %}
+                                {% if report.status == 'collected' %}
+                                <button type="button" class="btn btn-light btn-block mb-3" onclick="updateStatus('processing')">
+                                    <i class="fe fe-play"></i> Start Processing
+                                </button>
+                                {% endif %}
+                                
+                                {% if report.status == 'processing' %}
+                                <a href="{% url 'upload-report-pdf' report.report_id %}" class="btn btn-light btn-block mb-3">
+                                    <i class="fe fe-upload"></i> Upload Report PDF
+                                </a>
+                                {% endif %}
+                                
+                                {% if report.status in 'processing,completed' %}
+                                <button type="button" class="btn btn-outline-light btn-block mb-3" data-toggle="modal" data-target="#updateStatusModal">
+                                    <i class="fe fe-edit"></i> Update Status & Notes
+                                </button>
+                                {% endif %}
+                            {% endif %}
+                            
+                            {% if report.report_pdf %}
+                            <a href="{% url 'download-report-pdf' report.report_id %}" class="btn btn-outline-light btn-block mb-3">
+                                <i class="fe fe-download"></i> Download PDF Report
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Notification Status -->
+                        <div class="detail-card">
+                            <h6 class="mb-3">
+                                <i class="fe fe-bell text-info"></i> Notification Status
+                            </h6>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Patient Notified:</span>
+                                {% if report.patient_notified %}
+                                    <span class="badge badge-success">Yes</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">No</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Doctor Notified:</span>
+                                {% if report.doctor_notified %}
+                                    <span class="badge badge-success">Yes</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">No</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        <!-- /Page Wrapper -->
+        
+    </div>
+    
+    <!-- Update Status Modal -->
+    <div class="modal fade" id="updateStatusModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form method="POST" action="{% url 'update-report-status' report.report_id %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Report Status</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select name="status" class="form-control" required>
+                                <option value="collected" {% if report.status == 'collected' %}selected{% endif %}>Sample Collected</option>
+                                <option value="processing" {% if report.status == 'processing' %}selected{% endif %}>Under Processing</option>
+                                <option value="completed" {% if report.status == 'completed' %}selected{% endif %}>Report Ready</option>
+                                <option value="delivered" {% if report.status == 'delivered' %}selected{% endif %}>Report Delivered</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Technician Comments</label>
+                            <textarea name="technician_comments" class="form-control" rows="3" placeholder="Add your comments...">{{ report.technician_comments }}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Lab Notes (Internal)</label>
+                            <textarea name="lab_notes" class="form-control" rows="2" placeholder="Internal lab notes...">{{ report.lab_notes }}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/script.js' %}"></script>
+    
+    <script>
+        function updateStatus(status) {
+            if (confirm('Are you sure you want to update this report status?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{% url "update-report-status" report.report_id %}';
+                
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = 'csrfmiddlewaretoken';
+                csrfToken.value = '{{ csrf_token }}';
+                
+                const statusInput = document.createElement('input');
+                statusInput.type = 'hidden';
+                statusInput.name = 'status';
+                statusInput.value = status;
+                
+                form.appendChild(csrfToken);
+                form.appendChild(statusInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+</body>
+</html>

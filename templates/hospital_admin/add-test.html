@@ -1,0 +1,196 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mahima Medicare</title>
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" />
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}" />
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}" />
+
+  <!-- Feathericon CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css'%}" />
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}" />
+
+  <style>
+    :root {
+      --primary-color: #95C270;
+      --hover-bg-color: #e6f0c8;
+      --card-hover-color: rgba(149,194,112,0.1);
+      --transition-speed: 0.3s;
+      --card-radius: 12px;
+    }
+
+    body {
+      background-color: #f8f9fa;
+      color: #333;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background-color: var(--primary-color) !important;
+      border-color: var(--primary-color) !important;
+      color: #fff !important;
+      transition: all var(--transition-speed) ease-in-out;
+      font-weight: 500;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .btn-primary:hover {
+      background-color: #fff !important;
+      color: var(--primary-color) !important;
+      border-color: var(--primary-color) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(149, 194, 112, 0.4);
+    }
+
+        /* Cards */
+    .card {
+      border-radius: var(--card-radius);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      transition: box-shadow var(--transition-speed), background var(--transition-speed);
+      margin-bottom: 20px;
+    }
+
+    .card:hover {
+      /* Remove transform to prevent moving */
+      background-color: var(--card-hover-color);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
+    .card-header {
+      background-color: var(--primary-color);
+      color: #fff !important;
+      font-weight: bold;
+      border-radius: var(--card-radius) var(--card-radius) 0 0;
+      font-size: 1.2rem;
+    }
+
+    /* Form input */
+    input.form-control {
+      border-radius: 8px;
+      border: 1px solid var(--primary-color);
+      transition: all var(--transition-speed);
+    }
+    input.form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 8px rgba(149, 194, 112, 0.4);
+      outline: none;
+    }
+
+    /* Labels */
+    label {
+      font-weight: 500;
+      color: #333;
+    }
+
+    /* Error message */
+    .error-message {
+      color: #dc3545;
+      font-size: 0.9em;
+      margin-top: 5px;
+      display: none;
+    }
+
+    /* Submit Button Section */
+    .submit-section {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Main Wrapper -->
+  <div class="main-wrapper">
+    <!-- Header -->
+    <header class="header">{% include 'hospital_admin/labworker-navbar.html' %}</header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">{% include 'hospital_admin/labworker-sidebar.html' %}</aside>
+
+    <!-- Page Wrapper -->
+    <div class="page-wrapper">
+      <div class="content container-fluid">
+
+        <!-- Page Header -->
+        <div class="page-header">
+          <div class="row">
+            <div class="col-sm-12">
+              <h3 class="page-title">Create New Test!</h3>
+              <ul class="breadcrumb">
+                <li class="breadcrumb-item active"></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12 d-flex">
+            <div class="card flex-fill">
+              <div class="card-header">
+                <h4 class="card-title">Test Details</h4>
+              </div>
+              <div class="card-body">
+                <form id="add-test-form" action="{% url 'add-test' %}" method="POST" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  <div class="row form-row">
+                    <!-- Test Name -->
+                    <div class="col-md-12 mb-3">
+                      <label for="test_name">Test Name</label>
+                      <input id="test_name" class="form-control" type="text" name="test_name" required>
+                    </div>
+                    <!-- Test Price -->
+                    <div class="col-md-12 mb-3">
+                      <label for="test_price">Test Price</label>
+                      <input id="test_price" class="form-control" type="text" name="test_price" required>
+                      <div id="price-error" class="error-message">Please enter numbers only.</div>
+                    </div>
+                  </div>
+                  <div class="submit-section">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- /Page Wrapper -->
+  </div>
+  <!-- /Main Wrapper -->
+
+  <!-- JS -->
+  <script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js'%}"></script>
+  <script src="{% static 'HealthStack-System/js/admin/popper.min.js'%}"></script>
+  <script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js'%}"></script>
+
+  <script>
+    // Validate that only numbers are allowed in Test Price
+    document.getElementById('add-test-form').addEventListener('submit', function(e) {
+      var priceInput = document.getElementById('test_price').value.trim();
+      var errorMsg = document.getElementById('price-error');
+      var regex = /^[0-9]+(\.[0-9]{1,2})?$/; // allows integers or decimals
+
+      if (!regex.test(priceInput)) {
+        e.preventDefault();
+        errorMsg.style.display = 'block';
+      } else {
+        errorMsg.style.display = 'none';
+      }
+    });
+  </script>
+
+</body>
+</html>

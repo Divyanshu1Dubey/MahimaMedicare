@@ -1,0 +1,277 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Mahima - Medicine Details</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Josefin+Sans:400,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Great+Vibes" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'HealthStack-System\pharmacy_assets\css\open-iconic-bootstrap.min.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System\pharmacy_assets\css\animate.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System\pharmacy_assets\css\owl.carousel.min.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System\pharmacy_assets\css\owl.theme.default.min.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System\pharmacy_assets\css\magnific-popup.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System\pharmacy_assets\css\aos.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System\pharmacy_assets\css\ionicons.min.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System\pharmacy_assets\css\bootstrap-datepicker.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System\pharmacy_assets\css\jquery.timepicker.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System\pharmacy_assets\css\flaticon.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System\pharmacy_assets\css\icomoon.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System\pharmacy_assets\css\style.css'%}">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    
+    <style>
+        :root {
+            --accent: #95C270;
+            --accent-dark: #7aa556;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --bg-light-gray: #f8f9fa;
+            --border-color: #ecf0f1;
+            --white: #ffffff;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        /* --- STICKY FOOTER FIX --- */
+        html {
+            height: 100%;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-light-gray);
+            color: var(--text-dark);
+        }
+        .main-content {
+            flex: 1 0 auto;
+        }
+        .footer-modern {
+            flex-shrink: 0;
+        }
+
+        /* --- Modern Navbar --- */
+        .navbar-modern {
+            background-color: var(--white) !important;
+            box-shadow: var(--shadow);
+            padding: 0.75rem 1rem;
+        }
+        .navbar-modern .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-dark) !important;
+        }
+        .navbar-modern .navbar-brand small {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--accent);
+            display: block;
+            margin-top: -5px;
+        }
+        .navbar-modern .nav-link {
+            font-weight: 500;
+            color: var(--text-light) !important;
+            transition: var(--transition);
+        }
+        .navbar-modern .nav-link:hover, .navbar-modern .nav-item.active .nav-link {
+            color: var(--accent) !important;
+        }
+        .navbar-modern .cart-link {
+            position: relative;
+        }
+        .navbar-modern .cart-badge {
+            position: absolute;
+            top: 5px;
+            right: 0px;
+            background-color: var(--accent);
+            color: var(--white);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- Main Content Section --- */
+        .page-section {
+            padding: 4rem 0;
+        }
+        .product-image-card {
+            background: var(--white);
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        .product-image-card img {
+            max-height: 450px;
+            width: auto;
+            max-width: 100%;
+            border-radius: 8px;
+        }
+        .product-details h3 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .product-details .price {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin: 1rem 0;
+        }
+        .product-details p {
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+
+        /* --- Add to Cart Button --- */
+        .btn-add-to-cart {
+            background-color: var(--accent);
+            color: var(--white);
+            font-weight: 600;
+            padding: 12px 30px;
+            width: 100%;
+            max-width: 300px;
+            border: none;
+            border-radius: 8px;
+            transition: var(--transition);
+            letter-spacing: 0.5px;
+            margin-top: 1.5rem;
+            text-transform: uppercase;
+        }
+        .btn-add-to-cart:hover {
+            background-color: var(--accent-dark);
+            box-shadow: 0 7px 15px rgba(122, 165, 86, 0.3);
+            transform: translateY(-2px);
+            color: var(--white);
+        }
+        
+        /* --- Modern Footer --- */
+    /* --- Modern Footer --- */
+    .footer-modern {
+      background-color: var(--text-dark);
+      color: #a0aec0;
+      padding: 4rem 0;
+      font-size: 0.95rem;
+    }
+    .footer-modern h5 {
+      color: var(--white);
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+    .footer-modern p { color: #a0aec0; }
+    .footer-modern a {
+      color: #a0aec0;
+      transition: var(--transition);
+    }
+    .footer-modern a:hover {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .footer-modern .list-unstyled li {
+      margin-bottom: 0.75rem;
+    }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-modern">
+        <div class="container">
+            <a class="navbar-brand" href="">PureCare<small>Medical Shop</small></a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="icon-menu"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a href="{% url 'patient-dashboard' %}" class="nav-link">Dashboard</a></li>
+                    <li class="nav-item active"><a href="{% url 'pharmacy_shop' %}" class="nav-link">Shop</a></li>
+                    <li class="nav-item cart-link">
+                        <a href="{% url 'pharmacy-cart' %}" class="nav-link">
+                            <span class="icon icon-shopping_cart" style="font-size: 1.2rem;"></span>
+                            <span class="cart-badge">{{ order.count_cart_items }}</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="page-section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 mb-5">
+                        <div class="product-image-card">
+                            <img src="{{ medicines.featured_image.url }}" class="img-fluid" alt="Medicine Picture">
+                        </div>
+                    </div>
+                    <div class="col-lg-6 product-details pl-md-5">
+                        <h3>{{ medicines.name }}</h3>
+                        <p class="price"><span>{{ medicines.price }} Rupees</span></p>
+                        <p>{{ medicines.description }}</p>
+                        <p><a href="{% url 'add-to-cart' pk=medicines.serial_number %}" class="btn btn-add-to-cart">Add to Cart</a></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+<footer class="footer-modern">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+          <h5>PureCare<small class="ms-2" style="color: var(--accent); font-size: 1rem;"> Medical Shop</small></h5>
+          <p class="mt-3">Your trusted online pharmacy for quality medicines and healthcare products. We provide convenient access to health solutions right at your doorstep.</p>
+        </div>
+        <div class="col-lg-2 col-md-6 mb-4 mb-lg-0"></div>
+        <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+          <h5>Quick Links</h5>
+          <ul class="list-unstyled">
+            <li><a href="{% url 'patient-dashboard' %}">Dashboard</a></li>
+            <li><a href="#">Shop</a></li>
+            <li><a href="{% url 'pharmacy-cart' %}">My Cart</a></li>
+            <li><a href="#">About Us</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+          <h5>Contact Us</h5>
+          <ul class="list-unstyled">
+            <li class="d-flex"><strong class="me-2">A: </strong> <span> Philippines</span></li>
+            <li class="d-flex"><strong class="me-2">P: </strong><a href="tel://+23923929210"> +63 9123 12345</a></li>
+            <li class="d-flex"><strong class="me-2">E: </strong><a href="mailto:info@MahimaMedicare.com"> info@MahimaMedicare.com</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/bootstrap.min.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/jquery-migrate-3.0.1.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/jquery.easing.1.3.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/jquery.waypoints.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/jquery.stellar.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/jquery.magnific-popup.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/aos.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/jquery.animateNumber.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/jquery.timepicker.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/scrollax.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/main.js' %}"></script>
+
+</body>
+</html>

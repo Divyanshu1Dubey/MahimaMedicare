@@ -1,0 +1,401 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+    <title>Mahima Medicare</title>
+
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}" />
+
+    <link rel="stylesheet"
+        href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}" />
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}" />
+
+    <style>
+        :root {
+            --accent-color: #95C270;
+            --secondary-color: #556B5C;
+            --background-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --subtle-text-color: #6c757d;
+            --border-color: #e9ecef;
+            --primary-button-bg: var(--accent-color);
+            --primary-button-hover: #81b361;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--card-bg);
+        }
+
+        /* Header & Breadcrumb */
+        .header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .breadcrumb-bar {
+            background-color: var(--accent-color);
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .breadcrumb-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--card-bg);
+        }
+
+        .page-breadcrumb .breadcrumb-item a {
+            color: var(--card-bg);
+            transition: color 0.3s;
+        }
+
+        .page-breadcrumb .breadcrumb-item a:hover {
+            color: var(--accent-color);
+        }
+
+        .page-breadcrumb .breadcrumb-item.active {
+            color: var(--card-bg);
+            font-weight: 500;
+        }
+
+        /* Page Content */
+        .content {
+            padding-top: 30px;
+        }
+
+        /* Profile Sidebar */
+        .theiaStickySidebar .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: none;
+        }
+
+        /* Appointments List */
+        .appointments .appointment-list {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .appointments .appointment-list:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transform: translateY(-5px);
+        }
+
+        .appointments .profile-info-widget {
+            display: flex;
+            align-items: center;
+        }
+
+        .appointments .booking-doc-img {
+            margin-right: 20px;
+        }
+
+        .appointments .booking-doc-img img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            padding: 2px;
+        }
+
+        .appointments .profile-det-info h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .appointments .profile-det-info h3 a {
+            color: var(--text-color);
+            transition: color 0.3s;
+        }
+
+        .appointments .profile-det-info h3 a:hover {
+            color: var(--accent-color);
+        }
+
+        .appointments .patient-details h5 {
+            font-size: 1rem;
+            color: var(--subtle-text-color);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .appointments .patient-details h5 i {
+            color: var(--accent-color);
+            margin-right: 10px;
+            width: 18px;
+            text-align: center;
+        }
+
+        .appointment-action {
+            display: flex;
+            gap: 10px;
+        }
+
+        .appointment-action .btn {
+            border-radius: 50px;
+            padding: 8px 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .appointment-action .bg-info-light {
+            background-color: #e3f2fd;
+            color: #03a9f4;
+            border-color: #e3f2fd;
+        }
+
+        .appointment-action .bg-success-light {
+            background-color: #e8f5e9;
+            color: #4caf50;
+            border-color: #e8f5e9;
+        }
+
+        .appointment-action .bg-danger-light {
+            background-color: #ffebee;
+            color: #f44336;
+            border-color: #ffebee;
+        }
+
+        .badge-pill {
+            padding: 0.5em 1em;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .bg-warning-light {
+            background-color: #fff8e1;
+            color: #ffc107;
+        }
+
+        .bg-success-light {
+            background-color: #e8f5e9;
+            color: #4caf50;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            border: 1px dashed var(--border-color);
+            color: var(--subtle-text-color);
+            font-size: 1.2rem;
+        }
+
+        /* Modal styling */
+        .custom-modal .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .info-details li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1rem;
+        }
+        .info-details li:last-child {
+            border-bottom: none;
+        }
+        .info-details .title {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        .info-details .text {
+            float: right;
+            color: var(--subtle-text-color);
+        }
+    </style>
+
+    </head>
+
+<body>
+    <div class="main-wrapper">
+        <header class="header">{% include 'doctor-navbar.html' %}</header>
+        <div class="breadcrumb-bar">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-md-12 col-12">
+                        <nav aria-label="breadcrumb" class="page-breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                    <a href="index-2.html">Home</a>
+                                </li>
+                                <li class="breadcrumb-item active" aria-current="page">
+                                    Appointments
+                                </li>
+                            </ol>
+                        </nav>
+                        <h2 class="breadcrumb-title">Appointments</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-5 col-lg-4 col-xl-3 theiaStickySidebar">
+                        <div>{% include 'doctor-sidebar.html' %}</div>
+                        </div>
+
+                    <div class="col-md-7 col-lg-8 col-xl-9">
+                        <div class="appointments">
+                            {% if appointments %}
+                            {% for app in appointments %}
+                            <div class="appointment-list">
+                                <div class="profile-info-widget">
+                                    <a href="patient-profile.html" class="booking-doc-img">
+                                        <img src="{{app.patient.featured_image.url}}" alt="User Image" />
+                                    </a>
+                                    <div class="profile-det-info">
+                                        <h3><a href="{%url 'patient-profile' pk=app.patient.patient_id%}">{{app.patient.name}}</a></h3>
+
+                                        <div class="patient-details">
+                                            <h5>
+                                                <i class="fas fa-file-invoice"></i> Appointment Serial No:
+                                                <span class="text-info">#PT{{app.serial_number}}</span>
+                                            </h5>
+                                            <h5>
+                                                <i class="far fa-clock"></i> {{app.date}} {{app.time}}
+                                            </h5>
+                                            <h5>
+                                                <i class="fas fa-briefcase-medical"></i> Purpose:
+                                                {{app.appointment_type}}
+                                            </h5>
+                                            <h5>
+                                                <i class="fas fa-map-marker-alt"></i> {{app.patient.address}}
+                                            </h5>
+                                            <h5>
+                                                <i class="fas fa-envelope"></i> {{app.patient.email}}
+                                            </h5>
+
+                                            <h5>
+                                                <i class="fas fa-money-check-alt"></i> 
+                                                {% if app.payment_status|lower == 'pending' %}
+                                                <span class="badge badge-pill bg-warning-light">Payment Status: Pending</span>
+                                                {% elif app.payment_status|lower == 'valid' or app.payment_status|lower == 'paid' %}
+                                                <span class="badge badge-pill bg-success-light">Payment Status: Paid</span>
+                                                {% elif app.payment_status|lower == 'failed' %}
+                                                <span class="badge badge-pill bg-danger-light">Payment Status: Failed</span>
+                                                {% elif app.payment_status|lower == 'cancelled' %}
+                                                <span class="badge badge-pill bg-danger-light">Payment Status: Cancelled</span>
+                                                {% else %}
+                                                <span class="badge badge-pill bg-secondary-light">Payment Status: {{ app.payment_status|default:"Unknown" }}</span>
+                                                {% endif %}
+                                            </h5>
+                                            <h5 class="mb-0">
+                                                <i class="fas fa-phone"></i> 0{{app.patient.phone_number}}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="appointment-action">
+                                    <a href="#" class="btn btn-sm bg-info-light" data-toggle="modal"
+                                        data-target="#appt_details">
+                                        <i class="far fa-eye"></i> View
+                                    </a>
+                                    <a href="{% url 'accept-appointment' pk=app.id %}"
+                                        onclick="return confirm('Accept appointment?');"
+                                        class="btn btn-sm bg-success-light">
+                                        <i class="fas fa-check"></i> Accept
+                                    </a>
+                                    <a href="{% url 'reject-appointment' pk=app.id %}"
+                                        onclick="return confirm('Reject Appointment?');"
+                                        class="btn btn-sm bg-danger-light">
+                                        <i class="fas fa-times"></i> Reject
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <div class="empty-state">
+                                <p>There are no appointments for now.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+        {% include 'footer.html' %}
+        </div>
+    <div class="modal fade custom-modal" id="appt_details">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Appointment Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul class="info-details">
+                        <li>
+                            <div class="details-header">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <span class="title">#APT0001</span>
+                                        <span class="text">21 Oct 2019 10:00 AM</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-right">
+                                            <button type="button" class="btn bg-success-light btn-sm" id="topup_status">
+                                                Completed
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="title">Status:</span>
+                            <span class="text">Completed</span>
+                        </li>
+                        <li>
+                            <span class="title">Confirm Date:</span>
+                            <span class="text">29 Jun 2019</span>
+                        </li>
+                        <li>
+                            <span class="title">Paid Amount</span>
+                            <span class="text">$450</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/ResizeSensor.js' %}"></script>
+    <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/theia-sticky-sidebar.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/js/Normal/script.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/Outside_assets/js/script.js' %}"></script>
+</body>
+
+</html>

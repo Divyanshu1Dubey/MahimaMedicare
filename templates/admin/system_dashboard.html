@@ -1,0 +1,497 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Dashboard - Mahima Medicare</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .metric-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-healthy { background: #28a745; }
+        .status-warning { background: #ffc107; }
+        .status-error { background: #dc3545; }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        .alert-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .alert-critical {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-left-color: #17a2b8;
+            color: #0c5460;
+        }
+        
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            z-index: 1000;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-0">🏥 System Dashboard</h1>
+                        <p class="text-muted">Real-time system monitoring and analytics</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="refreshDashboard()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="btn btn-success" onclick="runHealthCheck()">
+                            <i class="fas fa-heartbeat"></i> Health Check
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Status -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <h5><i class="fas fa-server text-primary"></i> System Status</h5>
+                    <div class="row mt-3">
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <span class="status-indicator status-healthy" id="db-status"></span>
+                                <span>Database</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <span class="status-indicator status-healthy" id="app-status"></span>
+                                <span>Application</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <span class="status-indicator status-healthy" id="payment-status"></span>
+                                <span>Payment Gateway</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <span class="status-indicator status-healthy" id="email-status"></span>
+                                <span>Email Service</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Key Metrics -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card">
+                    <div class="metric-number" id="total-users">0</div>
+                    <div class="metric-label">Total Users</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                    <div class="metric-number" id="active-patients">0</div>
+                    <div class="metric-label">Active Patients</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
+                    <div class="metric-number" id="pending-reports">0</div>
+                    <div class="metric-label">Pending Reports</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card" style="background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);">
+                    <div class="metric-number" id="total-revenue">₹0</div>
+                    <div class="metric-label">Total Revenue</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="row mb-4">
+            <div class="col-lg-6">
+                <div class="dashboard-card">
+                    <h5><i class="fas fa-chart-line text-success"></i> Daily Reports Trend</h5>
+                    <div class="chart-container">
+                        <canvas id="reportsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="dashboard-card">
+                    <h5><i class="fas fa-chart-pie text-info"></i> Report Status Distribution</h5>
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Alerts and Recent Activity -->
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="dashboard-card">
+                    <h5><i class="fas fa-exclamation-triangle text-warning"></i> System Alerts</h5>
+                    <div id="system-alerts">
+                        <div class="alert-item alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>System Status:</strong> All services running normally
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="dashboard-card">
+                    <h5><i class="fas fa-clock text-primary"></i> Recent Activity</h5>
+                    <div id="recent-activity">
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <div>
+                                <small class="text-muted">Loading recent activity...</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Performance Metrics -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <h5><i class="fas fa-tachometer-alt text-danger"></i> Performance Metrics</h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary" id="cpu-usage">0%</h4>
+                                <small class="text-muted">CPU Usage</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-success" id="memory-usage">0%</h4>
+                                <small class="text-muted">Memory Usage</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning" id="disk-usage">0%</h4>
+                                <small class="text-muted">Disk Usage</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info" id="response-time">0ms</h4>
+                                <small class="text-muted">Avg Response Time</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Refresh Indicator -->
+    <div class="refresh-indicator" id="refresh-indicator" style="display: none;">
+        <i class="fas fa-sync-alt fa-spin"></i> Updating...
+    </div>
+    
+    <!-- Scripts -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <script>
+        // Dashboard data
+        let reportsChart, statusChart;
+        
+        // Initialize dashboard
+        $(document).ready(function() {
+            initializeCharts();
+            loadDashboardData();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadDashboardData, 30000);
+        });
+        
+        function initializeCharts() {
+            // Reports trend chart
+            const reportsCtx = document.getElementById('reportsChart').getContext('2d');
+            reportsChart = new Chart(reportsCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Daily Reports',
+                        data: [],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Status distribution chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            statusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'Processing', 'Completed', 'Delivered'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            '#ffc107',
+                            '#17a2b8',
+                            '#28a745',
+                            '#6c757d'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+        
+        function loadDashboardData() {
+            showRefreshIndicator();
+            
+            // Load system stats
+            $.get('/api/stats/', function(data) {
+                updateMetrics(data);
+                updateCharts(data);
+                updateSystemStatus(data);
+            }).fail(function() {
+                showAlert('error', 'Failed to load system statistics');
+            });
+            
+            // Load health check
+            $.get('/api/health/', function(data) {
+                updateHealthStatus(data);
+            }).fail(function() {
+                showAlert('error', 'Health check failed');
+            });
+            
+            hideRefreshIndicator();
+        }
+        
+        function updateMetrics(data) {
+            $('#total-users').text(data.users.total);
+            $('#active-patients').text(data.patients.total);
+            $('#pending-reports').text(data.lab.pending_reports);
+            $('#total-revenue').text('₹' + data.payments.total_revenue.toLocaleString());
+        }
+        
+        function updateCharts(data) {
+            // Update reports chart with mock data (replace with real data)
+            const last7Days = [];
+            const reportCounts = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                last7Days.push(date.toLocaleDateString());
+                reportCounts.push(Math.floor(Math.random() * 20) + 5);
+            }
+            
+            reportsChart.data.labels = last7Days;
+            reportsChart.data.datasets[0].data = reportCounts;
+            reportsChart.update();
+            
+            // Update status chart
+            statusChart.data.datasets[0].data = [
+                data.lab.pending_reports,
+                Math.floor(data.lab.total_reports * 0.2),
+                data.lab.completed_this_week,
+                Math.floor(data.lab.total_reports * 0.4)
+            ];
+            statusChart.update();
+        }
+        
+        function updateSystemStatus(data) {
+            // Mock system status (replace with real health check data)
+            $('#db-status').removeClass().addClass('status-indicator status-healthy');
+            $('#app-status').removeClass().addClass('status-indicator status-healthy');
+            $('#payment-status').removeClass().addClass('status-indicator status-healthy');
+            $('#email-status').removeClass().addClass('status-indicator status-healthy');
+            
+            // Mock performance metrics
+            $('#cpu-usage').text('45%');
+            $('#memory-usage').text('62%');
+            $('#disk-usage').text('34%');
+            $('#response-time').text('120ms');
+        }
+        
+        function updateHealthStatus(data) {
+            const alertsContainer = $('#system-alerts');
+            alertsContainer.empty();
+            
+            if (data.status === 'healthy') {
+                alertsContainer.append(`
+                    <div class="alert-item alert-info">
+                        <i class="fas fa-check-circle"></i>
+                        <strong>System Status:</strong> All services running normally
+                    </div>
+                `);
+            } else {
+                alertsContainer.append(`
+                    <div class="alert-item alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>System Status:</strong> ${data.status}
+                    </div>
+                `);
+            }
+            
+            if (data.issues && data.issues.length > 0) {
+                data.issues.forEach(issue => {
+                    alertsContainer.append(`
+                        <div class="alert-item alert-critical">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <strong>Alert:</strong> ${issue}
+                        </div>
+                    `);
+                });
+            }
+        }
+        
+        function showRefreshIndicator() {
+            $('#refresh-indicator').show();
+        }
+        
+        function hideRefreshIndicator() {
+            setTimeout(() => {
+                $('#refresh-indicator').hide();
+            }, 1000);
+        }
+        
+        function refreshDashboard() {
+            loadDashboardData();
+        }
+        
+        function runHealthCheck() {
+            showRefreshIndicator();
+            $.get('/api/health/', function(data) {
+                updateHealthStatus(data);
+                showAlert('success', 'Health check completed successfully');
+            }).fail(function() {
+                showAlert('error', 'Health check failed');
+            }).always(function() {
+                hideRefreshIndicator();
+            });
+        }
+        
+        function showAlert(type, message) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                </div>
+            `;
+            
+            $('body').prepend(alertHtml);
+            
+            setTimeout(() => {
+                $('.alert').alert('close');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,931 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+  <title>Mahima - Patient Dashboard</title>
+
+  <!-- Favicons -->
+  <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}" />
+
+  <!-- Fontawesome CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}" />
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}" />
+
+  <style>
+    /* Root variables */
+    :root {
+      --primary-green: #95C270;
+      --primary-green-dark: #7ab34f;
+      --text-dark: #333;
+      --text-muted: #666;
+      --bg-light: #fff;
+      --border-light: #eaeaea;
+      --shadow-light: rgba(0, 0, 0, 0.05);
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9fafb;
+      color: var(--text-dark);
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Breadcrumb Bar */
+    .breadcrumb-bar {
+      background: var(--primary-green);
+      padding: 1.2rem 1rem;
+      box-shadow: 0 3px 8px var(--shadow-light);
+      border-radius: 0 0 12px 12px;
+      margin-bottom: 1.5rem;
+    }
+    .breadcrumb-bar .breadcrumb {
+      background: transparent;
+      padding: 0;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #e9f7cf;
+      font-size: 0.95rem;
+    }
+    .breadcrumb-bar .breadcrumb-item a {
+      color: #f0f6e9;
+      transition: color 0.3s ease;
+    }
+    .breadcrumb-bar .breadcrumb-item a:hover {
+      color: #d1e89b;
+      text-decoration: underline;
+    }
+    .breadcrumb-bar .breadcrumb-item.active {
+      color: #e9f7cf;
+      cursor: default;
+    }
+    .breadcrumb-title {
+      color: #fff;
+      font-weight: 700;
+      font-size: 2rem;
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+
+    /* Card */
+    .card {
+      background: var(--bg-light);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      box-shadow: 0 4px 8px var(--shadow-light);
+      margin-bottom: 2rem;
+      transition: box-shadow 0.3s ease;
+    }
+    .card:hover {
+      box-shadow: 0 8px 16px var(--shadow-light);
+    }
+    .card-body {
+      padding: 2rem;
+    }
+
+    /* Tabs */
+    .nav-tabs {
+      border-bottom: 2px solid var(--border-light);
+    }
+    .nav-tabs .nav-link {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+    }
+    .nav-tabs .nav-link:hover {
+      color: var(--primary-green-dark);
+      border-bottom-color: var(--primary-green-dark);
+    }
+    .nav-tabs .nav-link.active {
+      color: var(--primary-green);
+      border-bottom-color: var(--primary-green);
+      background: transparent;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 10px;
+      font-size: 0.95rem;
+    }
+    thead th {
+      color: var(--primary-green);
+      font-weight: 700;
+      border-bottom: 2px solid var(--primary-green);
+      padding-bottom: 0.5rem;
+      text-align: left;
+    }
+    tbody tr {
+      background: #fff;
+      box-shadow: 0 2px 6px var(--shadow-light);
+      border-radius: 10px;
+      transition: background-color 0.3s ease;
+    }
+    tbody tr:hover {
+      background: #f3f9f1;
+    }
+    tbody td {
+      padding: 1rem 1rem;
+      vertical-align: middle;
+      border: none;
+    }
+
+    /* Avatar & name in tables */
+    .table-avatar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .avatar-img {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 2px 5px var(--shadow-light);
+      transition: transform 0.3s ease;
+    }
+    .table-avatar a {
+      color: var(--text-dark);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .table-avatar a span {
+      display: block;
+      font-weight: 400;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Badges */
+    .badge {
+      padding: 0.4em 0.75em;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 20px;
+      text-transform: capitalize;
+    }
+    .bg-success-light {
+      background-color: #d9f0d9;
+      color: #2e7d32;
+    }
+    .bg-warning-light {
+      background-color: #fff4cc;
+      color: #f0a500;
+    }
+    .bg-danger-light {
+      background-color: #f8d7da;
+      color: #b02a37;
+    }
+    .bg-info-light {
+      background-color: #d1ecf1;
+      color: #0c5460;
+    }
+
+    /* Buttons */
+    .btn {
+      border-radius: 25px;
+      padding: 0.5rem 1.25rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background-color 0.3s ease;
+    }
+    .btn.bg-success-light {
+      background-color: var(--primary-green);
+      color: white;
+      border: none;
+    }
+    .btn.bg-success-light:hover {
+      background-color: var(--primary-green-dark);
+      color: white;
+    }
+    .btn.bg-info-light {
+      background-color: #17a2b8;
+      color: white;
+      border: none;
+    }
+    .btn.bg-info-light:hover {
+      background-color: #117a8b;
+    }
+    .btn.bg-danger-light {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+    }
+    .btn.bg-danger-light:hover {
+      background-color: #b02a37;
+    }
+
+    /* Table action buttons */
+    .table-action {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .card-body {
+        padding: 1rem;
+      }
+      .nav-tabs .nav-link {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+      }
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      thead tr {
+        display: none;
+      }
+      tbody tr {
+        margin-bottom: 1rem;
+        box-shadow: none;
+        background: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: 1rem;
+      }
+      tbody td {
+        padding: 0.5rem 0;
+        text-align: right;
+        position: relative;
+        padding-left: 50%;
+      }
+      tbody td::before {
+        position: absolute;
+        top: 50%;
+        left: 1rem;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        transform: translateY(-50%);
+        font-weight: 600;
+        color: var(--primary-green);
+        content: attr(data-label);
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="main-wrapper">
+    <!-- Header -->
+    <header class="header">
+      {% include 'patient_navbar.html' %}
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-md-12 col-12">
+            <nav aria-label="breadcrumb" class="page-breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                  <a href="{% url 'patient-dashboard' %}">Home</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                  Patient Dashboard
+                </li>
+              </ol>
+            </nav>
+            <h2 class="breadcrumb-title">Patient Dashboard</h2>
+            {% include 'message.html' %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <!-- Profile Sidebar -->
+          <div class="col-md-5 col-lg-4 col-xl-3 theiaStickySidebar">
+            <div>{% include 'patient-sidebar.html' %}</div>
+          </div>
+
+          <!-- Main Content -->
+          <div class="col-md-7 col-lg-8 col-xl-9">
+            <div class="card">
+              <div class="card-body pt-0">
+                <!-- Tab Menu -->
+                <nav class="user-tabs mb-4">
+                  <ul class="nav nav-tabs nav-tabs-bottom nav-justified">
+                    <li class="nav-item">
+                      <a class="nav-link active" href="#pat_appointments" data-toggle="tab">
+                        Appointments
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" href="#pat_prescriptions" data-toggle="tab">
+                        Prescriptions
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" href="#pat_medical_records" data-toggle="tab">
+                        Medical Records
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" href="#pat_billing" data-toggle="tab">
+                        Billing
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+
+                <!-- Tab Content -->
+                <div class="tab-content pt-0">
+                  <!-- Appointment Tab -->
+                  <div id="pat_appointments" class="tab-pane fade show active">
+                    <!-- Appointment Filters -->
+                    <div class="card mb-3">
+                      <div class="card-body">
+                        <h6 class="card-title mb-3">Filter Appointments</h6>
+                        <div class="row">
+                          <div class="col-md-4">
+                            <div class="form-group">
+                              <label for="dateFilter">Date</label>
+                              <input type="date" class="form-control" id="dateFilter" placeholder="Select date">
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <div class="form-group">
+                              <label for="doctorFilter">Doctor</label>
+                              <select class="form-control" id="doctorFilter">
+                                <option value="">All Doctors</option>
+                                {% for appointment in appointments %}
+                                <option value="{{ appointment.doctor.name }}">{{ appointment.doctor.name }}</option>
+                                {% endfor %}
+                              </select>
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <div class="form-group">
+                              <label for="statusFilter">Status</label>
+                              <select class="form-control" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="cancelled">Cancelled</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-12 text-right">
+                            <button id="clearFilters" class="btn btn-outline-secondary btn-sm">
+                              <i class="fas fa-times"></i> Clear Filters
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="card card-table mb-0">
+                      <div class="card-body p-0">
+                        <div class="table-responsive">
+                          <table class="table table-hover mb-0">
+                            <thead>
+                              <tr>
+                                <th>Doctor</th>
+                                <th>Appt Date</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Payment Status</th>
+                                <th>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {% for appointment in appointments %}
+                              <tr data-doctor="{{ appointment.doctor.name }}" 
+                                  data-date="{{ appointment.date|date:'Y-m-d' }}" 
+                                  data-status="{{ appointment.appointment_status }}">
+                                <td>
+                                  <div class="table-avatar">
+                                    <a href="{% url 'doctor-profile' pk=appointment.doctor.doctor_id %}" class="avatar avatar-sm">
+                                      <img
+                                        class="avatar-img rounded-circle"
+                                        src="{{ appointment.doctor.featured_image.url }}"
+                                        alt="Doctor Image"
+                                      />
+                                    </a>
+                                    <a href="{% url 'doctor-profile' pk=appointment.doctor.doctor_id %}">
+                                      {{ appointment.doctor.name }}
+                                      <span>{{ appointment.doctor.department_name }}</span>
+                                    </a>
+                                  </div>
+                                </td>
+                                <td>
+                                  {{ appointment.date }}
+                                  <br />
+                                  <small class="text-info">{{ appointment.time }}</small>
+                                </td>
+                                <td>{{ appointment.appointment_type }}</td>
+                                <td>
+                                  {% if appointment.appointment_type == 'checkup' %}
+                                  {{ appointment.doctor.consultation_fee }} BDT
+                                  {% else %}
+                                  {{ appointment.doctor.report_fee }} BDT
+                                  {% endif %}
+                                </td>
+                                <td>
+                                  {% if appointment.appointment_status == 'pending' %}
+                                  <span class="badge bg-warning-light">Pending</span>
+                                  {% elif appointment.appointment_status == 'confirmed' %}
+                                  <span class="badge bg-success-light">Confirmed</span>
+                                  {% elif appointment.appointment_status == 'cancelled' %}
+                                  <span class="badge bg-danger-light">Cancelled</span>
+                                  {% endif %}
+                                </td>
+                                <td class="text-center">
+                                  {% if appointment.payment_status|lower == 'pending' %}
+    <span class="badge bg-warning-light">Pending</span>
+{% elif appointment.payment_status|lower == 'paid' %}
+    <span class="badge bg-success-light">Paid</span>
+{% elif appointment.payment_status|lower == 'failed' %}
+    <span class="badge bg-danger-light">Failed</span>
+{% endif %}
+                                </td>
+                                <td>
+                                  <div class="table-action">
+                                    {% if appointment.payment_status|lower == 'pending' %}
+                                    <a href="{% url 'razorpay-appointment-payment' appointment.id %}"
+                                      class="btn bg-success-light btn-sm">
+                                      <i class="fas fa-dollar-sign"></i> Pay Now
+                                    </a>
+                                    {% endif %}
+                                  </div>
+                                </td>
+                              </tr>
+                              {% endfor %}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Prescription Tab -->
+                  <div class="tab-pane fade" id="pat_prescriptions">
+                    <div class="card card-table mb-0">
+                      <div class="card-body p-0">
+                        <div class="table-responsive">
+                          <table class="table table-hover mb-0 text-center">
+                            <thead>
+                              <tr>
+                                <th>Prescription ID</th>
+                                <th>Doctor Name</th>
+                                <th>Doctor</th>
+                                <th>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {% for prescription in prescription %}
+                              <tr>
+                                <td>
+                                  <a href="javascript:void(0);">{{ prescription.prescription_id }}</a>
+                                </td>
+                                <td>{{ prescription.doctor.name }}</td>
+                                <td>
+                                  <div class="table-avatar">
+                                    <a href="doctor-profile.html" class="avatar avatar-sm">
+                                      <img
+                                        class="avatar-img rounded-circle"
+                                        src="{{ prescription.doctor.featured_image.url }}"
+                                        alt="Doctor Image"
+                                      />
+                                    </a>
+                                    <a href="doctor-profile.html">
+                                      Dr. {{ prescription.doctor }}
+                                      <span>{{ prescription.doctor.department_name }}</span>
+                                    </a>
+                                  </div>
+                                </td>
+                                <td>
+                                  <div class="table-action">
+                                    <a
+                                      href="{% url 'prescription-view' pk=prescription.prescription_id %}"
+                                      class="btn bg-info-light btn-sm"
+                                    >
+                                      <i class="far fa-eye"></i> View
+                                    </a>
+                                  </div>
+                                </td>
+                              </tr>
+                              {% endfor %}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Medical Records Tab -->
+                  <div id="pat_medical_records" class="tab-pane fade">
+                    <div class="card card-table mb-0">
+                      <div class="card-body p-0">
+                        <div class="table-responsive">
+                          <table class="table table-hover mb-0 text-center">
+                            <thead>
+                              <tr>
+                                <th>Report ID</th>
+                                <th>Test Name</th>
+                                <th>Delivery Date</th>
+                                <th>Doctor</th>
+                                <th>PDF Report</th>
+                                <th>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {% for report in report %}
+                              <tr>
+                                <td><a href="javascript:void(0);">{{ report.report_id }}</a></td>
+                                <td>{{ report.test_name|default:"N/A" }}</td>
+                                <td>{{ report.delivery_date }}</td>
+                                <td>
+                                  <div class="table-avatar">
+                                    <a href="doctor-profile.html" class="avatar avatar-sm">
+                                      <img
+                                        class="avatar-img rounded-circle"
+                                        src="{{ report.doctor.featured_image.url }}"
+                                        alt="Doctor Image"
+                                      />
+                                    </a>
+                                    <a href="doctor-profile.html">
+                                      Dr. {{ report.doctor }}
+                                      <span>{{ report.doctor.department_name }}</span>
+                                    </a>
+                                  </div>
+                                </td>
+                                <td>
+                                  {% if report.report_pdf %}
+                                    <span class="badge badge-success">
+                                      <i class="fas fa-file-pdf"></i> Available
+                                    </span>
+                                  {% else %}
+                                    <span class="badge badge-warning">
+                                      <i class="fas fa-clock"></i> Processing
+                                    </span>
+                                  {% endif %}
+                                </td>
+                                <td>
+                                  <div class="table-action">
+                                    {% if report.report_pdf %}
+                                      <a
+                                        href="{% url 'download-report-pdf' report.report_id %}"
+                                        class="btn bg-success-light btn-sm"
+                                        title="Download PDF Report"
+                                      >
+                                        <i class="fas fa-download"></i> PDF
+                                      </a>
+                                    {% endif %}
+                                    <a
+                                      href="{% url 'view-report' pk=report.report_id %}"
+                                      class="btn bg-info-light btn-sm"
+                                    >
+                                      <i class="far fa-eye"></i> View
+                                    </a>
+                                    <a
+                                      href="{% url 'delete-report' pk=report.report_id %}"
+                                      onclick="return confirm('Are you sure you want to Delete?');"
+                                      class="btn bg-danger-light btn-sm"
+                                    >
+                                      <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                  </div>
+                                </td>
+                              </tr>
+                              {% endfor %}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                 <!-- Billing Tab -->
+<div id="pat_billing" class="tab-pane fade">
+  <div class="card card-table mb-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Doctor / Test</th>
+              <th>Tranx ID</th>
+              <th>Tranx Date</th>
+              <th>Amount</th>
+              <th>Card Type</th>
+              <th>Card Issuer</th>
+              <th>Payment Status</th>
+              <th>Invoice</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for payment in payments %}
+            <tr>
+              <!-- Doctor / Test -->
+              <td>
+                {% if payment.appointment %}
+                  <div class="table-avatar">
+                   
+                    <a href="doctor-profile.html">
+                      {{ payment.appointment.doctor.name }}
+                      <span>{{ payment.appointment.doctor.department }}</span>
+                    </a>
+                  </div>
+                {% elif payment.test_order %}
+                  <div class="table-avatar">
+                    
+                    <span>Lab Test Payment</span>
+                  </div>
+                {% else %}
+                  <span>-</span>
+                {% endif %}
+              </td>
+
+              <!-- Transaction ID -->
+              <td>{{ payment.transaction_id|default:"-" }}</td>
+
+              <!-- Transaction Date -->
+              <td>{{ payment.transaction_date|default:"-" }}</td>
+
+              <!-- Amount -->
+              <td>
+  {% if payment.currency_amount %}
+    {{ payment.currency_amount }} PHP
+  {% elif payment.test_order %}
+    {{ payment.test_order.final_bill }} PHP
+  {% else %}
+    0.00 PHP
+  {% endif %}
+</td>
+
+              <!-- Card Type -->
+              <td>{{ payment.card_type|default:"Visa" }}</td>
+
+              <!-- Card Issuer -->
+              <td>{{ payment.card_issuer|default:"Razorpay" }}</td>
+
+              <!-- Payment Status -->
+              <td>
+                {% if payment.status|lower == 'paid' %}
+                  <span class="badge bg-success-light">Success</span>
+                {% elif payment.status|lower == 'failed' %}
+                  <span class="badge bg-danger-light">Failed</span>
+                {% else %}
+                  <span class="badge bg-warning-light">Pending</span>
+                {% endif %}
+              </td>
+              
+              <!-- Invoice -->
+              <td>
+                {% if payment.status|lower == 'captured' and payment.invoice %}
+                  <div class="table-action">
+                    <a href="{% url 'download-invoice' payment.invoice.id %}" class="btn btn-sm btn-outline-success" title="Download Invoice">
+                      <i class="fas fa-download"></i>
+                    </a>
+                    <a href="{% url 'view-invoice' payment.invoice.id %}" class="btn btn-sm btn-outline-primary" title="View Invoice">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                  </div>
+                {% else %}
+                  <span class="text-muted">-</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="text-center">No billing records found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /Billing Tab -->
+
+
+                </div>
+                <!-- /Tab Content -->
+              </div>
+            </div>
+          </div>
+          <!-- /Main Content -->
+        </div>
+      </div>
+    </div>
+    <!-- /Page Content -->
+
+    <!-- Footer -->
+    {% include 'footer.html' %}
+  </div>
+
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+
+    <!-- Sticky Sidebar JS -->
+    <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/ResizeSensor.js' %}"></script>
+    <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/theia-sticky-sidebar.js' %}"></script>
+
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/Outside_assets/js/script.js' %}"></script>
+
+    <!-- Searchbar JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/sidebar.js' %}"></script>
+
+{% if messages %}
+<script>
+    $(document).ready(function () {
+        $('.toast').toast('show');
+    });
+</script>
+{% endif %}
+
+<script>
+$(document).ready(function() {
+    // Filter functionality
+    function filterAppointments() {
+        var dateFilter = $('#dateFilter').val();
+        var doctorFilter = $('#doctorFilter').val();
+        var statusFilter = $('#statusFilter').val();
+        
+        $('tbody tr').each(function() {
+            var row = $(this);
+            var rowDate = row.data('date');
+            var rowDoctor = row.data('doctor');
+            var rowStatus = row.data('status');
+            
+            var showRow = true;
+            
+            // Date filter
+            if (dateFilter && rowDate !== dateFilter) {
+                showRow = false;
+            }
+            
+            // Doctor filter
+            if (doctorFilter && rowDoctor !== doctorFilter) {
+                showRow = false;
+            }
+            
+            // Status filter
+            if (statusFilter && rowStatus !== statusFilter) {
+                showRow = false;
+            }
+            
+            if (showRow) {
+                row.show();
+            } else {
+                row.hide();
+            }
+        });
+    }
+    
+    // Event listeners for filter changes
+    $('#dateFilter, #doctorFilter, #statusFilter').on('change', filterAppointments);
+    
+    // Clear filters functionality
+    $('#clearFilters').on('click', function() {
+        $('#dateFilter').val('');
+        $('#doctorFilter').val('');
+        $('#statusFilter').val('');
+        filterAppointments();
+    });
+    
+    // Remove duplicate doctor options
+    var doctorOptions = {};
+    $('#doctorFilter option').each(function() {
+        var val = $(this).val();
+        if (val && doctorOptions[val]) {
+            $(this).remove();
+        } else if (val) {
+            doctorOptions[val] = true;
+        }
+    });
+
+    // Message notification system
+    var lastMessageId = 0;
+    var notificationSound = new Audio('{% static "HealthStack-System/sounds/notification.mp3" %}');
+    
+    // Function to check for new messages
+    function checkForNewMessages() {
+        $.ajax({
+            headers: { "X-CSRFToken": '{{ csrf_token }}' },
+            url: "{% url 'chat-check-new-messages' %}",
+            method: "POST",
+            data: {
+                last_id: lastMessageId,
+                user_id: "{{ user.id }}"
+            },
+            dataType: 'json',
+            success: function(resp) {
+                if (resp && resp.success && resp.new_messages && resp.new_messages.length > 0) {
+                    // Update last message ID
+                    lastMessageId = resp.new_messages[resp.new_messages.length - 1].id;
+                    
+                    // Show notifications for each new message
+                    resp.new_messages.forEach(function(message) {
+                        showMessageNotification(message);
+                    });
+                    
+                    // Play notification sound
+                    try {
+                        notificationSound.play();
+                    } catch (e) {
+                        console.log("Notification sound error:", e);
+                    }
+                }
+            },
+            error: function(err) {
+                console.log("Error checking for new messages:", err);
+            }
+        });
+    }
+
+    // Function to show message notification
+    function showMessageNotification(message) {
+        // Create notification HTML
+        var notificationHtml = `
+            <div class="alert alert-info alert-dismissible fade show message-notification" role="alert" style="
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 350px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border-radius: 8px;
+                border-left: 4px solid var(--primary-green);
+            ">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-comment-medical mr-3" style="font-size: 1.5rem; color: var(--primary-green);"></i>
+                    <div class="flex-grow-1">
+                        <h6 class="alert-heading mb-1" style="color: var(--primary-green);">
+                            <i class="fas fa-user-md mr-1"></i>New Message from Doctor
+                        </h6>
+                        <p class="mb-1 text-dark">${message.doctor_name}: ${message.message}</p>
+                        <small class="text-muted">${message.timestamp}</small>
+                    </div>
+                </div>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        `;
+        
+        // Append notification to body
+        $('body').append(notificationHtml);
+        
+        // Auto remove after 8 seconds
+        setTimeout(function() {
+            $('.message-notification').alert('close');
+        }, 8000);
+        
+        // Add click handler to navigate to chat
+        $('.message-notification').on('click', function() {
+            window.location.href = "{% url 'chat-home' pk=user.id %}?u=" + message.doctor_id;
+        });
+    }
+
+    // Start checking for new messages every 5 seconds
+    setInterval(checkForNewMessages, 5000);
+    
+    // Initial check after 2 seconds
+    setTimeout(checkForNewMessages, 2000);
+});
+</script>
+
+<!-- Notification sound fallback -->
+<audio id="notificationSound" preload="auto">
+    <source src="{% static 'HealthStack-System/sounds/notification.mp3' %}" type="audio/mpeg">
+</audio>
+
+
+
+  </body>
+
+  <!-- doccure/patient-dashboard.html  30 Nov 2019 04:12:16 GMT -->
+</html>

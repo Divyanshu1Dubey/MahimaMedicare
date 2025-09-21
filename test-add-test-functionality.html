@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Add Test Functionality</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .test-info-container { margin: 20px 0; }
+        .test-cont { margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; }
+        .add-more a { color: blue; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Test Add Test Functionality</h1>
+    
+    <div class="test-info-container">
+        <div class="row form-row test-cont">
+            <div class="col-12 col-md-3">
+                <div class="form-group">
+                    <label>Test Name</label>
+                    <select class="form-control test-list-select" name="test_name" required>
+                        <option value="">Select Test Name</option>
+                        <option value="Blood Test">Blood Test</option>
+                        <option value="Urine Test">Urine Test</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-md-3">
+                <div class="form-group">
+                    <label>Result</label>
+                    <input type="text" name="result" class="form-control" required>
+                </div>
+            </div>
+            <div class="col-12 col-md-2">
+                <div class="form-group">
+                   极 <label>Unit</label>
+                    <input type="text" name="unit" class="form-control">
+                </div>
+            </div>
+            <div class="col-12 col-md-3">
+                <div class="form-group">
+                    <label>Referred Value</label>
+                    <input type="text" name="referred_value" class="form-control">
+                </div>
+            </div>
+            <div class="col-12 col-md-1">
+                <div class="form-group d-flex align-items-end" style="height: 100%;">
+                    <a href="#" class="btn btn-danger trash remove-test d-flex align-items-center justify-content-center" style="width: 100%;">
+                        <i class="far fa-trash-alt">X</i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="add-more">
+        <a href="javascript:void(0);" class="add-test">+ Add Test</a>
+    </div>
+
+    <script>
+        // Simplified version of the add-test functionality
+        $(document).on('click', '.add-test', function(e) {
+            e.preventDefault();
+            console.log("Add Test button clicked");
+            
+            var testHtml = `
+                <div class="row form-row test-cont">
+                    <div class="col-12 col-md-3">
+                        <div class="form-group">
+                            <label>Test Name</label>
+                            <select class="form-control test-list-select" name="test_name" required>
+                                <option value="">Select Test Name</option>
+                                <option value="Blood Test">Blood Test</option>
+                                <option value="Urine Test">Urine Test</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <div class="form-group">
+                            <label>Result极</label>
+                            <input type="text" name="result" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <div class="form-group">
+                            <label>Unit</label>
+                            <input type="text" name="unit" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <div class="form-group">
+                            <label>Referred Value</label>
+                            <input type="text" name="referred_value" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-1">
+                        <div class="form-group d-flex align-items-end" style="height: 100%;">
+                            <a href="#" class="btn btn-danger trash remove-test d-flex align-items-center justify-content-center" style="width: 100%;">
+                                <i class="far fa-trash-alt">X</i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            $('.test-info-container').append(testHtml);
+            console.log("New test form added");
+        });
+
+        // Remove Test functionality
+        $(document).on('click', '.remove-test', function(e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to delete this test?')) {
+                $(this).closest('.test-cont').remove();
+            }
+        });
+    </script>
+</body>
+</html>

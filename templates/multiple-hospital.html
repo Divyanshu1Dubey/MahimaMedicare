@@ -1,0 +1,415 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Mahima Medicare - Hospitals</title>
+    
+    <!-- Favicons -->
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+        
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/hospital.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/search2.css' %}">
+
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #95C270;
+            --accent-color: #2E7D32;
+            --light-bg: #F8F9FA;
+            --dark-text: #212529;
+            --light-text: #6C757D;
+            --card-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            --hover-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark-text);
+            background-color: var(--light-bg);
+        }
+        
+        .header {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: white;
+        }
+        
+        .breadcrumb-bar {
+      background: linear-gradient(90deg, #95C270, #95C270);
+      padding: 1rem 0.5rem;
+      box-shadow: 0 3px 8px rgb(0 0 0 / 0.12);
+      border-radius: 0 0 12px 12px;
+    }
+    .breadcrumb-bar .breadcrumb {
+      background: transparent;
+      padding: 0;
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+    }
+    .breadcrumb-bar .breadcrumb-item a {
+      color: #f0f6e9;
+      transition: color 0.3s ease;
+    }
+    .breadcrumb-bar .breadcrumb-item a:hover {
+      color: #d1e89b;
+      text-decoration: underline;
+    }
+    .breadcrumb-bar .breadcrumb-item.active {
+      color: #e9f7cf;
+    }
+    .breadcrumb-title {
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.7rem;
+      margin: 0;
+    }
+     /* Search box */
+    .top-nav-search form {
+      display: flex;
+     
+    }
+    .top-nav-search input.form-control {
+      border-radius: 30px;
+      border: 1.8px solid #95c270;
+      padding: 0.5rem 1rem;
+      box-shadow: none;
+      transition: box-shadow 0.3s ease;
+    }
+    .top-nav-search input.form-control:focus {
+      box-shadow: 0 0 6px 2px rgba(149, 194, 112, 0.6);
+      border-color: #6f9f38;
+      outline: none;
+    }
+	.top-nav-search button.btn {
+	margin-top: 3px;
+	margin-right: 5px; 
+	background: #95c270;
+	border: none;
+	border-radius: 50%;
+	width: 40px;
+	height: 40px;
+	color: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.3s ease;
+	cursor: pointer;
+	}
+	.top-nav-search button.btn:hover {
+	background: #e6ebe1;
+	color: #95c270; /* change icon color on hover for visibility */
+	}
+	.top-nav-search button.btn i {
+	font-size: 1rem;
+	}
+
+        
+        .page-title {
+            font-weight: 600;
+            color: var(--dark-text);
+            margin-bottom: 30px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .page-title:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--primary-color);
+        }
+        
+        /* Hospital Cards */
+        .card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+            background: white;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+        
+        .img-card {
+            display: block;
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .img-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .card:hover .img-card img {
+            transform: scale(1.05);
+        }
+        
+        .card-content {
+            padding: 20px;
+        }
+        
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-text);
+        }
+        
+        .card-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .card-read-more .btn {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 0;
+            padding: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .card-read-more .btn:hover {
+            background: var(--accent-color);
+        }
+        
+        /* Sidebar */
+        .theiaStickySidebar {
+            padding-right: 30px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .theiaStickySidebar {
+                padding-right: 15px;
+            }
+            
+            .col-xs-12.col-sm-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+        
+        /* Pagination */
+        .pagination {
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .page-link {
+            color: var(--primary-color);
+        }
+        
+        /* Section wrapper */
+      
+        
+        /* Footer */
+        .footer {
+            background: var(--dark-text);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+    </style>
+    
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="assets/js/html5shiv.min.js"></script>
+        <script src="assets/js/respond.min.js"></script>
+    <![endif]-->
+    
+</head>
+<body>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+    
+        <!-- Header -->
+        <header class="header">
+            {% if user.is_authenticated and user.is_patient %}
+            {% include 'patient_navbar.html' %}
+            {% endif %}
+            
+            {% if user.is_authenticated and user.is_doctor %}
+            {% include 'doctor-navbar.html' %}
+            {% endif %}
+        </header>
+        <!-- /Header -->
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-bar">
+            <div class="container-fluid">
+               <div class="row align-items-center justify-content-end">
+                <div class="col-auto">
+                    <div class="top-nav-search">
+                    <form action="{% url 'multiple-hospital' %}" method="GET" class="d-flex">
+                        <input 
+                        type="text" 
+                        class="form-control" 
+                        placeholder="Search hospitals..." 
+                        name="search_query" 
+                        value="{{search_query}}"
+                        aria-label="Search hospitals"
+                        style="max-width: 300px;"
+                        >
+                        <button class="btn" type="submit" aria-label="Search">
+                        <i class="fa fa-search"></i>
+                        </button>
+                    </form>
+                    </div>
+                </div>
+                </div>
+
+										
+                </div>
+            </div>
+        </div>
+        <!-- /Breadcrumb -->
+        
+        <!-- Page Content -->
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-5 col-lg-2 col-xl-3 theiaStickySidebar">
+                        <!-- Profile Sidebar -->
+                        <div>
+                            {% if user.is_authenticated and user.is_patient %}
+                            {% include 'patient-sidebar.html' %}
+                            {% endif %}
+            
+                            {% if user.is_authenticated and user.is_doctor %}
+                            {% include 'doctor-sidebar.html' %}
+                            {% endif %}
+                        </div>
+                        <!-- /Profile Sidebar -->
+                    </div>
+                    
+                    <div class="col-md-7 col-lg-8 col-xl-9">
+                        <section class="wrapper">
+                            <div class="container-fostrap">
+                                <h1 class="page-title">Our Partner Hospitals</h1>
+                                <p class="text-muted mb-4">Browse through our network of trusted healthcare providers</p>
+                                <hr>
+
+                                <div class="content">
+                                    <div class="container">
+                                        <div class="row">
+                                            {% for hospital in hospitals %}
+                                            <div class="col-xs-12 col-sm-6 col-md-4">
+                                                <div class="card">
+                                                    <a class="img-card" href="{% url 'hospital-profile' pk=hospital.hospital_id %}">
+                                                    <img src="{{hospital.featured_image.url}}" alt="{{hospital.name}}"/>
+                                                  </a>
+                                                    <div class="card-content">
+                                                        <h4 class="card-title">
+                                                            <a href="{% url 'hospital-profile' pk=hospital.hospital_id %}"> {{hospital.name}}
+                                                          </a>
+                                                        </h4>
+                                                        <div class="text-muted">
+                                                            <small><i class="fas fa-map-marker-alt"></i> {{hospital.address}}</small>
+                                                        </div>   
+                                                    </div>
+                                                    <div class="card-read-more">
+                                                        <a href="{% url 'hospital-profile' pk=hospital.hospital_id %}" class="btn btn-link btn-block">
+                                                            View Details <i class="fas fa-chevron-right ml-2"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        {% include 'pagination.html' with queryset=hospitals custom_range=custom_range %}
+                    </div>
+                </div>
+            </div>
+        </div>        
+        <!-- /Page Content -->
+
+        <!-- Footer -->
+        {% include 'footer.html' %}
+        <!-- /Footer -->
+       
+    </div>
+    <!-- /Main Wrapper -->
+  
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <!-- Sticky Sidebar JS -->
+    <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/ResizeSensor.js' %}"></script>
+    <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/theia-sticky-sidebar.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/Outside_assets/js/script.js' %}"></script>
+
+    <!-- Searchbar JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/sidebar.js' %}"></script>
+    
+    <!-- Modern Enhancements -->
+    <script>
+        $(document).ready(function() {
+            // Add smooth scrolling to all links
+            $("a").on('click', function(event) {
+                if (this.hash !== "") {
+                    event.preventDefault();
+                    var hash = this.hash;
+                    $('html, body').animate({
+                        scrollTop: $(hash).offset().top
+                    }, 800, function(){
+                        window.location.hash = hash;
+                    });
+                }
+            });
+            
+            // Card hover effects
+            $('.card').hover(
+                function() {
+                    $(this).find('.card-title a').css('color', 'var(--primary-color)');
+                },
+                function() {
+                    $(this).find('.card-title a').css('color', 'var(--dark-text)');
+                }
+            );
+        });
+    </script>
+</body>
+</html>

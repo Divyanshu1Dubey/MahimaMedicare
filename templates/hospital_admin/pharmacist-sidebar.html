@@ -1,0 +1,129 @@
+<style>
+    :root {
+        --primary-color: #95C270; /* Green */
+        --hover-bg-color: #e6f0c8; /* Light green hover */
+        --text-color: #2c3e50;
+        --bg-color: #ffffff;
+        --transition-speed: 0.3s;
+        --border-radius: 6px;
+    }
+
+    .sidebar {
+        background: var(--bg-color);
+        border-right: 1px solid #e0e0e0;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .sidebar-menu ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .sidebar-menu .menu-title {
+        padding: 15px 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: var(--primary-color);
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .sidebar-menu ul li {
+        position: relative;
+    }
+
+    .sidebar-menu ul li a {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--text-color);
+        text-decoration: none;
+        transition: background var(--transition-speed), color var(--transition-speed);
+        border-radius: var(--border-radius);
+        margin: 3px 10px;
+    }
+
+    .sidebar-menu ul li a i {
+        font-size: 1.1rem;
+        color: var(--primary-color);
+        transition: color var(--transition-speed);
+    }
+
+    /* Hover */
+    .sidebar-menu ul li a:hover {
+        background: var(--hover-bg-color);
+        color: var(--primary-color);
+    }
+
+    .sidebar-menu ul li a:hover i {
+        color: var(--primary-color);
+    }
+
+    /* Active */
+    .sidebar-menu ul li.active > a {
+        background: var(--hover-bg-color);
+        color: var(--primary-color);
+        font-weight: 600;
+        box-shadow: inset 4px 0 0 var(--primary-color);
+    }
+
+    .sidebar-menu ul li.active > a i {
+        color: var(--primary-color);
+    }
+
+    /* Submenu */
+    .submenu ul {
+        display: none;
+        background: #f9f9f9;
+        border-left: 3px solid var(--primary-color);
+        padding-left: 10px;
+    }
+
+    .submenu ul li a {
+        padding: 8px 20px;
+        font-size: 0.9rem;
+    }
+
+    /* Show submenu when active */
+    .submenu.open ul {
+        display: block;
+    }
+</style>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-inner slimscroll">
+        <div id="sidebar-menu" class="sidebar-menu">
+            <ul>
+                <li class="menu-title"> 
+                    <span>Menu</span>
+                </li>
+                <li class=""> 
+                    <a href="{%url 'pharmacist-dashboard' %}"><i class="fe fe-home"></i> <span>Dashboard</span></a>
+                </li>
+            </ul>
+            <ul>        
+            <li><a href="{%url 'medicine-list'%}"><i class="fe fe-document"></i> <span>View Medicine</span></a></li>
+            <li><a href="{% url 'add-medicine' %}"><i class="fe fe-edit"></i> <span> Add Medicine</span></a></li>
+            <li><a href="{% url 'pharmacist-sales' %}"><i class="fe fe-bar-chart"></i> <span>Sales</span></a></li>
+            <li><a href="{% url 'pharmacist-purchase-history' %}"><i class="fe fe-list"></i> <span>Purchase History</span></a></li>
+            <li><a href="{% url 'bulk-medicine-management' %}"><i class="fe fe-layers"></i> <span>Bulk Medicine</span></a></li>
+
+            </ul>
+            <ul>
+                
+                {% comment %} <li class="submenu">
+                    <a href="#"><i class="fe fe-user"></i> <span> Medicine Category</span></a>
+                    <ul style="display:none;">
+                        <li><a href="{% url 'add-pharmacist' %}"><i class="fe fe-user-plus"></i> <span>Add Category </span></a></li>
+                        
+                        <li><a href="{%url 'pharmacist-list'%}"><i class="fe fe-users"></i> <span>View Category </span></a></li>
+                    </ul>
+                </li> {% endcomment %}
+
+            </ul>
+        </div>
+    </div>
+</div>

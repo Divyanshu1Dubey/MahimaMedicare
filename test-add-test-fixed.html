@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Add Test Functionality</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .test-cont {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Add Test Functionality</h1>
+    
+    <div class="test-info-container">
+        <div class="row form-row test-cont" style="margin-bottom: 15px;">
+            <div class="col-12 col-md-2">
+                <div class="form-group">
+                    <label>Test Name</label>
+                    <select class="form-control test-list-select" name="test_name[]" required>
+                        <option value="">Select Test Name</option>
+                        <option value="Blood Test" data-test-id="1">Blood Test</option>
+                        <option value="Urine Test" data-test-id="2">Urine Test</option>
+                        <option value="X-Ray" data-test-id="3">X-Ray</option>
+                        <option value="MRI" data-test-id="4">MRI</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-md-2">
+                <div class="form-group">
+                    <label>Result</label>
+                    <input type="text" name="result[]" class="form-control" required>
+                </div>
+            </div>
+            <div class="col-12 col-md-2">
+                <div class="form-group">
+                    <label>Unit</label>
+                    <input type="text" name="unit[]" class="form-control">
+                </div>
+            </div>
+            <div class="col-12 col-md-2">
+                <div class="form-group">
+                    <label>Referred Value</label>
+                    <input type="text" name="referred_value[]" class="form-control">
+                </div>
+            </div>
+            <div class="col-12 col-md-2">
+                <div class="form-group">
+                    <label class="d-md-block d-sm-none d-none">&nbsp;</label>
+                    <a href="#" class="btn btn-danger trash">
+                        <i class="far fa-trash-alt"></i> Delete
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="add-more">
+        <a href="javascript:void(0);" class="add-test"><i class="fa fa-plus-circle"></i> Add Test</a>
+    </div>
+    
+    <script>
+        // Simplified version of the fixed add-test functionality
+        $(".add-test").on('click', function () {  
+            // Clone the first test-cont div
+            var $firstTest = $(".test-info-container .test-cont").first();
+            if ($firstTest.length === 0) {
+                // If no test-cont exists, create one manually (fallback)
+                var testcontent = '<div class="row form-row test-cont" style="margin-bottom: 15px;">' +
+                    '<div class="col-12 col-md-2">' +
+                        '<div class="form-group">' +
+                            '<label>Test Name</label>' +
+                            '<select class="form-control test-list-select" name="test_name[]" required>' +
+                                '<option value="">Select Test Name</option>' +
+                                '<option value="Blood Test" data-test-id="1">Blood Test</option>' +
+                                '<option value="Urine Test" data-test-id="2">Urine Test</option>' +
+                                '<option value="X-Ray" data-test-id="3">X-Ray</option>' +
+                                '<option value="MRI" data-test-id="4">MRI</option>' +
+                            '</select>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="col-12 col-md-2">' +
+                        '<div class="form-group">' +
+                            '<label>Result</label>' +
+                            '<input type="text" name="result[]" class="form-control" required>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="col-12 col-md-2">' +
+                        '<div class="form-group">' +
+                            '<label>Unit</label>' +
+                            '<input type="text" name="unit[]" class="form-control">' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="col-12 col-md-2">' +
+                        '<div class="form-group">' +
+                            '<label>Referred Value</label>' +
+                            '<input type="text" name="referred_value[]" class="form-control">' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="col-12 col-md-2">' +
+                        '<div class="form-group">' +
+                            '<label class="d-md-block d-sm-none d-none">&nbsp;</label>' +
+                            '<a href="#" class="btn btn-danger trash">' +
+                                '<i class="far fa-trash-alt"></i> Delete' +
+                            '</a>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+                
+                $(".test-info-container").append(testcontent);
+            } else {
+                // Clone and reset values
+                var $clone = $firstTest.clone();
+                $clone.find('select[name="test_name[]"]').val('');
+                $clone.find('input[name="result[]"]').val('');
+                $clone.find('input[name="unit[]"]').val('');
+                $clone.find('input[name="referred_value[]"]').val('');
+                $(".test-info-container").append($clone);
+            }
+            return false;
+        });
+        
+        // Delete functionality
+        $(document).on('click', '.trash', function(e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to delete this test?')) {
+                $(this).closest('.test-cont').remove();
+            }
+            return false;
+        });
+    </script>
+</body>
+</html>

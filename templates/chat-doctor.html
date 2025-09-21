@@ -1,0 +1,564 @@
+{% load static %}
+{% load custom_tags %}
+{% load tz%}
+<!DOCTYPE html> 
+<html lang="en">
+    
+<head>
+        <meta charset="utf-8">
+        <title>Mahima Medicare</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+        
+        <link type="image/x-icon" href=" {% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon">
+        
+        <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+        
+        <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}">
+        <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+        
+        <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+
+        <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fancybox/jquery.fancybox.min.css'%}">
+        
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+        
+        <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+        <script src="{% static 'js/script.js' %}"></script>
+        
+        <style>
+            :root {
+                --accent-color: #95C270;
+                --background-color: #f7f9fc;
+                --container-bg: #ffffff;
+                --text-primary: #2c3e50;
+                --text-secondary: #8491a5;
+                --border-color: #e9e9e9;
+                --sent-bubble-bg: var(--accent-color);
+                --received-bubble-bg: #f1f3f5;
+                --hover-bg: #f5f5f5;
+                --font-family: 'Poppins', sans-serif;
+            }
+
+            body.chat-page {
+                background-color: var(--background-color);
+                font-family: var(--font-family);
+            }
+
+            .content {
+                padding: 20px 0;
+            }
+            
+            /* Main chat window container */
+            .chat-window {
+                border: none;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+                border-radius: 1rem;
+                overflow: hidden;
+                height: calc(100vh - 120px);
+                min-height: 650px;
+                background: var(--container-bg);
+            }
+
+            /* Left Sidebar: Contact List */
+            .chat-cont-left {
+                border-right: 1px solid var(--border-color);
+            }
+
+            .chat-cont-left .chat-header {
+                background-color: var(--container-bg);
+                border-bottom: 1px solid var(--border-color);
+                padding: 1.25rem;
+            }
+
+            .chat-cont-left .chat-header span {
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+
+            .chat-search {
+                padding: 1rem 1.25rem;
+            }
+
+            .chat-search .form-control {
+                border-radius: 20px !important;
+                background-color: #f3f3f3;
+                border: none;
+                padding-left: 45px;
+                height: 45px;
+            }
+            .chat-search .form-control:focus {
+                background-color: #fff;
+                border: 1px solid var(--accent-color);
+                box-shadow: none;
+            }
+
+            .chat-search .input-group-prepend {
+                position: absolute;
+                left: 35px;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 4;
+                color: var(--text-secondary);
+            }
+
+            /* User list styling */
+            .chat-users-list .media {
+                padding: 1rem 1.25rem;
+                border-bottom: 1px solid var(--border-color);
+                transition: background-color 0.2s ease;
+                position: relative;
+            }
+            
+            .chat-users-list .media.active {
+                background-color: #e7f4df;
+            }
+
+            .chat-users-list .media:hover {
+                background-color: var(--hover-bg);
+            }
+
+            .chat-users-list .media .user-name {
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+
+            .chat-users-list .media .user-last-chat {
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 150px;
+            }
+            .media-img-wrap .avatar {
+                width: 50px;
+                height: 50px;
+            }
+            .avatar-img {
+                width: 50px;
+                height: 50px;
+            }
+            .avatar > img {
+                object-fit: cover;
+            }
+
+            /* Right Side: Chat Area */
+            .chat-cont-right {
+                background-color: #fdfdfd;
+            }
+
+            .chat-cont-right .chat-header {
+                background-color: #fff;
+                border-bottom: 1px solid var(--border-color);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            }
+
+            /* Chat Body */
+            .chat-body {
+                height: calc(100% - 150px); /* 68px header + 82px footer */
+            }
+
+            .chat-scroll {
+                padding: 20px;
+            }
+
+            /* Chat Bubbles */
+            .media.sent .msg-box {
+                justify-content: flex-end;
+            }
+            .media.sent .chat-bubble {
+                background-color: var(--sent-bubble-bg);
+                color: #fff;
+                border-radius: 1.2rem 1.2rem 0.3rem 1.2rem;
+            }
+
+            .media.received .chat-bubble {
+                background-color: var(--received-bubble-bg);
+                color: var(--text-primary);
+                border-radius: 1.2rem 1.2rem 1.2rem 0.3rem;
+            }
+
+            .msg-box .chat-bubble {
+                padding: 12px 20px;
+                max-width: 75%;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                font-size: 0.95rem;
+            }
+
+            .msg-box .chat-bubble p {
+                margin: 0;
+            }
+            .chat-msg-info {
+                margin-top: 8px;
+            }
+            .chat-time span {
+                font-size: 0.75rem;
+                opacity: 0.8;
+            }
+
+            /* Chat Input Footer */
+            .chat-box-form {
+                background-color: #fff;
+                padding: 1rem 1.25rem !important;
+                border-top: 1px solid var(--border-color) !important;
+                height: auto !important;
+            }
+
+            .chat-box-form form {
+                align-items: center;
+            }
+            
+            .chat-box-form textarea {
+                border: 1px solid var(--border-color);
+                border-radius: 25px;
+                resize: none;
+                padding: 12px 20px;
+                transition: border-color 0.2s ease;
+                line-height: 1.5;
+                max-height: 100px;
+            }
+            .chat-box-form textarea:focus {
+                border-color: var(--accent-color);
+                box-shadow: none;
+            }
+
+            .chat-box-form .btn {
+                background-color: var(--accent-color) !important;
+                border: none;
+                border-radius: 50%;
+                width: 48px;
+                height: 48px;
+                margin-left: 10px;
+                flex-shrink: 0;
+                transition: opacity 0.2s ease;
+            }
+
+            .chat-box-form .btn:hover {
+                opacity: 0.85;
+            }
+
+            .chat-box-form .btn i {
+                font-size: 1.3rem;
+            }
+            .chat-box-form .h-100 { height: 30px !important; }
+            .chat-box-form .w-1040 { width: 100% !important; }
+            .chat-box-form .col-md-10 {
+                padding: 0;
+            }
+            .chat-box-form .button {
+                width: auto !important; /* Override inline style */
+            }
+
+        </style>
+    
+    </head>
+    <body class="chat-page">
+
+        <div class="main-wrapper">
+        
+            <header class="header">{% include 'doctor-navbar.html' %}</header>
+            <div class="content">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-xl-12">
+                            <div class="chat-window">
+                            
+                                <div class="chat-cont-left">
+                                    <div class="chat-header">
+                                        <span>Chats</span>
+                                    </div>
+                                    <form class="chat-search" method="GET" action = "{% url 'chat-home' pk=user.id %}">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <i class="fas fa-search"></i>
+                                            </div>
+                                            <input type="text" class="form-control" placeholder="Search" name="search">
+                                        </div>
+                                    </form>
+                                    <div class="chat-users-list">
+    <div class="chat-scroll">
+        {% for u in patient %} 
+        {% if not u.id == 1 and not u.id == user.id %}
+            <a href="{% url 'chat-home' pk=user.id %}?u={{u.user.id}}" class="media {% if u.user.id == chat_id %}active{% endif %}">
+                <div class="media-img-wrap">
+                    {% if u.user.login_status %}
+                        <div class="avatar avatar-online">
+                            <img src="{{ u.featured_image.url }}" alt="User Image" class="avatar-img rounded-circle">
+                        </div>
+                    {% else %}
+                        <div class="avatar avatar-away">
+                            <img src="{{ u.featured_image.url }}" alt="User Image" class="avatar-img rounded-circle">
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="media-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="user-name {% if u.user.id|unread_count:user.id > 0 %}font-weight-bold{% endif %}">
+                            {{ u.name }}
+                        </div>
+                        <div class="user-last-chat">
+                            {% if u.user.login_status %}Online{% else %}Offline{% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        {% if u.user.id|unread_count:user.id > 0 %}
+                            <div class="badge badge-primary rounded-circle p-1">
+                                {{ u.user.id|unread_count:user.id }}
+                            </div>
+                        {% else %}
+                            <div class="last-chat-time block">{{ u.serial_number }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+        {% endif %}
+        {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="chat-cont-right">
+                                    {% if not chat_id > 0 %}
+                                    <div class="d-flex flex-column justify-content-center align-items-center h-100">
+                                        <h3>Start a Conversation</h3>
+                                        <p><small class="text-muted">Please select a person to chat with.</small></p>
+                                    </div>
+                                    {% else %}
+                                    <div class="chat-header">
+                                        <a id="back_user_list" href="javascript:void(0)" class="back-user-list">
+                                            <i class="material-icons">chevron_left</i>
+                                        </a>
+                                        <div class="media">
+                                            <div class="media-img-wrap">
+                                                <div class="avatar avatar-online">
+                                                    <img src="{{doctor.featured_image.url}}" alt="User Image" class="avatar-img rounded-circle">
+                                                </div>
+                                            </div>
+                                            <div class="media-body">
+                                                <div class="user-name">{{doctor.name}}</div>
+                                                <div class="user-status">online</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="chat-body">
+    <div class="chat-scroll">
+        <ul class="list-unstyled" id="chat-box-ul">
+            {% for chat in chats %} 
+            {% if chat.user_from == user %}
+            <!-- Sender side -->
+            <li class="media sent">
+                <div class="media-body">
+                    <div class="msg-box">
+                        <div class="chat-bubble" data-id="{{chat.id}}">
+                            <p class="m-0">{{chat.message}}</p>
+                            <ul class="chat-msg-info">
+                                <li>
+                                    <div class="chat-time">
+                                        <span>{{chat.date_created|date:"g:i A"}}</span>
+                                        
+                                        <!-- Messenger-style checkmarks -->
+                                        {% if chat.is_read %}
+                                            <span style="color:#0084ff; margin-left:5px;">✔✔</span>
+                                        {% else %}
+                                            <span style="color:gray; margin-left:5px;">✔</span>
+                                        {% endif %}
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {% else %}
+            <!-- Receiver side -->
+            <li class="media received">
+                <div class="avatar">
+                    <img src="{{ doc.featured_image.url }}" alt="User Image" class="avatar-img rounded-circle">
+                </div>
+                <div class="media-body">
+                    <div class="msg-box">
+                        <div class="chat-bubble" data-id="{{chat.id}}">
+                            <p class="m-0">{{chat.message}}</p>
+                            <ul class="chat-msg-info">
+                                <li>
+                                    <div class="chat-time">
+                                        <span>{{chat.date_created|date:"g:i A"}}</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {% endif %} 
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+                                    
+                                    <div class="chat-box-form p-2">
+                                        <div class="w-100">
+                                            <form action="" id="chat-submit" class="h-100 d-flex">
+                                                <input type="hidden" name="user_from" value="{{ user.id }}">
+                                                <input type="hidden" name="user_to" value="{{ chat_id }}">
+                                                <div class="col-md-10 h-100">
+                                                    <textarea name="message" class="h-100 w-100 form-control" placeholder="Type a message..."></textarea>
+                                                </div>
+                                                <button class="button btn btn-info justify-content-center align-items-center d-flex"><i class="fas fa-paper-plane"></i></button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                </div>
+                        </div>
+                    </div>
+                    </div>
+            </div>        
+            
+        <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+        
+        <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+        <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+        
+        <script>
+$(function() {
+    const chatBox = $('#chat-box-ul');
+
+    // Auto-scroll to the latest message on page load
+    if (chatBox.children().length > 0) {
+        chatBox.scrollTop(chatBox[0].scrollHeight);
+    }
+
+    // Handle form submission
+    $('#chat-submit').submit(function(e) {
+        e.preventDefault();
+        const messageInput = $(this).find('textarea[name="message"]');
+        if (messageInput.val().trim() === '') return;
+
+        $.ajax({
+            headers: { "X-CSRFToken": '{{ csrf_token }}' },
+            url: "{% url 'chat-send' %}",
+            method: "POST",
+            data: $(this).serialize(),
+            dataType: "json",
+            success: function(resp) {
+                if (resp.status === 'success') {
+                    const messageText = messageInput.val().trim();
+                    messageInput.val(''); // clear textarea
+                    
+                    // Immediately add the sent message to the chat interface
+                    const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const bubble = `
+                        <li class="media sent" data-id="${resp.message_id}">
+                            <div class="media-body">
+                                <div class="msg-box">
+                                    <div class="chat-bubble">
+                                        <p>${messageText}</p>
+                                        <ul class="chat-msg-info">
+                                            <li><div class="chat-time"><span>${currentTime}</span></div></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>`;
+                    chatBox.append(bubble);
+                    chatBox.scrollTop(chatBox[0].scrollHeight);
+                    
+                    // Also refresh messages to ensure consistency
+                    setTimeout(chats_renew, 1000);
+                } else {
+                    console.log(resp);
+                    alert('Failed to send message: ' + (resp.error || 'Unknown error'));
+                }
+            },
+            error: function(err) {
+                console.log(err);
+                alert('An error occurred');
+            }
+        });
+    });
+
+    // Periodic refresh every 2.5 seconds
+    setInterval(chats_renew, 2500);
+
+    function chats_renew() {
+        let last_id = 0;
+        const lastBubble = chatBox.children('li:last');
+        if (lastBubble.length > 0) {
+            last_id = lastBubble.data('id');
+        }
+
+        $.ajax({
+            headers: { "X-CSRFToken": '{{ csrf_token }}' },
+            url: "{% url 'chat-get-messages' %}",
+            method: "POST",
+            data: {
+                last_id: last_id,
+                chat_id: "{{ chat_id|default:'0' }}"
+            },
+            dataType: 'json',
+            success: function(resp) {
+                if (resp && resp.length > 0) {
+                    let newMessages = false;
+                    resp.forEach(chat => {
+                        // Skip if message already exists
+                        if ($('#chat-box-ul .chat-bubble[data-id="'+chat.id+'"]').length > 0) return;
+
+                        let bubble = '';
+                       if (chat.user_from_id == "{{ user.id }}") {
+                            // Sent message
+                            bubble = `
+                            <li class="media sent" data-id="${chat.id}">
+                                <div class="media-body">
+                                    <div class="msg-box">
+                                        <div class="chat-bubble">
+                                            <p>${chat.message}</p>
+                                            <ul class="chat-msg-info">
+                                                <li><div class="chat-time"><span>${chat.date_created}</span></div></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>`;
+                        } else {
+                            // Received message
+                            bubble = `
+                            <li class="media received" data-id="${chat.id}">
+                                <div class="avatar">
+                                    <img src="${chat.user_from_avatar}" alt="User Image" class="avatar-img rounded-circle">
+                                </div>
+                                <div class="media-body">
+                                    <div class="msg-box">
+                                        <div class="chat-bubble">
+                                            <p>${chat.message}</p>
+                                            <ul class="chat-msg-info">
+                                                <li><div class="chat-time"><span>${chat.date_created}</span></div></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>`;
+                        }
+                        chatBox.append(bubble);
+                        newMessages = true;
+                    });
+                    if (newMessages) {
+                        chatBox.scrollTop(chatBox[0].scrollHeight);
+                    }
+                }
+            },
+            error: function(err) {
+                console.log(err);
+            }
+        });
+    }
+});
+</script>
+
+    </body>
+
+</html>

@@ -1,0 +1,106 @@
+<style>
+    :root {
+        --primary-color: #95C270;   /* Green */
+        --hover-bg-color: #e6f0c8;  /* Light green hover */
+        --text-color: #2c3e50;
+        --bg-color: #ffffff;
+        --transition-speed: 0.3s;
+        --border-radius: 6px;
+    }
+
+    .sidebar {
+        background: var(--bg-color);
+        border-right: 1px solid #e0e0e0;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+        min-height: 100vh;
+    }
+
+    .sidebar-menu ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .sidebar-menu .menu-title {
+        padding: 15px 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: var(--primary-color);
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .sidebar-menu ul li {
+        position: relative;
+    }
+
+    .sidebar-menu ul li a {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--text-color);
+        text-decoration: none;
+        transition: background var(--transition-speed), color var(--transition-speed), transform var(--transition-speed);
+        border-radius: var(--border-radius);
+        margin: 3px 10px;
+    }
+
+    .sidebar-menu ul li a i {
+        font-size: 1.1rem;
+        color: var(--primary-color);
+        transition: color var(--transition-speed);
+    }
+
+    /* Hover */
+    .sidebar-menu ul li a:hover {
+        background: var(--hover-bg-color);
+        color: var(--primary-color);
+        transform: translateX(3px);
+    }
+
+    .sidebar-menu ul li a:hover i {
+        color: var(--primary-color);
+    }
+
+    /* Active */
+    .sidebar-menu ul li.active > a {
+        background: var(--hover-bg-color);
+        color: var(--primary-color);
+        font-weight: 600;
+        box-shadow: inset 4px 0 0 var(--primary-color);
+    }
+
+    .sidebar-menu ul li.active > a i {
+        color: var(--primary-color);
+    }
+</style>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-inner slimscroll">
+        <div id="sidebar-menu" class="sidebar-menu">
+            <ul>
+                <li class="menu-title"> 
+                    <span>Menu</span>
+                </li>
+            </ul>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'admin-dashboard' %}"><i class="fe fe-home"></i> <span>Dashboard</span></a>
+                </li>
+            </ul>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'mypatient-list' %}"><i class="fe fe-user"></i> <span>Patient List</span></a>
+                </li>
+            </ul>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'test-list' %}"><i class="fe fe-document"></i> <span>Test List</span></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

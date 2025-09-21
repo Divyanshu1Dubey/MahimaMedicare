@@ -1,0 +1,59 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+    <title>Dashboard - HealthStack</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}"/>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css'%}"/>
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css'%}"/>
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}"/>
+</head>
+<body>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="header">{% include 'hospital_admin/hospital-admin-navbar.html' %}</header>
+        <!-- /Header -->
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            {% include 'hospital_admin/hospital-admin-sidebar.html' %} 
+        </aside>
+        <!-- /Sidebar -->
+
+        <!-- Page Wrapper -->
+        <div class="page-wrapper">
+            <div class="content container-fluid">
+                <h3 class="page-title">Dashboard</h3>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title">Welcome to the Dashboard!</h4>
+                                <p>This page is currently under construction.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Wrapper -->
+    </div>
+    <!-- /Main Wrapper -->
+
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js'%}"></script>
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js'%}"></script>
+</body>
+</html>

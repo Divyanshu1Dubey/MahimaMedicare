@@ -1,0 +1,418 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Mahima - Your Cart</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/pharmacy_assets/css/icomoon.css' %}">
+
+    <style>
+        :root {
+            --accent: #95C270;
+            --accent-dark: #7aa556;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --bg-light-gray: #f8f9fa;
+            --border-color: #ecf0f1;
+            --white: #ffffff;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        /* --- STICKY FOOTER FIX --- */
+        html {
+            height: 100%;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-light-gray);
+            color: var(--text-dark);
+        }
+        .main-content {
+            flex: 1 0 auto; /* This allows the main content to grow and push the footer down */
+        }
+        .footer-modern {
+            flex-shrink: 0; /* This prevents the footer from shrinking */
+        }
+        /* --- END STICKY FOOTER FIX --- */
+
+        /* --- Modern Navbar --- */
+        .navbar-modern {
+            background-color: var(--white) !important;
+            box-shadow: var(--shadow);
+            padding: 0.75rem 1rem;
+        }
+        .navbar-modern .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-dark) !important;
+        }
+        .navbar-modern .navbar-brand small {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--accent);
+            display: block;
+            margin-top: -5px;
+        }
+        .navbar-modern .nav-link {
+            font-weight: 500;
+            color: var(--text-light) !important;
+            transition: var(--transition);
+        }
+        .navbar-modern .nav-link:hover, .navbar-modern .nav-item.active .nav-link {
+            color: var(--accent) !important;
+        }
+        .navbar-modern .cart-link {
+            position: relative;
+        }
+        .navbar-modern .cart-badge {
+            position: absolute;
+            top: 5px;
+            right: 0px;
+            background-color: var(--accent);
+            color: var(--white);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- Main Content Section --- */
+        .page-section {
+            padding: 4rem 0;
+        }
+        .page-title {
+            font-weight: 700;
+            margin-bottom: 2rem;
+        }
+
+        /* --- Cart Items Card --- */
+        .cart-item-card {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+        .cart-item-card:hover {
+            transform: translateY(-3px);
+        }
+        .cart-item-details {
+            flex-grow: 1;
+        }
+        .cart-item-details h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .cart-item-details p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+        .cart-item-price {
+            font-weight: 600;
+            font-size: 1rem;
+            min-width: 120px;
+            text-align: right;
+        }
+
+        /* --- Quantity Selector --- */
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            min-width: 150px;
+            justify-content: center;
+        }
+        .quantity-btn {
+            background-color: var(--border-color);
+            border: none;
+            color: var(--text-light);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        .quantity-btn:hover {
+            background-color: var(--accent);
+            color: var(--white);
+        }
+        .quantity-input {
+            width: 50px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .quantity-input:focus {
+            outline: none;
+        }
+        
+        .item-remove-btn {
+            color: #e74c3c;
+            opacity: 0.6;
+            transition: var(--transition);
+            margin-left: 1.5rem;
+            text-decoration: none;
+        }
+        .item-remove-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* --- Cart Summary Card --- */
+        .cart-summary-card {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            position: sticky;
+            top: 4rem;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+        .summary-item span:first-child {
+            color: var(--text-light);
+        }
+        .summary-item span:last-child {
+            font-weight: 600;
+        }
+        .summary-total {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        
+        .btn-checkout {
+            background-color: var(--accent);
+            color: var(--white);
+            font-weight: 600;
+            padding: 12px 20px;
+            width: 100%;
+            border: none;
+            border-radius: 8px;
+            transition: var(--transition);
+            letter-spacing: 0.5px;
+        }
+        .btn-checkout:hover {
+            background-color: var(--accent-dark);
+            box-shadow: 0 7px 15px rgba(122, 165, 86, 0.3);
+            transform: translateY(-2px);
+            color: var(--white);
+        }
+        
+        /* --- Modern Footer --- */
+        .footer-modern {
+            background: var(--text-dark);
+            color: #bdc3c7;
+            padding: 3rem 0;
+            font-size: 0.9rem;
+        }
+        .footer-modern h2 {
+            color: var(--white);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .footer-modern a {
+            color: #bdc3c7;
+            transition: var(--transition);
+        }
+        .footer-modern a:hover {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .footer-modern .contact-list li {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+        .footer-modern .contact-list .icon {
+            margin-right: 10px;
+            color: var(--accent);
+            font-size: 1.1rem;
+            margin-top: 4px;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 767px) {
+            .cart-item-card {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem;
+            }
+            .cart-item-price, .quantity-selector {
+                min-width: 0;
+                text-align: left;
+                width: 100%;
+            }
+            .cart-item-price {
+                margin-top: 0.5rem;
+                font-size: 1.1rem;
+            }
+            .quantity-selector {
+                justify-content: flex-start;
+                margin: 1rem 0;
+            }
+            .item-remove-btn {
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-modern">
+        <div class="container">
+            <a class="navbar-brand" href="">MahimaMedicare<small>Medical Shop</small></a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="icon-menu"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a href="{% url 'patient-dashboard' %}" class="nav-link">Dashboard</a></li>
+                    <li class="nav-item"><a href="{% url 'pharmacy_shop' %}" class="nav-link">Shop</a></li>
+                    <li class="nav-item active cart-link">
+                        <a href="{% url 'pharmacy-cart' %}" class="nav-link">
+                            <span class="icon icon-shopping_cart" style="font-size: 1.2rem;"></span>
+                            <span class="cart-badge">
+                                {{ order.count_cart_items }}
+                            </span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="page-section">
+            <div class="container">
+                {% include 'message.html' %}
+                <h1 class="page-title">Your Shopping Cart</h1>
+                <div class="row">
+                    <div class="col-lg-8">
+                        {% for cart in carts %}
+                        <div class="cart-item-card">
+                            <div class="cart-item-details">
+                            <h3>{{ cart.item.name }}</h3>
+                            <p>{{ cart.item.description }}</p>
+                            </div>
+                            <div class="quantity-selector">
+                                <a href="{% url 'decrease-item' pk=cart.item.pk %}">
+                                    <button type="button" class="quantity-btn"><i class="icon-minus"></i></button>
+                                </a>
+                                <input type="text" name="quantity" class="quantity-input" value="{{ cart.quantity }}" readonly>
+                                <a href="{% url 'increase-item' pk=cart.item.pk %}">
+                                    <button type="button" class="quantity-btn"><i class="icon-plus"></i></button>
+                                </a>
+                            </div>
+                            <div class="cart-item-price">
+                                {{ cart.get_total }} Rupees
+                            </div>
+                            <a href="{% url 'remove-item' pk=cart.item.pk %}" class="item-remove-btn"><span class="icon-close"></span></a>
+                        </div>
+                        {% empty %}
+                        <div class="alert alert-info text-center">Your cart is empty. <a href="{% url 'pharmacy_shop' %}" class="alert-link">Start shopping!</a></div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="cart-summary-card">
+    <h3 class="font-weight-bold mb-4">Cart Summary</h3>
+    <div class="summary-item">
+        <span>Subtotal</span>
+        <span>₱ {{ order.get_totals|floatformat:2 }}</span>
+    </div>
+    <div class="summary-item">
+        <span>Delivery Fee</span>
+        <span>₱ 40.00</span>
+    </div>
+    <div class="summary-item">
+        <span>Discount</span>
+        <span>₱ 0.00</span>
+    </div>
+    <hr>
+    <div class="summary-item summary-total">
+        <span>Total</span>
+        <span>₱ {{ order.final_bill|floatformat:2 }}</span>
+    </div>
+    <p class="text-center mt-4">
+        <a href="{% url 'razorpay-pharmacy-payment' order_id=order.id %}" class="btn btn-checkout">Proceed to Checkout with Razorpay</a>
+    </p>
+</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer-modern">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <h2>About Mahima Medicare</h2>
+                    <p>An online platform for multiple hospitals, providing immediate medical assistance and seamless patient record sharing. Find doctors and book appointments with ease.</p>
+                </div>
+                <div class="col-lg-1"></div>
+                <div class="col-lg-5">
+                    <h2>Have Questions?</h2>
+                    <ul class="list-unstyled contact-list">
+                        <li>
+                            <span class="icon icon-map-marker"></span>
+                            <span class="text">Odisha/India</span>
+                        </li>
+                        <li>
+                            <span class="icon icon-phone"></span>
+                            <a href="tel://+9348221721" class="text">+91 9348221721</a>
+                        </li>
+                        <li>
+                            <span class="icon icon-envelope"></span>
+                            <a href="mailto:info@MahimaMedicare.com" class="text">info@MahimaMedicare.com</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/pharmacy_assets/js/bootstrap.min.js' %}"></script>
+
+    {% if messages %}
+    <script>
+        $(document).ready(function () {
+            $('.toast').toast('show');
+        });
+    </script>
+    {% endif %}
+
+</body>
+</html>

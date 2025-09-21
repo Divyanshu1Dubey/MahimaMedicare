@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Report Update - Mahima Medicare</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏥 Mahima Medicare</h1>
+        <h2>Lab Report Update</h2>
+    </div>
+    
+    <div class="content">
+        <h3>Dear {{ patient.name }},</h3>
+        
+        <p>We have an update regarding your lab report:</p>
+        
+        <div class="info-box">
+            <strong>Report ID:</strong> #{{ report.report_id }}<br>
+            <strong>Test Name:</strong> {{ report.test_name }}<br>
+            <strong>Current Status:</strong> <span class="status-badge">{{ report.get_status_display }}</span>
+        </div>
+        
+        <div class="info-box">
+            <h4>📋 Status Update:</h4>
+            <p><strong>{{ message }}</strong></p>
+            
+            {% if new_status == 'collected' %}
+                <p>Your sample has been successfully collected and is now being prepared for analysis. Our lab technicians will begin processing your test shortly.</p>
+            {% elif new_status == 'processing' %}
+                <p>Your test is currently being analyzed by our qualified lab technicians. We will notify you as soon as the results are ready.</p>
+            {% elif new_status == 'completed' %}
+                <p>Great news! Your lab report is now ready. You can download it from your patient dashboard or visit our facility to collect a printed copy.</p>
+            {% elif new_status == 'delivered' %}
+                <p>Your lab report has been successfully delivered. Thank you for choosing Mahima Medicare for your healthcare needs.</p>
+            {% endif %}
+        </div>
+        
+        {% if new_status == 'completed' %}
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="#" style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                📄 View Report
+            </a>
+        </div>
+        {% endif %}
+        
+        <p>If you have any questions or concerns, please don't hesitate to contact us:</p>
+        <ul>
+            <li>📞 Phone: 9348221721</li>
+            <li>📧 Email: info@mahimamedicare.com</li>
+            <li>🏥 Address: ORTI, BAGHUNI, NEMALA, CUTTACK</li>
+        </ul>
+    </div>
+    
+    <div class="footer">
+        <p>This is an automated message from Mahima Medicare Lab Management System.</p>
+        <p>© {{ "now"|date:"Y" }} Mahima Medicare. All rights reserved.</p>
+    </div>
+</body>
+</html>

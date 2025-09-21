@@ -1,0 +1,488 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>HealthStack - Find Doctors</title>
+    
+    <!-- Favicons -->
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+
+    <!-- Fancybox CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fancybox/jquery.fancybox.min.css'%}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+
+    <style>
+        :root {
+            --primary-accent: #95C270;
+            --primary-accent-light: #B1D592;
+            --primary-accent-dark: #7AA85C;
+            --text-dark: #2D3748;
+            --text-muted: #718096;
+            --bg-light: #FFFFFF;
+            --bg-gray: #F7FAFC;
+            --border-light: #E2E8F0;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-dark);
+            background-color: var(--bg-gray);
+        }
+
+        .breadcrumb-bar {
+            background: linear-gradient(135deg, var(--primary-accent), var(--primary-accent-dark));
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+        }
+
+        .breadcrumb-item a {
+            color: rgba(255, 255, 255, 0.9);
+            transition: var(--transition);
+        }
+
+        .breadcrumb-item a:hover {
+            color: white;
+            text-decoration: none;
+        }
+
+        .breadcrumb-item.active {
+            color: white;
+            font-weight: 500;
+        }
+
+        .breadcrumb-title {
+            color: white;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .search-container .form-control {
+            border-radius: 50px;
+            padding-left: 45px;
+            height: 45px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .search-container .form-control:focus {
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 3px rgba(149, 194, 112, 0.25);
+        }
+
+        .search-container .btn {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            z-index: 4;
+        }
+
+        .doctor-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .doctor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .doctor-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .doctor-name {
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+
+        .doctor-name a {
+            color: inherit;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .doctor-name a:hover {
+            color: var(--primary-accent);
+        }
+
+        .doctor-specialty {
+            color: var(--primary-accent);
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .doctor-department {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .doctor-department img {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+
+        .rating {
+            color: #F59E0B;
+            margin-bottom: 10px;
+        }
+
+        .average-rating {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .doctor-location {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .doctor-services {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .doctor-services span {
+            background-color: var(--primary-accent-light);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+        }
+
+        .doctor-info-list {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+        .doctor-info-list li {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+        }
+
+        .doctor-info-list li i {
+            margin-right: 8px;
+            color: var(--primary-accent);
+            width: 18px;
+            text-align: center;
+        }
+
+        .doctor-fee {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .btn-view-profile {
+            background-color: white;
+            color: var(--primary-accent);
+            border: 1px solid var(--primary-accent);
+            margin-right: 10px;
+            border-radius: 8px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .btn-view-profile:hover {
+            background-color: var(--primary-accent);
+            color: white;
+        }
+
+        .btn-book-appointment {
+            background-color: var(--primary-accent);
+            color: white;
+            border: 1px solid var(--primary-accent);
+            border-radius: 8px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .btn-book-appointment:hover {
+            background-color: var(--primary-accent-dark);
+            border-color: var(--primary-accent-dark);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .load-more-btn {
+            background-color: var(--primary-accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 25px;
+            font-weight: 500;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .load-more-btn:hover {
+            background-color: var(--primary-accent-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .doctor-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .doctor-img {
+                margin: 0 auto 15px;
+            }
+            
+            .doctor-info-list li {
+                justify-content: center;
+            }
+            
+            .doctor-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn-view-profile, .btn-book-appointment {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="header">
+            {% if user.is_authenticated and user.is_patient %}
+            {% include 'patient_navbar.html' %}
+            {% endif %}
+        
+            {% if user.is_authenticated and user.is_doctor %}
+            {% include 'doctor-navbar.html' %}
+            {% endif %}
+        </header>
+        <!-- /Header -->
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-bar">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-md-6 col-6">
+                        <nav aria-label="breadcrumb" class="page-breadcrumb">
+                            <ol class="breadcrumb">
+                                {% if user.is_authenticated and user.is_patient %}
+                                <li class="breadcrumb-item"><a href="{% url 'patient-dashboard' %}">Home</a></li>
+                                {% endif %}
+
+                                {% if user.is_authenticated and user.is_doctor %}
+                                <li class="breadcrumb-item"><a href="{% url 'doctor-dashboard' %}">Home</a></li>
+                                {% endif %}
+                                <li class="breadcrumb-item active" aria-current="page">Hospital</li>
+                            </ol>
+                        </nav>
+                        <h2 class="breadcrumb-title">Doctor List</h2>
+                    </div>
+                    <div class="col-md-6 col-6 text-right">
+                        <div class="search-container">
+                            <form action="{% url 'hospital-doctor-list' pk=pk_id %}" method="GET">
+                                <button class="btn" type="submit"><i class="fa fa-search"></i></button>
+                                <input type="text" class="form-control" placeholder="Search doctor..." name="search_query" value="{{search_query}}">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Breadcrumb -->
+
+        <!-- Page Content -->
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <!-- Profile Sidebar -->
+                    <div class="col-md-5 col-lg-4 col-xl-3 theiaStickySidebar">
+                        <div>
+                            {% if user.is_authenticated and user.is_patient %}
+                            {% include 'patient-sidebar.html' %}
+                            {% endif %}
+
+                            {% if user.is_authenticated and user.is_doctor %}
+                            {% include 'doctor-sidebar.html' %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <!-- / Profile Sidebar -->
+
+                    <div class="col-md-12 col-lg-8 col-xl-9">
+                        <!-- Doctor Cards -->
+                        {% for doctor in doctors %}
+                        <div class="card doctor-card">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2 col-lg-2 text-center mb-3 mb-md-0">
+                                        <a href="{% url 'doctor-profile' pk=doctor.doctor_id %}">
+                                            <img src="{{ doctor.featured_image.url }}" class="doctor-img" alt="Dr. {{doctor.name}}">
+                                        </a>
+                                    </div>
+                                    <div class="col-md-5 col-lg-6">
+                                        <h3 class="doctor-name">
+                                            <a href="{% url 'doctor-profile' pk=doctor.doctor_id %}">Dr. {{doctor.name}}</a>
+                                        </h3>
+                                        <p class="doctor-specialty">{{ doctor.department_name.hospital_department_name }}</p>
+                                        <p class="doctor-department">
+                                            <img src="{% static 'HealthStack-System/images/Normal/specialities/specialities-05.png'%}" alt="Speciality">
+                                            {{ doctor.specialization.specialization_name }}
+                                        </p>
+                                        <div class="rating">
+                                            <i class="fas fa-star filled"></i>
+                                            <i class="fas fa-star filled"></i>
+                                            <i class="fas fa-star filled"></i>
+                                            <i class="fas fa-star filled"></i>
+                                            <i class="fas fa-star"></i>
+                                            <span class="average-rating">(17 reviews)</span>
+                                        </div>
+                                        <p class="doctor-location">
+                                            <i class="fas fa-map-marker-alt text-muted"></i>
+                                            {{doctor.hospital_name}}
+                                        </p>
+                                        <div class="doctor-services">
+                                            <span>Dental Fillings</span>
+                                            <span>Whitening</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5 col-lg-4">
+                                        <ul class="doctor-info-list">
+                                            <li>
+                                                <i class="far fa-thumbs-up"></i>
+                                                <span>98% Patient Satisfaction</span>
+                                            </li>
+                                            <li>
+                                                <i class="far fa-comment"></i>
+                                                <span>17 Feedback</span>
+                                            </li>
+                                            <li>
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                <span>Dhaka, Bangladesh</span>
+                                            </li>
+                                            <li>
+                                                <i class="far fa-money-bill-alt"></i>
+                                                <span class="doctor-fee">{{doctor.consultation_fee}} BDT</span>
+                                                <i class="fas fa-info-circle ml-2" data-toggle="tooltip" title="Consultation Fee"></i>
+                                            </li>
+                                        </ul>
+                                        <div class="d-flex flex-wrap gap-2 mt-3 doctor-actions">
+                                            <a href="{% url 'doctor-profile' pk=doctor.doctor_id %}" class="btn-view-profile">
+                                                View Profile
+                                            </a>
+                                            {% if user.is_authenticated and user.is_patient %}
+                                            <a href="{% url 'booking' pk=doctor.doctor_id %}" class="btn-book-appointment">
+                                                Book Appointment
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <!-- /Doctor Cards -->
+
+                        <div class="load-more text-center mt-4">
+                            <button class="load-more-btn">Load More Doctors</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Content -->
+
+        <!-- Footer -->
+        {% include 'footer.html' %}
+        <!-- /Footer -->
+    </div>
+    <!-- /Main Wrapper -->
+
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+
+    <!-- Sticky Sidebar JS -->
+    <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/ResizeSensor.js' %}"></script>
+    <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/theia-sticky-sidebar.js' %}"></script>
+
+    <!-- Fancybox JS -->
+    <script src="{% static 'HealthStack-System/plugins/Normal/fancybox/jquery.fancybox.min.js'%}"></script>
+
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/Outside_assets/js/script.js' %}"></script>
+
+    <script>
+        // Initialize tooltips
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
+</body>
+</html>

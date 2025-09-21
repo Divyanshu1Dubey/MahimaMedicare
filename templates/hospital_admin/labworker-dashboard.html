@@ -1,0 +1,304 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=0"
+    />
+    <title>Mahima Medicare</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}"/>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}"> 
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}">
+    <!-- Feathericon CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css'%}">
+    <!-- Datatables CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}" />
+    
+    <style>
+      body {
+        background-color: #ffffff !important;
+      }
+      
+      .dash-widget {
+        border-color: #95C270 !important;
+        background-color: #ffffff;
+      }
+      
+      .dash-widget-icon {
+        color: #95C270 !important;
+        border-color: #95C270 !important;
+      }
+      
+      .dash-widget-info h3 {
+        color: #95C270 !important;
+      }
+      
+      .dash-widget-info span {
+        color: #2c3e50;
+      }
+      
+      .card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-wrapper">
+      <header class="header">{% include 'hospital_admin/labworker-navbar.html' %}</header>            
+      <aside class="sidebar" id="sidebar">
+        {% include 'hospital_admin/labworker-sidebar.html' %} 
+      </aside>
+      <div class="page-wrapper">
+        <div class="content container-fluid">
+          <div class="page-header">
+            <div class="row">
+              <div class="col-sm-12">
+                <h3 class="page-title">Welcome Admin!</h3>
+                <ul class="breadcrumb">
+                  <li class="breadcrumb-item active">Dashboard</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Dashboard Stats -->
+            <div class="col-md-6 col-sm-6 col-lg-6 col-xl-3">
+              <div class="card dash-widget">
+                <div class="card-body">
+                  <span class="dash-widget-icon"><i class="fa fa-user-injured"></i></span>
+                  <div class="dash-widget-info">
+                    <h3>{{ total_patient_count }}</h3>
+                    <span>Total Patients</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6 col-sm-6 col-lg-6 col-xl-3">
+              <div class="card dash-widget">
+                <div class="card-body">
+                  <span class="dash-widget-icon"><i class="fa fa-flask"></i></span>
+                  <div class="dash-widget-info">
+                    <h3>{{ available_tests.count }}</h3>
+                    <span>Available Tests</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6 col-sm-6 col-lg-6 col-xl-3">
+              <div class="card dash-widget">
+                <div class="card-body">
+                  <span class="dash-widget-icon"><i class="fa fa-user-md"></i></span>
+                  <div class="dash-widget-info">
+                    <h3>{{ doctor.count }}</h3>
+                    <span>Total Doctors</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6 col-sm-6 col-lg-6 col-xl-3">
+              <div class="card dash-widget">
+                <div class="card-body">
+                  <span class="dash-widget-icon"><i class="fa fa-user-tie"></i></span>
+                  <div class="dash-widget-info">
+                    <h3>{{ total_labworker_count }}</h3>
+                    <span>Lab Technician</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Specimen Chart Section -->
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title">Specimen Type Distribution</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="specimenChart" width="400" height="200"></canvas>
+                  <div class="mt-3">
+                    <div class="btn-group" role="group">
+                      <button type="button" class="btn btn-outline-primary" id="prevPage" disabled>Previous</button>
+                      <button type="button" class="btn btn-outline-primary" id="nextPage">Next</button>
+                    </div>
+                    <small class="text-muted ml-2">Showing <span id="currentPage">1</span>/<span id="totalPages">2</span></small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js'%}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/popper.min.js'%}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js'%}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/script.js'%}"></script>
+    
+    <script>
+    let currentChart = null;
+    let currentPage = 1;
+    const itemsPerPage = 8;
+    let totalSpecimenTypes = 0;
+    let totalPages = 1;
+
+    // Function to load specimen count data and create bar chart
+    function loadSpecimenChart(page = 1) {
+        const url = `/hospital_admin/specimen-count-data/?limit=${itemsPerPage}&offset=${(page - 1) * itemsPerPage}`;
+        
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Update total specimen types and pages from API response
+            totalSpecimenTypes = data.total_specimen_types || 0;
+            totalPages = Math.ceil(totalSpecimenTypes / itemsPerPage) || 1;
+
+            // Destroy previous chart if it exists
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            // Create bar chart
+            const ctx = document.getElementById('specimenChart').getContext('2d');
+            currentChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Specimen Count by Type',
+                        data: data.data,
+                        backgroundColor: [
+                            '#4ECDC4', '#45B7D1', '#F7A072', '#FF6B6B', '#95C270',
+                            '#6A0DAD', '#FFA500', '#008080', '#800020', '#4B0082'
+                        ],
+                        borderColor: [
+                            '#3EBDB4', '#35A7C1', '#E79062', '#EF5B5B', '#85B260',
+                            '#5A0B9D', '#E69500', '#006E6E', '#700018', '#3A0072'
+                        ],
+                        borderWidth: 1,
+                        barPercentage: 0.7,
+                        categoryPercentage: 0.8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: `Specimen Type Distribution (Page ${page})`
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Specimens'
+                            },
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Specimen Types'
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            left: 20,
+                            right: 20,
+                            top: 10,
+                            bottom: 10
+                        }
+                    }
+                }
+            });
+
+            // Update pagination controls
+            updatePaginationControls(page);
+        })
+        .catch(error => {
+            console.error('Error loading specimen data:', error);
+            document.getElementById('specimenChart').innerHTML = '<p class="text-center text-muted">Unable to load specimen data</p>';
+        });
+    }
+
+    // Update pagination controls
+    function updatePaginationControls(page) {
+        const prevBtn = document.getElementById('prevPage');
+        const nextBtn = document.getElementById('nextPage');
+        const currentPageSpan = document.getElementById('currentPage');
+        const totalPagesSpan = document.getElementById('totalPages');
+
+        currentPageSpan.textContent = page;
+        totalPagesSpan.textContent = totalPages;
+
+        prevBtn.disabled = page <= 1;
+        nextBtn.disabled = page >= totalPages;
+    }
+
+    // Event listeners for pagination
+    document.getElementById('prevPage').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            loadSpecimenChart(currentPage);
+        }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            loadSpecimenChart(currentPage);
+        }
+    });
+
+    // Load chart when page is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSpecimenChart(currentPage);
+    });
+    </script>
+  </body>
+</html>

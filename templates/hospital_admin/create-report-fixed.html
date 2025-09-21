@@ -1,0 +1,397 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Mahima Medicare</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}"/>
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css'%}">
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}"/>
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css'%}">
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.css'%}">
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}">
+
+    <style>
+        :root {
+            --primary-color: #95C270;
+            --hover-bg-color: #e6f0c8;
+            --text-color: #333333;
+            --heading-color: #222222;
+            --delete-color: #dc3545;
+            --delete-hover: #a71d2a;
+            --card-bg: #ffffff;
+            --border-color: #e9ecef;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-light: 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        body, .content, .page-wrapper, .breadcrumb, .breadcrumb-title,
+        .card-body, .form-group label, table, td, th {
+            color: var(--text-color) !important;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--heading-color) !important;
+        }
+
+        button,
+        .btn {
+            background-color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+            color: #fff !important;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        button:hover,
+        .btn:hover {
+            background-color: var(--hover-bg-color) !important;
+            color: var(--text-color) !important;
+        }
+
+        .btn-danger,
+        button.btn-danger {
+            background-color: var(--delete-color) !important;
+            border-color: var(--delete-color) !important;
+            color: #fff !important;
+        }
+
+        .btn-danger:hover,
+        button.btn-danger:hover {
+            background-color: var(--delete-hover) !important;
+            border-color: var(--delete-hover) !important;
+            color: #fff !important;
+        }
+
+        a {
+            color: var(--primary-color);
+        }
+
+        a:hover {
+            color: var(--heading-color);
+            background-color: var(--hover-bg-color);
+            border-radius: 6px;
+        }
+
+        .card-title,
+        .card-header h4,
+        .card-header p {
+            color: var(--heading-color) !important;
+        }
+
+        .breadcrumb .active {
+            color: var(--primary-color) !important;
+        }
+
+        .call-content-full {
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .card {
+            margin-bottom: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-light);
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .container-lg {
+            padding: 10px;
+        }
+
+        .card.card-table .card-body {
+            max-width: 100%;
+            width: 100%;
+            padding: 0;
+        }
+
+        .specimen-cont .form-group {
+            margin-bottom: 10px;
+        }
+
+        .card-header {
+            background-color: transparent;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .form-row > [class*="col-"] {
+            padding-right: 10px;
+            padding-left: 10px;
+        }
+        
+        .add-more a {
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .add-more i {
+            margin-right: 5px;
+            color: var(--primary-color);
+        }
+
+        .submit-section {
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <header class="header">{% include 'hospital_admin/labworker-navbar.html' %}</header>
+        <aside class="sidebar" id="sidebar">
+            {% include 'hospital_admin/labworker-sidebar.html' %}
+        </aside>
+        <div class="page-wrapper">
+
+            <div class="content container-fluid">
+
+                <div class="breadcrumb-bar">
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <div class="col-md-12 col-12">
+                                <nav aria-label="breadcrumb" class="page-breadcrumb">
+                                    <ol class="breadcrumb">
+                                        <li class="breadcrumb-item"><a href="index-2.html">Home</a></li>
+                                        <li class="breadcrumb-item active" aria-current="page">Create Report</li>
+                                    </ol>
+                                </nav>
+                                <h2 class="breadcrumb-title">Create Report</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="call-content-full">
+                    <div class="container-lg">
+                        <div class="row-cols-6">
+                            <div class="col-md-7 col-lg-8 col-xl-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <form action="#" method="POST" enctype="multipart/form-data">
+                                            {% csrf_token %}
+
+                                            <div class="row form-row">
+                                                <div class="col-12 col-md-12">
+                                                    <div class="form-group">
+                                                        <div class="change-avatar"></div>
+                                                    </div>
+
+                                                    <div class="card">
+                                                        <div class="card-header">
+                                                            <h4 class="card-title">Specimen Information</h4>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <div class="specimen-info">
+                                                                {% for s in specimens %}
+                                                                <div class="row form-row specimen-cont">
+                                                                    <div class="col-12 col-lg-12">
+                                                                        <div class="row form-row">
+                                                                            <div class="col-12 col-md-6 col-lg-4">
+                                                                                <div class="form-group">
+                                                                                    <label>Specimen Type</label>
+                                                                                    <select class="form-control" name="specimen_type" required>
+                                                                                        <option value="">Select Specimen Type</option>
+                                                                                        {% for specimen_type in specimen_types %}
+                                                                                        <option value="{{ specimen_type }}" {% if specimen_type == s.specimen_type %}selected{% endif %}>{{ specimen_type }}</option>
+                                                                                        {% endfor %}
+                                                                                    </select>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-12 col-md-6 col-lg-4">
+                                                                                <div class="form-group">
+                                                                                    <label>Collection Date</label>
+                                                                                    <input type="date" class="form-control" name="collection_date" value="{{ s.collection_date }}">
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-12 col-md-6 col-lg-4">
+                                                                                <div class="form-group">
+                                                                                    <label>Receiving Date</label>
+                                                                                    <div class="input-group">
+                                                                                        <input type="date" class="form-control" name="receiving_date" value="{{ s.receiving_date }}">
+                                                                                        <div class="input-group-append">
+                                                                                            <a href="#" class="btn btn-danger trash">
+                                                                                                <i class="far fa-trash-alt"></i>
+                                                                                            </a>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                {% endfor %}
+                                                            </div>
+                                                            <div class="add-more">
+                                                                <a href="javascript:void(0);" class="add-specimen"><i class="fas fa-plus-circle"></i> Add Specimen</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card">
+                                                        <div class="card-header">
+                                                            <h4 class="card-title">Test Information</h4>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <div class="test-info-container">
+                                                                <div class="row form-row test-cont">
+                                                                    <div class="col-12 col-md-3">
+                                                                        <div class="form-group">
+                                                                            <label>Test Name</label>
+                                                                            <select class="form-control test-list-select" name="test_name" required>
+                                                                                <option value="">Select Test Name</option>
+                                                                                {% for test in test_names %}
+                                                                                <option value="{{ test.test_name }}" data-test-id="{{ test.test_id }}">
+                                                                                    {{ test.test_name }}
+                                                                                </option>
+                                                                                {% endfor %}
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-12 col-md-3">
+                                                                        <div class="form-group">
+                                                                            <label>Result</label>
+                                                                            <input type="text" name="result" class="form-control" required>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-12 col-md-2">
+                                                                        <div class="form-group">
+                                                                            <label>Unit</label>
+                                                                            <input type="text" name="unit" class="form-control">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-12 col-md-3">
+                                                                        <div class="form-group">
+                                                                            <label>Referred Value</label>
+                                                                            <input type="text" name="referred_value" class="form-control">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-12 col-md-1">
+                                                                        <div class="form-group d-flex align-items-end" style="height: 100%;">
+                                                                            <a href="#" class="btn btn-danger trash remove-test d-flex align-items-center justify-content-center" style="width: 100%;"><i class="far fa-trash-alt"></i></a>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="add-more">
+                                                                <a href="javascript:void(0);" class="add-test"><i class="fas fa-plus-circle"></i> Add Test</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card">
+                                                        <div class="card-body">
+                                                            <div class="form-group">
+                                                                <label>Delivery Date</label>
+                                                                <input class="form-control" type="date" name="delivery_date">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="card">
+                                                        <div class="card-body">
+                                                            <div class="form-group">
+                                                                <label>Additional Information</label>
+                                                                <input class="form-control" type="text" name="other_information" id="other_information">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="submit-section">
+                                                <button type="submit" class="btn btn-primary submit-btn">
+                                                    Save Changes
+                                                </button>
+                                            </div>
+                                        </form>
+                                        </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        <script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js' %}"></script>
+
+        <script src="{% static 'HealthStack-System/js/admin/popper.min.js' %}"></script>
+        <script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js' %}"></script>
+
+        <script src="{% static 'HealthStack-System/plugins/admin/slimscroll/jquery.slimscroll.min.js' %}"></script>
+
+        <script>
+            // Debug: Check what test_names_json renders to
+            console.log("Raw test_names_json:", "{{ test_names_json|safe }}");
+            try {
+                window.testNames = JSON.parse('{{ test_names_json|safe }}');
+                console.log("Parsed Test Names:", window.testNames);
+            } catch (e) {
+                console.error("Error parsing test_names_json:", e);
+                window.testNames = [];
+            }
+            if (!window.testNames || window.testNames.length === 0) {
+                window.testNames = [];
+            }
+            console.log("Final Test Names:", window.testNames);
+
+            // Initialize specimenTypes from Django context
+            window.specimenTypes = [
+                'Blood',
+                'Urine',
+                'Saliva',
+                'Sputum',
+                'Stool (Feces)',
+                'Tissue Biopsy',
+                'Cerebrospinal Fluid (CSF)',
+                'Semen',
+                'Vaginal Swab',
+                'Nasal Swab',
+                'Throat Swab',
+                'Amniotic Fluid',
+                'Pleural Fluid',
+                'Synovial Fluid (Joint Fluid)',
+                'Bone Marrow',
+                'Other (Specify)'
+            ];
+            console.log("Specimen Types:", window.specimenTypes);
+        </script>
+
+        <script src="{% static 'HealthStack-System/js/Normal/report-settings-clean-with-test.js' %}"></script>
+
+        <script src="{% static 'HealthStack-System/plugins/admin/datatables/jquery.dataTables.min.js'%}"></script>
+        <script src="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.js'%}"></script>
+
+        <script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
+
+        <script>
+            var x = document.getElementById('CredentialCheck');
+            if (x && x.style.display === "none") {
+                x.style.display = "block";
+            }
+            if ($('#CredentialCheck').length) {
+                $('#CredentialCheck').delay(4000).fadeOut('slow');
+            }
+        </script>
+
+    </body>
+
+</html>

@@ -1,0 +1,258 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Mahima Medicare</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0"/>
+
+  <!-- Favicons -->
+  <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon"/>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}"/>
+
+  <!-- Fontawesome CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}"/>
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}"/>
+
+  <style>
+    :root {
+      --accent: rgb(149, 194, 112);
+    }
+
+    .breadcrumb-bar {
+      background: var(--accent);
+      color: #fff;
+      padding: 15px 20px;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+    .breadcrumb-bar .breadcrumb a { color: #fff; font-weight: 500; }
+    .breadcrumb-title { font-size: 28px; font-weight: 700; color: #fff; }
+
+    .invoice-content {
+      background: #fff;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+    }
+    .invoice-logo img { max-height: 60px; }
+
+    .invoice-item { margin-bottom: 20px; }
+    .invoice-info strong { color: var(--accent); }
+
+    .table {
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .table thead {
+      background-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .table th, .table td {
+      border: 1px solid #e5e5e5 !important;
+      vertical-align: middle;
+      padding: 12px;
+    }
+    .table th { font-weight: 600; }
+
+    .other-info {
+      background: #f9fafb;
+     
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 25px;
+    }
+
+    .btn-primary {
+      background-color: var(--accent);
+      border-color: var(--accent);
+    }
+    .btn-primary:hover {
+      background-color: rgb(129,174,92);
+      border-color: rgb(129,174,92);
+    }
+    .btn a { color: #fff; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <!-- Main Wrapper -->
+  <div class="main-wrapper">
+    <!-- Header -->
+    <header class="header">
+      {% if user.is_authenticated and user.is_patient %}
+        {% include 'patient_navbar.html' %}
+      {% endif %}
+    </header>
+    <!-- /Header -->
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-md-12 col-12">
+            <nav aria-label="breadcrumb" class="page-breadcrumb">
+              <ol class="breadcrumb">
+                {% if user.is_authenticated and user.is_patient %}
+                <li class="breadcrumb-item"><a href="">View Report</a></li>
+                {% endif %}
+                <li class="breadcrumb-item active" aria-current="page">Report Result</li>
+              </ol>
+            </nav>
+            <h2 class="breadcrumb-title">Report Result</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /Breadcrumb -->
+
+    <!-- Page Content -->
+    <div class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <!-- Sidebar -->
+          <div class="col-md-5 col-lg-4 col-xl-3 theiaStickySidebar">
+            <div>{% include 'patient-sidebar.html' %}</div>
+          </div>
+          <!-- /Sidebar -->
+
+          <div class="col-md-7 col-lg-8 col-xl-9">
+            <div class="invoice-content">
+              <div class="invoice-item">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="invoice-logo">
+                      <img src="{% static 'HealthStack-System/images/Normal/logo.png'%}" alt="logo">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <p class="invoice-details">
+                      {% for report in report %}
+                      <strong>Report ID:</strong> {{report.report_id}} <br>
+                      <strong>Patient ID:</strong> {{patient.patient_id }} <br>
+                      <strong>Date:</strong> {{report.delivery_date}}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Doctor & Patient Info -->
+              <div class="invoice-item">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="invoice-info">
+                      <strong class="customer-text">Doctor Information:</strong>
+                      <p class="invoice-details invoice-details-two">
+                        <b>Name: </b>{{report.doctor.name}} <br>
+                        <b>Department: </b>{{report.doctor.department_name}}<br>
+                        <b>Email: </b>{{report.doctor.email}} <br>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="invoice-info invoice-info2">
+                      <strong class="customer-text">Patient Information:</strong>
+                      <p class="invoice-details">
+                        <b>Name: </b>{{patient.name}} <br>
+                        <b>Address: </b>{{report.patient.address}}<br>
+                        <b>Email: </b>{{report.patient.email}} <br>
+                        <b>Phone Number: </b>{{report.patient.phone_number}}<br>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Specimen Table -->
+              <div class="invoice-item invoice-table-wrap">
+                <div class="table-responsive">
+                  <table class="table table-bordered text-center">
+                    <thead>
+                      <tr>
+                        <th>Specimen Information</th>
+                        <th>Specimen ID</th>
+                        <th>Collection Date/Time</th>
+                        <th>Receiving Date/Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for s in specimen %}
+                      <tr>
+                        <td>{{s.specimen_type}}</td>
+                        <td>{{s.specimen_id}}</td>
+                        <td>{{s.collection_date}}</td>
+                        <td>{{s.receiving_date}}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Test Table -->
+              <div class="invoice-item invoice-table-wrap">
+                <div class="table-responsive">
+                  <table class="table table-bordered text-center">
+                    <thead>
+                      <tr>
+                        <th>Test Name</th>
+                        <th>Result</th>
+                        <th>Unit</th>
+                        <th>Referred Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for t in test %}
+                      <tr>
+                        <td>{{t.test_name}}</td>
+                        <td>{{t.result}}</td>
+                        <td>{{t.unit}}</td>
+                        <td>{{t.referred_value}}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Other Info -->
+              <div class="other-info">
+                <h4><b>Other Information:</b></h4>
+                <p>{{report.other_information}}</p>
+                <a target="_blank" href="{% url 'pdf' pk=report.report_id %}" class="btn btn-primary btn-sm">
+                  <i class="fas fa-download"></i> Download Report
+                </a>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /Page Content -->
+
+    <!-- Footer -->
+    {% include 'footer.html' %}
+    <!-- /Footer -->
+  </div>
+  <!-- /Main Wrapper -->
+
+  <!-- Scripts -->
+  <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+  <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+  <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+  <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/ResizeSensor.js' %}"></script>
+  <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/theia-sticky-sidebar.js' %}"></script>
+  <script src="{% static 'HealthStack-System/Outside_assets/js/script.js' %}"></script>
+  <script src="{% static 'HealthStack-System/js/Normal/sidebar.js' %}"></script>
+</body>
+</html>

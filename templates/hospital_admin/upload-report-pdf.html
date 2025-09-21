@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+  <title>Upload Lab Report PDF</title>
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}" />
+</head>
+<body>
+<div class="main-wrapper">
+  <header class="header">{% include 'hospital_admin/labworker-navbar.html' %}</header>
+  <aside class="sidebar" id="sidebar">{% include 'hospital_admin/labworker-sidebar.html' %}</aside>
+  <div class="page-wrapper">
+    <div class="content container-fluid">
+      <div class="page-header">
+        <div class="row">
+          <div class="col-sm-12">
+            <h3 class="page-title">Upload Lab Report PDF</h3>
+            <ul class="breadcrumb">
+              <li class="breadcrumb-item"><a href="{% url 'labworker-dashboard' %}">Dashboard</a></li>
+              <li class="breadcrumb-item"><a href="{% url 'report-history' %}">Reports</a></li>
+              <li class="breadcrumb-item active">Upload PDF</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-8 offset-md-2">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title mb-0">Report Details</h4>
+            </div>
+            <div class="card-body">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <strong>Patient:</strong> {{ report.patient.username }}
+                </div>
+                <div class="col-md-6">
+                  <strong>Report ID:</strong> {{ report.report_id }}
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <strong>Test Name:</strong> {{ report.test_name }}
+                </div>
+                <div class="col-md-6">
+                  <strong>Specimen Type:</strong> {{ report.specimen_type }}
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <strong>Collection Date:</strong> {{ report.collection_date }}
+                </div>
+                <div class="col-md-6">
+                  <strong>Delivery Date:</strong> {{ report.delivery_date }}
+                </div>
+              </div>
+              
+              {% if report.report_pdf %}
+              <div class="alert alert-info">
+                <i class="fas fa-file-pdf"></i> A PDF report is already uploaded for this test.
+                <a href="{% url 'download-report-pdf' report.report_id %}" class="btn btn-sm btn-outline-primary ml-2">
+                  <i class="fas fa-download"></i> Download Current PDF
+                </a>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title mb-0">Upload PDF Report</h4>
+            </div>
+            <div class="card-body">
+              <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="report_pdf">Select PDF File</label>
+                  <input type="file" class="form-control-file" id="report_pdf" name="report_pdf" accept=".pdf" required>
+                  <small class="form-text text-muted">Please upload a PDF file only. Maximum file size: 10MB</small>
+                </div>
+                
+                <div class="form-group mt-4">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-upload"></i> Upload PDF Report
+                  </button>
+                  <a href="{% url 'report-history' %}" class="btn btn-secondary ml-2">
+                    <i class="fas fa-arrow-left"></i> Back to Reports
+                  </a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js'%}"></script>
+<script src="{% static 'HealthStack-System/js/admin/popper.min.js'%}"></script>
+<script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js'%}"></script>
+<script src="{% static 'HealthStack-System/js/admin/script.js'%}"></script>
+
+<script>
+document.getElementById('report_pdf').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    if (file.type !== 'application/pdf') {
+      alert('Please select a PDF file only.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      alert('File size must be less than 10MB.');
+      e.target.value = '';
+      return;
+    }
+  }
+});
+</script>
+</body>
+</html>

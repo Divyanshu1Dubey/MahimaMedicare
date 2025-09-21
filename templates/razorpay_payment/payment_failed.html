@@ -1,0 +1,200 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Payment Failed - Mahima Medicare</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+    
+    <style>
+        .failed-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 40px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .failed-icon {
+            font-size: 80px;
+            color: #dc3545;
+            margin-bottom: 20px;
+            animation: shake 0.6s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .failed-title {
+            color: #dc3545;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .failed-message {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        
+        .error-details {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .btn-retry {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-retry:hover {
+            background: #c82333;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+        
+        .btn-dashboard {
+            background: #95C270;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-dashboard:hover {
+            background: #7ea65d;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+        
+        .help-section {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <nav class="navbar navbar-expand-lg header-nav">
+                <div class="navbar-header">
+                    <a href="{% url 'hospital_home' %}" class="navbar-brand logo">
+                        <img src="{% static 'HealthStack-System/images/Normal/logo.png' %}" class="img-fluid" alt="Logo">
+                    </a>
+                </div>
+            </nav>
+        </header>
+        <!-- /Header -->
+        
+        <!-- Page Content -->
+        <div class="content">
+            <div class="container">
+                <div class="failed-container">
+                    <div class="failed-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    
+                    <h1 class="failed-title">Payment Failed!</h1>
+                    <p class="failed-message">
+                        We're sorry, but your payment could not be processed at this time.
+                    </p>
+                    
+                    <div class="error-details">
+                        <h5><i class="fas fa-exclamation-triangle"></i> What happened?</h5>
+                        <p class="mb-0">
+                            Your payment was not completed successfully. This could be due to:
+                        </p>
+                        <ul class="text-left mt-2 mb-0">
+                            <li>Insufficient funds in your account</li>
+                            <li>Network connectivity issues</li>
+                            <li>Payment gateway timeout</li>
+                            <li>Card/bank authorization declined</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <a href="javascript:history.back()" class="btn-retry">
+                            <i class="fas fa-redo"></i> Try Again
+                        </a>
+                        
+                        <a href="{% url 'patient-dashboard' %}" class="btn-dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                        </a>
+                    </div>
+                    
+                    <div class="help-section">
+                        <h5><i class="fas fa-question-circle"></i> Need Help?</h5>
+                        <p class="mb-2">
+                            If you continue to experience issues, please contact our support team:
+                        </p>
+                        <p class="mb-0">
+                            <i class="fas fa-phone"></i> +91-XXXX-XXXX-XX &nbsp;&nbsp;
+                            <i class="fas fa-envelope"></i> support@mahimamedicare.com
+                        </p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            <i class="fas fa-shield-alt"></i> 
+                            Your payment information is secure and has not been stored.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Content -->
+    </div>
+
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+</body>
+</html>

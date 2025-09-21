@@ -1,0 +1,469 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>HealthStack - Hospital Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon">
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fancybox/jquery.fancybox.min.css' %}">
+
+    <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
+    <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
+    <link href="[https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap)" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+
+    <style>
+        :root {
+            --primary-color: #95C270; /* Modern Blue */
+            --primary-hover: #7ab34f;
+            --secondary-color: #6c757d; /* Muted Gray */
+            --light-bg: #f8f9fa;
+            --white-bg: #ffffff;
+            --text-dark: #212529;
+            --text-muted: #6c757d;
+            --border-color: #dee2e6;
+            --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+            --font-family-sans-serif: 'Poppins', sans-serif;
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            font-family: var(--font-family-sans-serif);
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+        }
+
+        /* Header & Breadcrumb */
+        .header {
+            box-shadow: var(--card-shadow);
+        }
+
+        .breadcrumb-bar {
+            background-color: var(--primary-color);
+        }
+
+        .breadcrumb-bar .breadcrumb-title {
+            color: var(--white-bg);
+            font-weight: 600;
+        }
+
+        .breadcrumb-item a {
+            color: rgba(255, 255, 255, 0.8);
+            transition: color var(--transition-speed) ease;
+        }
+
+        .breadcrumb-item a:hover {
+            color: var(--white-bg);
+        }
+
+        .breadcrumb-item.active {
+            color: var(--white-bg);
+        }
+
+        /* Main Card & Widget Styles */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .doctor-widget {
+            padding: 1.5rem;
+        }
+
+        .doctor-img img {
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .doc-info-cont h4.doc-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .doc-info-cont p.doc-speciality {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .clinic-details p.doc-location {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Action Buttons */
+        .apt-btn {
+            background-color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            color: var(--white-bg) !important;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all var(--transition-speed) ease;
+            display: block;
+            text-align: center;
+        }
+
+        .apt-btn:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+        }
+
+        /* Tabs */
+        .user-tabs .nav-tabs {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .user-tabs .nav-link {
+            color: var(--text-muted);
+            font-weight: 500;
+            border: none;
+            border-bottom: 3px solid transparent;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .user-tabs .nav-link.active,
+        .user-tabs .nav-link:hover {
+            color: var(--primary-color);
+            background-color: transparent;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        /* Widget & Content Sections */
+        .widget-title {
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .widget-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 3px;
+        }
+
+        .experience-list .experience-content {
+            background-color: var(--light-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        /* Emergency Info Section - Modern List */
+        .emergency-info-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .emergency-info-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            background-color: var(--light-bg);
+            border: 1px solid var(--border-color);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .emergency-info-list li:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .emergency-info-list b {
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .emergency-info-list span {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            background-color: #e7f0fe;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        /* Clinic Services */
+        .clinic-services span {
+            background-color: #e7f0fe;
+            color: var(--primary-color);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Gallery Style */
+        .clinic-gallery {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Creates 2 columns */
+            gap: 15px; /* Space between images */
+        }
+
+        .clinic-gallery li {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .clinic-gallery li a {
+            display: block;
+        }
+
+        .clinic-gallery li img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .clinic-gallery li:hover img {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper">
+
+        <header class="header">
+            {% if user.is_authenticated and user.is_patient %}
+                {% include 'patient_navbar.html' %}
+            {% elif user.is_authenticated and user.is_doctor %}
+                {% include 'doctor-navbar.html' %}
+            {% endif %}
+        </header>
+        <div class="breadcrumb-bar">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-md-12 col-12">
+                        <nav aria-label="breadcrumb" class="page-breadcrumb">
+                            <ol class="breadcrumb">
+                                {% if user.is_authenticated and user.is_patient %}
+                                <li class="breadcrumb-item"><a href="{% url 'patient-dashboard' %}">Home</a></li>
+                                {% elif user.is_authenticated and user.is_doctor %}
+                                <li class="breadcrumb-item"><a href="{% url 'doctor-dashboard' %}">Home</a></li>
+                                {% endif %}
+                                <li class="breadcrumb-item active" aria-current="page">Hospital Profile</li>
+                            </ol>
+                        </nav>
+                        <h2 class="breadcrumb-title">Hospital Profile</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-5 col-lg-4 col-xl-3 theiaStickySidebar">
+                        {% if user.is_authenticated and user.is_patient %}
+                            {% include 'patient-sidebar.html' %}
+                        {% elif user.is_authenticated and user.is_doctor %}
+                            {% include 'doctor-sidebar.html' %}
+                        {% endif %}
+                        </div>
+
+                    <div class="col-md-7 col-lg-8 col-xl-9">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="doctor-widget">
+                                    <div class="row">
+                                        <div class="col-lg-4">
+                                            <div class="doctor-img">
+                                                <img src="{{ hospitals.featured_image.url }}" class="img-fluid" alt="{{ hospitals.name }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-8">
+                                            <div class="doc-info-cont">
+                                                <h4 class="doc-name">{{ hospitals.name }}</h4>
+                                                <p class="doc-speciality">{{ hospitals.hospital_type }} Hospital</p>
+                                                <p class="doc-location mt-3">
+                                                    <i class="fas fa-map-marker-alt"></i> {{ hospitals.address }}
+                                                </p>
+                                                <div class="clinic-services mt-3">
+                                                    <span>Childrens Special</span>
+                                                    <span>Emergency Doctors Available</span>
+                                                </div>
+                                                <div class="mt-4">
+                                                    <a href="{% url 'hospital-department-list' pk=hospitals.hospital_id %}" class="apt-btn">View Departments & Doctors</a>
+                                                    {% if user.is_authenticated and user.is_doctor %}
+                                                    <a href="{% url 'hospital-doctor-register' pk=hospitals.hospital_id %}" class="apt-btn mt-2">Register with this Hospital</a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body pt-0">
+                                <nav class="user-tabs mb-4">
+                                    <ul class="nav nav-tabs nav-tabs-bottom nav-justified">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" href="#doc_overview" data-toggle="tab">Overview</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#doc_locations" data-toggle="tab">Locations & Contact</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#doc_emergency" data-toggle="tab">Facility Info</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                                <div class="tab-content pt-3">
+
+                                    <div role="tabpanel" id="doc_overview" class="tab-pane fade show active">
+                                        <div class="widget about-widget mb-5">
+                                            <h4 class="widget-title">About Our Hospital</h4>
+                                            <p>{{ hospitals.description }}</p>
+                                        </div>
+
+                                        <div class="widget awards-widget mb-5">
+                                            <h4 class="widget-title">Departments</h4>
+                                            <div class="experience-box">
+                                                <ul class="experience-list">
+                                                    {% for department in departments %}
+                                                    <li>
+                                                        <div class="experience-user">
+                                                            <div class="before-circle"></div>
+                                                        </div>
+                                                        <div class="experience-content">
+                                                            <div class="timeline-content">
+                                                                <h5 class="exp-title mb-0">{{ department.hospital_department_name }}</h5>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <div class="service-list">
+                                            <h4>Services</h4>
+                                            <ul class="clearfix">
+                                                {% for service in services %}
+                                                <li>{{ service.service_name }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+
+                                        <div class="service-list">
+                                            <h4>Specializations</h4>
+                                            <ul class="clearfix">
+                                                {% for specialization in specializations %}
+                                                <li>{{ specialization.specialization_name }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div role="tabpanel" id="doc_locations" class="tab-pane fade">
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <div class="widget location-widget">
+                                                    <h4 class="widget-title">Our Location</h4>
+                                                    <div class="clinic-content">
+                                                        <h5 class="clinic-name">{{ hospitals.name }}</h5>
+                                                        <p class="doc-speciality">{{ hospital.hospital_type }}</p>
+                                                        <div class="clinic-details mb-0">
+                                                            <p class="clinic-direction">
+                                                                <i class="fas fa-map-marker-alt"></i> {{ hospitals.address }}
+                                                                <br>
+                                                                <a href="[https://www.google.com/maps/search/?api=1&query=](https://www.google.com/maps/search/?api=1&query=){{hospitals.address|urlencode}}" target="_blank">Get Directions</a>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <div class="widget contact-widget">
+                                                    <h4 class="widget-title">Contact Us</h4>
+                                                    <div class="clinic-timing">
+                                                        <p class="timings-days">
+                                                            <i class="fas fa-envelope"></i>   <span>Email</span>
+                                                        </p>
+                                                        <p class="timings-times">
+                                                            <span>{{ hospitals.email }}</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="clinic-timing mt-3">
+                                                        <p class="timings-days">
+                                                            <i class="fas fa-phone-alt"></i>   <span>Phone</span>
+                                                        </p>
+                                                        <p class="timings-times">
+                                                            <span>{{ hospitals.phone_number }}</span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 mt-4">
+                                                <h4 class="widget-title">Gallery</h4>
+                                                <ul class="clinic-gallery">
+                                                     <li><a href="{% static 'HealthStack-System/images/Normal/features/feature-01.jpg'%}" data-fancybox="gallery2"><img src="{% static 'HealthStack-System/images/Normal/features/feature-01.jpg'%}" alt="Feature Image"></a></li>
+                                                     <li><a href="{% static 'HealthStack-System/images/Normal/features/feature-02.jpg'%}" data-fancybox="gallery2"><img src="{% static 'HealthStack-System/images/Normal/features/feature-02.jpg'%}" alt="Feature Image"></a></li>
+                                                     <li><a href="{% static 'HealthStack-System/images/Normal/features/feature-03.jpg'%}" data-fancybox="gallery2"><img src="{% static 'HealthStack-System/images/Normal/features/feature-03.jpg'%}" alt="Feature Image"></a></li>
+                                                     <li><a href="{% static 'HealthStack-System/images/Normal/features/feature-04.jpg'%}" data-fancybox="gallery2"><img src="{% static 'HealthStack-System/images/Normal/features/feature-04.jpg'%}" alt="Feature Image"></a></li>
+                                                 </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div role="tabpanel" id="doc_emergency" class="tab-pane fade">
+                                        <h4 class="widget-title">Available Facilities</h4>
+                                        <ul class="emergency-info-list">
+                                            <li><b>General Beds</b> <span>{{ hospitals.general_bed_no }}</span></li>
+                                            <li><b>Regular Cabins</b> <span>{{ hospitals.regular_cabin_no }}</span></li>
+                                            <li><b>ICU Beds</b> <span>{{ hospitals.available_icu_no }}</span></li>
+                                            <li><b>Emergency Cabins</b> <span>{{ hospitals.emergency_cabin_no }}</span></li>
+                                            <li><b>VIP Rooms</b> <span>{{ hospitals.vip_cabin_no }}</span></li>
+                                        </ul>
+                                    </div>
+                                    </div>
+                            </div>
+                        </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+        {% include 'footer.html' %}
+        </div>
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/plugins/Normal/fancybox/jquery.fancybox.min.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/plugins/theia-sticky-sidebar/ResizeSensor.js' %}"></script>
+    <script src="{% static 'HealthStack-System/plugins/theia-sticky-sidebar/theia-sticky-sidebar.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/Outside_assets/js/script.js' %}"></script>
+
+</body>
+</html>

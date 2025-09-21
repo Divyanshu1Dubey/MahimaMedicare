@@ -1,0 +1,218 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mahima Medicare</title>
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" />
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}" />
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}" />
+
+  <!-- Feathericon CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css' %}" />
+
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css' %}" />
+
+  <style>
+    :root {
+      --primary-color: #95C270; /* green */
+      --hover-bg-color: #e6f0c8; /* light green hover */
+      --text-black: #000;
+      --card-bg: #fff;
+      --card-shadow: rgba(0,0,0,0.1);
+      --table-header-bg: #f5f5f5;
+    }
+
+    body {
+      background-color: #f8f9fa;
+      color: #333;
+    }
+
+    /* Card Header */
+    .card-header {
+      background-color: var(--primary-color);
+      color: #fff;
+      font-weight: bold;
+      border-bottom: 1px solid #ddd;
+    }
+
+    /* Card Titles inside card body */
+    .card-title {
+      color: #95C270;
+    }
+
+    /* Card Style */
+    .card {
+      border-radius: 10px;
+      box-shadow: 0 4px 8px var(--card-shadow);
+      margin-bottom: 20px;
+      background-color: var(--card-bg);
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background-color: var(--primary-color) !important;
+      border-color: var(--primary-color) !important;
+      color: #fff !important;
+    }
+    .btn-primary:hover {
+      background-color: var(--hover-bg-color) !important;
+      color: #000 !important;
+    }
+
+    .btn-danger {
+      margin: 0 5px;
+    }
+
+    /* Table Hover Effect */
+    table.table tbody tr:hover {
+      background-color: var(--hover-bg-color);
+      cursor: pointer;
+    }
+
+    /* Table alternating row colors */
+    table.dataTable tbody tr:nth-child(odd) {
+      background-color: #f9f9f9;
+    }
+    table.dataTable tbody tr:nth-child(even) {
+      background-color: #ffffff;
+    }
+
+    /* Table header shadow and background */
+    table.dataTable thead th {
+      background-color: var(--primary-color);
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* Modal */
+    .modal-body {
+      text-align: center;
+    }
+
+    /* Spacing for modal buttons */
+    .modal-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="main-wrapper">
+    <!-- Header -->
+    <header class="header">{% include 'hospital_admin/labworker-navbar.html' %}</header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">{% include 'hospital_admin/labworker-sidebar.html' %}</aside>
+
+    <!-- Page Wrapper -->
+    <div class="page-wrapper">
+      <div class="content container-fluid">
+
+        <!-- Test List Card -->
+        <div class="card mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0">Test List</h3>
+            <a href="{% url 'add-test' %}" class="btn btn-primary"><i class="fe fe-plus"></i> Add Test</a>
+          </div>
+          <div class="card-body">
+
+            <!-- Available Tests -->
+            <div class="card mb-3">
+              <div class="card-header">
+                <h4 class="card-title mb-0">Available Tests</h4>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table id="test-table" class="table table-hover table-striped">
+                    <thead>
+                      <tr>
+                        <th>Test Name</th>
+                        <th>Test Price</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for t in test %}
+                      <tr>
+                        <td>{{ t.test_name }}</td>
+                        <td>{{ t.test_price }}</td>
+                        <td>
+                          <a data-toggle="modal" data-target="#delete_modal{{t.test_id}}" class="btn btn-sm btn-danger">
+                            <i class="fe fe-trash"></i> Delete
+                          </a>
+                        </td>
+                      </tr>
+
+                      <!-- Delete Modal -->
+                      <div class="modal fade" id="delete_modal{{t.test_id}}" tabindex="-1" role="dialog">
+                        <form method="POST" action="{% url 'delete-test' pk=t.test_id %}">
+                          <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                              {% csrf_token %}
+                              <div class="modal-body p-4">
+                                <h5 class="modal-title mb-3">Delete Confirmation</h5>
+                                <p>Are you sure you want to delete <strong>{{ t.test_name }}</strong>?</p>
+                                <div class="modal-buttons">
+                                  <button type="submit" class="btn btn-primary">Yes</button>
+                                  <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <!-- /Available Tests -->
+
+          </div>
+        </div>
+        <!-- /Test List Card -->
+
+      </div>
+    </div>
+    <!-- /Page Wrapper -->
+  </div>
+  <!-- /Main Wrapper -->
+
+  <!-- Scripts -->
+  <script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js' %}"></script>
+  <script src="{% static 'HealthStack-System/js/admin/popper.min.js' %}"></script>
+  <script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js' %}"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="{% static 'HealthStack-System/plugins/admin/slimscroll/jquery.slimscroll.min.js' %}"></script>
+  <script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
+
+  <script>
+    $(document).ready(function() {
+      $('#test-table').DataTable({
+        "paging": true,
+        "searching": true,
+        "ordering": true,
+        "info": true,
+      });
+    });
+  </script>
+</body>
+</html>

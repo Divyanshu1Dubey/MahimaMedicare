@@ -1,0 +1,304 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+  <title>Mahima Medicare</title>
+
+  <!-- Favicons -->
+  <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}" />
+
+  <!-- Fontawesome CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}" />
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}" />
+
+  <!-- Modern CSS Additions -->
+  <style>
+    :root {
+      --primary-green: #95C270;
+      --primary-green-dark: #7ab34f;
+      --text-dark: #333;
+      --text-muted: #666;
+      --bg-light: #fff;
+      --border-light: #eaeaea;
+      --shadow-light: rgba(0, 0, 0, 0.05);
+      --transition: all 0.3s ease;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f7fa;
+      color: #334155;
+    }
+    
+    .header {
+      box-shadow: var(--box-shadow);
+      background: white;
+    }
+    
+    .breadcrumb-bar {
+      background:var(--primary-green);
+      color: white;
+    }
+    
+    .breadcrumb {
+      background: transparent;
+      padding: 0;
+    }
+    
+    .breadcrumb-item a {
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .breadcrumb-item.active {
+      color: white;
+    }
+    
+    .breadcrumb-title {
+      color: white;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+    
+    .card {
+      border: none;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      transition: var(--transition);
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .table-responsive {
+      border-radius: var(--border-radius);
+      overflow: hidden;
+    }
+    
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    
+    thead {
+      background: var(--primary-green);
+      color: white;
+    }
+    
+    th {
+      padding: 1rem;
+      font-weight: 500;
+      font-size: 1rem !important;
+    }
+    
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: middle;
+    }
+    
+    tr:last-child td {
+      border-bottom: none;
+    }
+    
+    tr:hover {
+      background-color: #f8fafc;
+    }
+    
+    h2 {
+      color: var(--text-darkr);
+      font-weight: 600;
+      margin-bottom: 2rem;
+      position: relative;
+      display: inline-block;
+    }
+    
+    h2:after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      
+      border-radius: 2px;
+    }
+    
+
+    
+    @media (max-width: 768px) {
+      .theiaStickySidebar {
+        margin-bottom: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+{% if user.is_authenticated %}
+  <!-- Main Wrapper -->
+  <div class="main-wrapper">
+    <!-- Header -->
+    <header class="header">
+      {% if user.is_authenticated and user.is_patient %}
+      {% include 'patient_navbar.html' %}
+      {% endif %}
+      
+      {% if user.is_authenticated and user.is_doctor %}
+      {% include 'doctor-navbar.html' %}
+      {% endif %}
+    </header>
+    <!-- /Header -->
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar py-3">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-md-12 col-12">
+            <nav aria-label="breadcrumb" class="page-breadcrumb">
+              <ol class="breadcrumb">
+                {% if user.is_authenticated and user.is_patient %}
+                <li class="breadcrumb-item"><a href="{% url 'patient-dashboard' %}">Home</a></li>
+                {% endif %}
+
+                {% if user.is_authenticated and user.is_doctor %}
+                <li class="breadcrumb-item"><a href="{% url 'doctor-dashboard' %}">Home</a></li>
+                {% endif %}
+                <li class="breadcrumb-item active" aria-current="page">
+                  Test
+                </li>
+              </ol>
+            </nav>
+            <h2 class="breadcrumb-title">Test Information</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /Breadcrumb -->
+
+    <!-- Page Content -->
+    <div class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <!-- Sidebar Column -->
+          <div class="col-md-5 col-lg-4 col-xl-3 theiaStickySidebar">
+            <!-- Profile Sidebar -->
+            <div class="sidebar">
+              {% if user.is_authenticated and user.is_patient %}
+              {% include 'patient-sidebar.html' %}
+              {% endif %}
+  
+              {% if user.is_authenticated and user.is_doctor %}
+              {% include 'doctor-sidebar.html' %}
+              {% endif %}
+            </div>
+            <!-- /Profile Sidebar -->
+          </div>
+
+          <!-- Main Content Column -->
+          <div class="col-md-7 col-lg-8 col-xl-9">
+            <div class="card">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-12">
+                    <h2 class="mb-4 text-center">Test Information</h2>
+                    <div class="appointment-tab">
+                      <!-- Today Appointment Tab -->
+                      <div class="tab-pane show active" id="today-appointments">
+                        <div class="table-responsive">
+                          <table class="table table-hover table-center mb-0">
+                            <thead>
+                              <tr>
+                                <th>Test Name</th>
+                                <th>Test ID</th>
+                                <th>Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {% for t in tests %}
+                              <tr>
+                                <td>{{t.test_name}}</td>
+                                <td>{{t.test_id}}</td>
+                                <td>
+                                  <button class="btn btn-sm btn-outline-primary">View Details</button>
+                                </td>
+                              </tr>
+                              {% endfor %}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                      <!-- /Today Appointment Tab -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /Page Content -->
+
+    <!-- Footer -->
+    {% include 'footer.html' %}
+    <!-- /Footer -->
+  </div>
+  <!-- /Main Wrapper -->
+{% else %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+      <div class="card">
+        <div class="card-body p-5">
+          <i class="fas fa-exclamation-triangle fa-4x text-warning mb-4"></i>
+          <h3 class="mb-4">You are not logged in</h3>
+          <p class="mb-4">Please login to access your dashboard</p>
+          <a href="{% url 'login' %}" class="btn btn-primary px-4">Login</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+  <!-- jQuery -->
+  <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+
+  <!-- Bootstrap Core JS -->
+  <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+  <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+
+  <!-- Sticky Sidebar JS -->
+  <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/ResizeSensor.js' %}"></script>
+  <script src="{% static 'HealthStack-System/plugins/Normal/theia-sticky-sidebar/theia-sticky-sidebar.js' %}"></script>
+
+  <!-- Custom JS -->
+  <script src="{% static 'HealthStack-System/Outside_assets/js/script.js' %}"></script>
+
+  <!-- Searchbar JS -->
+  <script src="{% static 'HealthStack-System/js/Normal/sidebar.js' %}"></script>
+
+  <!-- Modern Enhancements JS -->
+  <script>
+    // Add active class to current nav item
+    $(document).ready(function() {
+      $('table tr').click(function() {
+        $(this).addClass('active').siblings().removeClass('active');
+      });
+    });
+  </script>
+</body>
+</html>

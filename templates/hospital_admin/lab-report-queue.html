@@ -1,0 +1,407 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Lab Report Queue - Mahima Medicare</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+    
+    <style>
+        .filter-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .report-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .report-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .priority-urgent {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .priority-stat {
+            border-left: 4px solid #6f42c1;
+        }
+        
+        .priority-normal {
+            border-left: 4px solid #28a745;
+        }
+        
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+        
+        .bulk-actions {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .bulk-actions.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <a href="{% url 'lab-dashboard' %}" class="logo">
+                    <img src="{% static 'HealthStack-System/images/Normal/logo.png' %}" alt="Logo">
+                </a>
+            </div>
+            
+            <a href="javascript:void(0);" id="toggle_btn">
+                <i class="fe fe-text-align-left"></i>
+            </a>
+            
+            <ul class="nav user-menu">
+                <li class="nav-item dropdown has-arrow">
+                    <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
+                        <span class="user-img">
+                            <img class="rounded-circle" src="{% static 'HealthStack-System/images/Normal/user.jpg' %}" width="31" alt="{{ lab_worker.name }}">
+                        </span>
+                    </a>
+                    <div class="dropdown-menu">
+                        <div class="user-header">
+                            <div class="avatar avatar-sm">
+                                <img src="{% static 'HealthStack-System/images/Normal/user.jpg' %}" alt="User Image" class="avatar-img rounded-circle">
+                            </div>
+                            <div class="user-text">
+                                <h6>{{ lab_worker.name }}</h6>
+                                <p class="text-muted mb-0">Lab Technician</p>
+                            </div>
+                        </div>
+                        <a class="dropdown-item" href="{% url 'admin-logout' %}">Logout</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- /Header -->
+        
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-inner slimscroll">
+                <div id="sidebar-menu" class="sidebar-menu">
+                    <ul>
+                        <li class="menu-title">
+                            <span>Lab Management</span>
+                        </li>
+                        <li>
+                            <a href="{% url 'lab-dashboard' %}"><i class="fe fe-home"></i> <span>Dashboard</span></a>
+                        </li>
+                        <li class="active">
+                            <a href="{% url 'lab-report-queue' %}"><i class="fe fe-list"></i> <span>Report Queue</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'my-assigned-reports' %}"><i class="fe fe-user"></i> <span>My Reports</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'mypatient-list' %}"><i class="fe fe-users"></i> <span>Patients</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'test-list' %}"><i class="fe fe-clipboard"></i> <span>Test Catalog</span></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- /Sidebar -->
+        
+        <!-- Page Wrapper -->
+        <div class="page-wrapper">
+            <div class="content container-fluid">
+                
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h3 class="page-title">Lab Report Queue</h3>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{% url 'lab-dashboard' %}">Dashboard</a></li>
+                                <li class="breadcrumb-item active">Report Queue</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Page Header -->
+                
+                <!-- Filters -->
+                <div class="filter-card">
+                    <form method="GET" class="row">
+                        <div class="col-md-3">
+                            <label>Status Filter</label>
+                            <select name="status" class="form-control" onchange="this.form.submit()">
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                                {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Priority Filter</label>
+                            <select name="priority" class="form-control" onchange="this.form.submit()">
+                                <option value="all" {% if priority_filter == 'all' %}selected{% endif %}>All Priorities</option>
+                                {% for value, label in priority_choices %}
+                                <option value="{{ value }}" {% if priority_filter == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Assignment Filter</label>
+                            <select name="assigned" class="form-control" onchange="this.form.submit()">
+                                <option value="all" {% if assigned_filter == 'all' %}selected{% endif %}>All Reports</option>
+                                <option value="me" {% if assigned_filter == 'me' %}selected{% endif %}>Assigned to Me</option>
+                                <option value="unassigned" {% if assigned_filter == 'unassigned' %}selected{% endif %}>Unassigned</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>&nbsp;</label>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fe fe-search"></i> Filter
+                                </button>
+                                <a href="{% url 'lab-report-queue' %}" class="btn btn-secondary">
+                                    <i class="fe fe-refresh-cw"></i> Reset
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Bulk Actions -->
+                <div class="bulk-actions" id="bulkActions">
+                    <form method="POST" action="{% url 'bulk-report-actions' %}">
+                        {% csrf_token %}
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <span id="selectedCount">0</span> reports selected
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <select name="action" class="form-control d-inline-block w-auto mr-2">
+                                    <option value="">Select Action</option>
+                                    <option value="assign_to_me">Assign to Me</option>
+                                    <option value="mark_processing">Mark as Processing</option>
+                                    <option value="mark_completed">Mark as Completed</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="clearSelection()">Clear</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Reports List -->
+                <div class="row">
+                    {% for report in page_obj %}
+                    <div class="col-md-6">
+                        <div class="report-card priority-{{ report.priority }}">
+                            <div class="row">
+                                <div class="col-1">
+                                    <input type="checkbox" class="report-checkbox" name="selected_reports" value="{{ report.report_id }}" onchange="updateBulkActions()">
+                                </div>
+                                <div class="col-11">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="mb-1">Report #{{ report.report_id }}</h6>
+                                            <p class="mb-1"><strong>{{ report.patient.name }}</strong></p>
+                                            <p class="mb-1 text-muted">{{ report.test_name }}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="status-badge badge-{{ report.get_status_display_color }}">
+                                                {{ report.get_status_display }}
+                                            </span>
+                                            {% if report.priority != 'normal' %}
+                                            <br>
+                                            <span class="status-badge badge-{{ report.get_priority_display_color }} mt-1">
+                                                {{ report.get_priority_display }}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row text-muted small mb-2">
+                                        <div class="col-6">
+                                            <i class="fe fe-calendar"></i> {{ report.uploaded_at|date:"M d, Y" }}
+                                        </div>
+                                        <div class="col-6">
+                                            {% if report.assigned_technician %}
+                                                <i class="fe fe-user"></i> {{ report.assigned_technician.name }}
+                                            {% else %}
+                                                <i class="fe fe-user-x"></i> Unassigned
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'report-detail-view' report.report_id %}" class="btn btn-outline-primary">
+                                            <i class="fe fe-eye"></i> View
+                                        </a>
+                                        
+                                        {% if not report.assigned_technician %}
+                                        <a href="{% url 'assign-report-to-me' report.report_id %}" class="btn btn-outline-success">
+                                            <i class="fe fe-user-plus"></i> Assign to Me
+                                        </a>
+                                        {% endif %}
+                                        
+                                        {% if report.assigned_technician.technician_id == lab_worker.technician_id %}
+                                            {% if report.can_upload_report %}
+                                            <button type="button" class="btn btn-outline-warning" onclick="updateStatus('{{ report.report_id }}', 'processing')">
+                                                <i class="fe fe-play"></i> Start Processing
+                                            </button>
+                                            {% endif %}
+                                            
+                                            {% if report.status == 'processing' %}
+                                            <a href="{% url 'upload-report-pdf' report.report_id %}" class="btn btn-outline-info">
+                                                <i class="fe fe-upload"></i> Upload PDF
+                                            </a>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <i class="fe fe-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                            <h4 class="mt-3">No Reports Found</h4>
+                            <p class="text-muted">No reports match your current filters.</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <div class="row">
+                    <div class="col-12">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&priority={{ priority_filter }}&assigned={{ assigned_filter }}">Previous</a>
+                                </li>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}&status={{ status_filter }}&priority={{ priority_filter }}&assigned={{ assigned_filter }}">{{ num }}</a>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&priority={{ priority_filter }}&assigned={{ assigned_filter }}">Next</a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {% endif %}
+                
+            </div>
+        </div>
+        <!-- /Page Wrapper -->
+        
+    </div>
+    
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/script.js' %}"></script>
+    
+    <script>
+        function updateBulkActions() {
+            const checkboxes = document.querySelectorAll('.report-checkbox:checked');
+            const bulkActions = document.getElementById('bulkActions');
+            const selectedCount = document.getElementById('selectedCount');
+            
+            selectedCount.textContent = checkboxes.length;
+            
+            if (checkboxes.length > 0) {
+                bulkActions.classList.add('show');
+            } else {
+                bulkActions.classList.remove('show');
+            }
+        }
+        
+        function clearSelection() {
+            document.querySelectorAll('.report-checkbox').forEach(cb => cb.checked = false);
+            updateBulkActions();
+        }
+        
+        function updateStatus(reportId, status) {
+            if (confirm('Are you sure you want to update this report status?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/update-report-status/${reportId}/`;
+                
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = 'csrfmiddlewaretoken';
+                csrfToken.value = '{{ csrf_token }}';
+                
+                const statusInput = document.createElement('input');
+                statusInput.type = 'hidden';
+                statusInput.name = 'status';
+                statusInput.value = status;
+                
+                form.appendChild(csrfToken);
+                form.appendChild(statusInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        // Auto-refresh every 60 seconds
+        setInterval(function() {
+            location.reload();
+        }, 60000);
+    </script>
+</body>
+</html>

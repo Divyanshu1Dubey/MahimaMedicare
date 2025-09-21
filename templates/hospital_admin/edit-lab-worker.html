@@ -1,0 +1,292 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+    
+<!-- Mirrored from dreamguys.co.in/demo/doccure/admin/doctor-list.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 30 Nov 2019 04:12:51 GMT -->
+<head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+        <title>Mahima Medicare</title>
+
+    	<!-- Favicon -->
+
+    	<link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}"/>
+
+		<!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css'%}"> 
+		
+		<!-- Fontawesome CSS -->
+        <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css'%}">
+		
+		<!-- Feathericon CSS -->
+        <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css'%}">
+		
+		<!-- Datatables CSS -->
+		<link rel="stylesheet" href="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.css'%}"> 
+		
+		<!-- Main CSS -->
+        <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}">
+ <style> 
+        :root {
+            --primary-color: #95C270;
+            --hover-bg-color: #e6f0c8;
+            --danger-color: #E74C3C;
+            --text-color: #333;
+            --light-text: #777;
+            --border-color: #ddd;
+            --bg-light: #f0f6ff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background: var(--primary-color);
+            color: #fff;
+            padding: 12px 20px;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            transition: border 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 6px rgba(149, 194, 112, 0.3);
+            outline: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            color: #fff;
+            border-radius: 30px;
+            padding: 10px 25px;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #7da859;
+        }
+
+        .breadcrumb-bar {
+            background: transparent;
+            padding: 15px 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .breadcrumb-title {
+            color: var(--primary-color);
+            font-weight: 700;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .table {
+            border-collapse: collapse !important;
+            width: 100%;
+            background: #fff;
+        }
+
+        .table th {
+            background: var(--primary-color);
+            color: #fff;
+            padding: 12px;
+        }
+
+        .table td {
+            padding: 12px;
+            vertical-align: middle;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .table-hover tbody tr:hover {
+            background: var(--hover-bg-color);
+        }
+    </style>
+		<!--[if lt IE 9]>
+			<script src="assets/js/html5shiv.min.js"></script>
+			<script src="assets/js/respond.min.js"></script>
+		<![endif]-->
+    </head>
+    <body>
+	
+		<!-- Main Wrapper -->
+        <div class="main-wrapper">
+			<header class="header">{% include 'hospital_admin/hospital-admin-navbar.html' %}</header>
+				<!-- Logo -->
+
+            
+			<!-- /Header -->
+			
+			<!-- Sidebar -->
+			<aside class="sidebar" id="sidebar">
+				{% include 'hospital_admin/hospital-admin-sidebar.html' %}
+			</aside>
+			<!-- /Sidebar -->
+			
+			<!-- Page Wrapper -->
+			
+			<!-- Page Wrapper -->
+            <div class="page-wrapper">
+
+                <div class="content container-fluid">
+
+<!-- Breadcrumb -->
+			<div class="breadcrumb-bar">
+				<div class="container-fluid">
+					<div class="row align-items-center">
+						<div class="col-md-12 col-12">
+							<nav aria-label="breadcrumb" class="page-breadcrumb">
+								<ol class="breadcrumb">
+									<li class="breadcrumb-item"><a href="index-2.html">Home</a></li>
+									<li class="breadcrumb-item active" aria-current="page">Edit Clinical Laboratory Technician</li>
+								</ol>
+							</nav>
+							<h2 class="breadcrumb-title">Edit Clinical Laboratory Technician</h2>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /Breadcrumb -->
+			
+			<!-- Page Content -->
+			<div class="content">
+				<div class="container-fluid">
+					<div class="row">
+						<div class="col-md-7 col-lg-8 col-xl-12">
+							<div class="card">
+								<div class="card-header">
+									<!-- Profile Settings Form -->
+									<form action="{% url 'edit-lab-worker' pk=lab_worker.technician_id %}" method="POST" enctype="multipart/form-data" >
+													{% csrf_token %}
+							
+													<div class="row form-row">
+														<div class="col-12 col-md-12">
+															<div class="form-group">
+															<div class="change-avatar"></div>
+													<div class="card card-table">
+														<div class="card-body">
+														  <div class="table-responsive">
+															<table class="table table-hover table-center">
+															  <thead>
+																<tr>
+																  <th style="min-width: 100px">Name</th>
+																  <th style="min-width: 100px">Email</th>
+																  <th style="min-width: 100px">Image</th>
+																</tr>
+															  </thead>
+															  <tbody>
+																<tr>
+																  <td>
+																	<input class="form-control" type="text" name="name" value="{{lab_worker.name}}">
+																  </td>
+																  <td>
+																	<input class="form-control" type="email" name="email" value="{{lab_worker.email}}">
+																  </td>
+																  <td>
+																	<input type="file" class="upload" name="featured_image">
+																  </td>
+																</tr>
+															  </tbody>
+															</table>
+														  </div>
+														</div>
+													  </div>
+													<div class="card card-table">
+														<div class="card-body">
+															<div class="table-responsive">
+																<table class="table table-hover table-center">
+																	<thead>
+																		<tr>
+																			<th style="min-width: 100px">Usename</th>
+																			<th style="min-width: 100px;">Phone number</th>
+																			<th style="min-width: 100px;">Age</th>
+																		</tr>
+																	</thead>
+																	<tbody>
+																		<tr>
+																			<td>
+																				<input class="form-control" type="text" readonly value="{{lab_worker.username}}">
+																			</td>
+																			<td>
+																				<input class="form-control" type="text" name="phone_number" value="{{lab_worker.phone_number}}">
+																			</td>
+																			<td>
+																				<input class="form-control" type="text" name="age" value="{{lab_worker.age}}">
+																			</td>
+																		</tr>
+																	</tbody>
+																</table>
+															</div>
+														</div>
+													</div>
+												</div>
+									
+												<div class="submit-section">
+													<button type="submit" class="btn btn-primary submit-btn" >
+														Save Changes
+													</button>
+												</div>
+												
+									</form>
+									        <!-- /Profile Settings Form -->
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- /Page Content -->
+
+			
+		   
+		</div>
+		<!-- /Main Wrapper -->
+	  
+		<!-- jQuery -->
+		<script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js' %}"></script> 
+		
+		<!-- Bootstrap Core JS -->
+        <script src="{% static 'HealthStack-System/js/admin/popper.min.js' %}"></script> 
+        <script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js' %}"></script> 
+		
+		<!-- Slimscroll JS -->
+        <script src="{% static 'HealthStack-System/plugins/admin/slimscroll/jquery.slimscroll.min.js' %}"></script>
+		
+		<!-- Datatables JS -->
+		<script src="{% static 'HealthStack-System/plugins/admin/datatables/jquery.dataTables.min.js'%}"></script> 
+		<script src="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.js'%}"></script>
+		
+		<!-- Custom JS -->
+		<script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
+		
+	</body>
+
+</html>

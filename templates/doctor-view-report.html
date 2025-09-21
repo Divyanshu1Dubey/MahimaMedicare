@@ -1,0 +1,499 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+    <title>Mahima Medicare</title>
+
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}" />
+
+    <link rel="stylesheet"
+        href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}" />
+
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}" />
+
+    <style>
+        :root {
+            --accent-color: #95C270;
+            --primary-bg: #f8f9fa;
+            --secondary-bg: #fff;
+            --text-color: #333;
+            --light-text: #6c757d;
+            --border-color: #e9ecef;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --border-radius: 12px;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-color);
+        }
+
+        .main-wrapper {
+            background-color: var(--primary-bg);
+        }
+
+       /* Breadcrumb Bar */
+    .breadcrumb-bar {
+      background: var(--accent-color);
+      padding: 1.2rem 1rem;
+      box-shadow: 0 3px 8px var(--border-color);
+      border-radius: 0 0 12px 12px;
+      margin-bottom: 1.5rem;
+    }
+    .breadcrumb-bar .breadcrumb {
+      background: transparent;
+      padding: 0;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #e9f7cf;
+      font-size: 0.95rem;
+    }
+    .breadcrumb-bar .breadcrumb-item a {
+      color: #f0f6e9;
+      transition: color 0.3s ease;
+    }
+    .breadcrumb-bar .breadcrumb-item a:hover {
+      color: #d1e89b;
+      text-decoration: underline;
+    }
+    .breadcrumb-bar .breadcrumb-item.active {
+      color: #e9f7cf;
+      cursor: default;
+    }
+    .breadcrumb-title {
+      color: #fff;
+      font-weight: 700;
+      font-size: 2rem;
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+
+        .content {
+            padding: 40px 0;
+        }
+
+        .card {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+        }
+
+        .pat-widget-profile .card-body {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .pro-widget-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        .booking-doc-img img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--accent-color);
+            object-fit: cover;
+            margin-bottom: 1rem;
+        }
+
+        .profile-det-info h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .profile-det-info h3 a {
+            color: var(--text-color);
+        }
+
+        .patient-details h5 {
+            font-size: 0.9rem;
+            color: var(--light-text);
+        }
+
+        .patient-info {
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        .patient-info ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .patient-info li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .patient-info li span {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .invoice-content {
+            background-color: var(--secondary-bg);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+        }
+
+        .invoice-logo img {
+            max-width: 180px;
+        }
+
+        .invoice-details {
+            text-align: right;
+            color: var(--light-text);
+            line-height: 1.6;
+        }
+
+        .invoice-item {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .invoice-info strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            color: var(--accent-color);
+        }
+
+        .invoice-table-wrap {
+            margin-top: 30px;
+        }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .invoice-table th,
+        .invoice-table  {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        .invoice-table thead  tr {
+            background-color: var(--border-color);
+            color: white;
+            font-weight: 600;
+            border-color: var(--accent-color);
+        }
+
+        .invoice-table tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        .invoice-table .text-center {
+            text-align: center;
+        }
+        
+        .invoice-table th[style*="dotted"] {
+            border: 2px dotted #fff !important;
+            background-color: var(--accent-color);
+        }
+        
+        .other-info h4 {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .other-info p {
+            line-height: 1.8;
+            color: var(--text-color);
+        }
+        
+        /* Buttons */
+        .btn-primary-light {
+            background-color: rgba(149, 194, 112, 0.1);
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary-light:hover {
+            background-color: var(--accent-color);
+            color: white;
+            box-shadow: 0 4px 8px rgba(149, 194, 112, 0.3);
+        }
+        
+        .btn-primary-light a {
+            color: inherit;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <header class="header">{% include 'doctor-navbar.html' %}</header>
+        <div class="breadcrumb-bar">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-md-12 col-12">
+                        <nav aria-label="breadcrumb" class="page-breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                    <a href="{% url 'hospital_home'%}">Home</a>
+                                </li>
+                                <li class="breadcrumb-item active" aria-current="page">
+                                    Reports
+                                </li>
+                            </ol>
+                        </nav>
+                        <h2 class="breadcrumb-title">VIew Reports</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-md-5 col-lg-4 col-xl-3 theiaStickySidebar">
+                        <div class="card widget-profile pat-widget-profile">
+							<div class="card-body">
+							  <div class="pro-widget-content">
+								<div class="profile-info-widget">
+								  <a href="#" class="booking-doc-img">
+									<img
+									  src="{{ report.patient.featured_image.url }}"
+									  alt="User Image"
+									/>
+								  </a>
+								  <div class="profile-det-info">
+									<h3><a href="#">{{report.patient.name}}</a></h3>
+			
+			
+									<div class="patient-details">
+									  <h5><b>ID :</b> {{report.patient.patient_id }}</h5>
+									  <h5 class="mb-0">
+										<i class="fas fa-map-marker-alt"></i>
+										{{ report.patient.address }}
+									  </h5>
+									</div>
+								  </div>
+								</div>
+							  </div>
+							  <div class="patient-info">
+								<ul>
+								  <li>Phone <span>{{report.patient.phone_number}}</span></li>
+								  <li>Age <span>{{report.patient.age}}</span></li>
+								  <li>Blood Group <span>{{report.patient.blood_group}}</span></li>
+								</ul>
+							  </div>
+							</div>
+						  </div>
+						  </div>
+                    <div class="col-md-7 col-lg-8 col-xl-9">
+                        <div class="invoice-content">
+                            <div class="invoice-item">
+                                <div class="row">
+
+                                    <div class="col-md-6">
+                                        <div class="invoice-logo">
+                                            <img src="{% static 'HealthStack-System/images/Normal/logo.png'%}"
+                                                alt="logo">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="invoice-details"> 
+                                            <strong>Report ID:</strong>{{report.report_id}} <br>
+                                            <strong>Patient ID:</strong> {{patient.patient_id }} <br>
+                                            <strong>Date:</strong> {{report.delivery_date}}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="invoice-item">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="invoice-info">
+                                            <strong class="customer-text">Doctor Information:</strong>
+
+                                            <p class="invoice-details invoice-details-two">
+                                                <b>Name: </b>{{report.doctor.name}} <br>
+												<b>Department: </b>{{report.doctor.department_name}}<br>
+												<b>Email: </b>{{report.doctor.email}} <br>
+                                            </p>
+
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="invoice-info invoice-info2">
+                                            <strong class="customer-text">Patient Information</strong>
+                                            <p class="invoice-details">
+                                                <b>Name: </b>{{report.patient.name}} <br>
+												<b>Address: </b>{{report.patient.address}}<br>
+												<b>Email: </b>{{report.patient.email}} <br>
+												<b>Phone Number: </b>{{report.patient.phone_number}}<br>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="invoice-item invoice-table-wrap">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="table-responsive">
+                                            <table class="invoice-table table table-bordered text-center">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="border: 2px dotted;">Specimen Information</th>
+                                                        <th style="border: 2px dotted;">Specimen ID</th>
+                                                        <th style="border: 2px dotted;">Collection Date/Time</th>
+                                                        <th style="border: 2px dotted;">Receiving Date/Time</th>
+                                                    </tr>
+                                                    
+                                                    <tr>
+                                                    {% for s in specimen %}
+                                                        <th style="border: 2px dotted;">{{s.specimen_type}}</th>
+                                                        <th style="border: 2px dotted;">{{s.specimen_id}}</th>
+                                                        <th style="border: 2px dotted;">{{s.collection_date}}</th>
+                                                        <th style="border: 2px dotted;">{{s.receiving_date}}</th>
+
+                                                    </tr>
+                                                    {% endfor %}
+                                                    </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <br>
+                            <div class="invoice-item invoice-table-wrap">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="table-responsive">
+                                            <table class="invoice-table table table-bordered">
+                                                <thead>
+                                                    <tr style="background-color: var(--accent-color);">
+                                                        <th>Test Name</th>
+                                                        <th class="text-center">Result</th>
+                                                        <th class="text-center">Unit</th>
+                                                        <th class="text-center">Referred value</th>
+
+                                                    </tr>
+                                                    {% for t in test %}
+                                                    <tr>
+                                                        <th class="text-center">{{t.test_name}}</th>
+                                                        <th class="text-center">{{t.result}}</th>
+                                                        <th class="text-center">{{t.unit}}</th>
+                                                        <th class="text-center">{{t.referred_value}}</th>
+                                                    </tr>
+                                                    {% endfor %}
+                                                    </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="other-info">
+                                <h4>Other information</h4>
+                                <p>{{report.other_information}}</p>
+
+                               {% comment %}
+                                <button class="btn btn-sm bg-primary-light"> <a target="_blank"
+                                        href="{% url 'pdf' pk=report.report_id %}"> Download Report </a></button>
+                                {% endcomment %}
+
+
+                            </div>
+                            </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+        {% include 'footer.html' %}
+        </div>
+    <div class="modal fade custom-modal" id="add_medical_records">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Medical Records</h3>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="text" class="form-control datetimepicker" value="31-10-2019" />
+                        </div>
+                        <div class="form-group">
+                            <label>Description ( Optional )</label>
+                            <textarea class="form-control"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Upload File</label>
+                            <input type="file" class="form-control" />
+                        </div>
+                        <div class="submit-section text-center">
+                            <button type="submit" class="btn btn-primary submit-btn">
+                                Submit
+                            </button>
+                            <button type="button" class="btn btn-secondary submit-btn" data-dismiss="modal">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/plugins/admin/slimscroll/jquery.slimscroll.min.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/js/Normal/prescription-settings.js' %}"></script>
+
+    <script src="{% static 'HealthStack-System/plugins/admin/datatables/jquery.dataTables.min.js'%}"></script>
+    <script src="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.js'%}"></script>
+
+    <script src="{% static 'HealthStack-System/Outside_assets/js/script.js' %}"></script>
+
+</body>
+
+</html>

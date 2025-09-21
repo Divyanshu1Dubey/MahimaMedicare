@@ -1,0 +1,383 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <!-- HealthStack/booking.html  30 Nov 2019 04:12:16 GMT -->
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=0"
+    />
+    <title>Mahima Medicare</title>
+
+    <!-- Favicons -->
+    <link
+      type="image/x-icon"
+      href="{% static 'HealthStack-System/images/Normal/favicon.png' %}"
+      rel="icon"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}"
+    />
+
+    <!-- Fontawesome CSS -->
+    <link
+      rel="stylesheet"
+      href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}"
+    />
+
+    <!-- Main CSS -->
+    <link
+      rel="stylesheet"
+      href="{% static 'HealthStack-System/css/Normal/style.css' %}"
+    />
+
+    <!-- Booking CSS -->
+    <link
+      rel="stylesheet"
+      href="{% static 'HealthStack-System/css/Normal/booking.css' %}"
+    />
+    
+    <link
+      rel="stylesheet"
+      href="{% static 'HealthStack-System/css/Normal/timedropper.css' %}"
+    />
+    <link href="{% static 'HealthStack-System/css/Normal/date_dropper.css' %}" rel="stylesheet"/>   
+    <link href="{% static 'HealthStack-System/css/Normal/my_style.css' %}" rel="stylesheet"/>
+
+    <style>
+      :root {
+        --primary-color: #95C270;
+        --primary-hover: #7da85d;
+      }
+      
+      .card {
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: none;
+        margin-bottom: 25px;
+        overflow: hidden;
+      }
+      
+      .card-body {
+        padding: 25px;
+      }
+      
+      .breadcrumb-bar {
+        background-color: var(--primary-color);
+        padding: 20px 0;
+      }
+      
+      .breadcrumb-title {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-top: 10px;
+      }
+      
+      .booking-doc-info {
+        display: flex;
+        align-items: center;
+        padding: 20px 0;
+      }
+      
+      .booking-doc-img img {
+        width: 120px;
+        height: 120px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 3px solid #fff;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      
+      .booking-info {
+        margin-left: 25px;
+      }
+      
+      .booking-info h4 a {
+        color: #2c3e50;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      
+      .rating {
+        color: #FFC107;
+        margin: 8px 0;
+      }
+      
+      .widget-boxed {
+        border-radius: 12px;
+        padding: 25px;
+      }
+      
+      .widget-boxed-header {
+        margin-bottom: 25px;
+      }
+      
+      .widget-boxed-header h4 {
+        font-weight: 600;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+      }
+      
+      .widget-boxed-header h4 i {
+        color: var(--primary-color);
+        margin-right: 10px;
+      }
+      
+      .form-control {
+        height: 48px;
+        border-radius: 8px;
+        border: 1px solid #e1e5eb;
+        padding: 10px 15px;
+      }
+      
+      .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(149, 194, 112, 0.25);
+      }
+      
+      textarea {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid #e1e5eb;
+        padding: 15px;
+        min-height: 120px;
+      }
+      
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(149, 194, 112, 0.25);
+      }
+      
+      .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s;
+      }
+      
+      .btn-primary:hover {
+        background-color: var(--primary-hover);
+        border-color: var(--primary-hover);
+        transform: translateY(-2px);
+      }
+      
+      .submit-section {
+        margin-top: 25px;
+      }
+      
+      label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2395C270' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 16px 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <!-- Header -->
+      <header class="header">{% include 'patient_navbar.html' %}</header>
+      <!-- /Header -->
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb-bar">
+        <div class="container-fluid">
+          <div class="row align-items-center">
+            <div class="col-md-12 col-12">
+              <nav aria-label="breadcrumb" class="page-breadcrumb">
+                <ol class="breadcrumb">
+                  <li class="breadcrumb-item"><a href="{% url 'patient-dashboard' %}">Home</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">
+                    Booking
+                  </li>
+                </ol>
+              </nav>
+              <h2 class="breadcrumb-title">Book Appointment</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /Breadcrumb -->
+
+      <!-- Page Content -->
+      <div class="content">
+        <div class="container">
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-body">
+                  <div class="booking-doc-info">
+                    <a href="doctor-profile.html" class="booking-doc-img">
+                      <img
+                        src="{{ doctor.featured_image.url }}"
+                        alt="User Image"
+                      />
+                    </a>
+                    <div class="booking-info">
+                      <h4>
+                        <a href="doctor-profile.html">{{doctor.name}}</a>
+                      </h4>
+                      <div class="rating">
+                        <i class="fas fa-star filled"></i>
+                        <i class="fas fa-star filled"></i>
+                        <i class="fas fa-star filled"></i>
+                        <i class="fas fa-star filled"></i>
+                        <i class="fas fa-star"></i>
+                        <span class="d-inline-block average-rating">35</span>
+                      </div>
+                      <p class="text-muted mb-0">
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{doctor.hospital_name}}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Schedule Widget -->
+              <div class="card">
+                <div class="schedule widget-boxed mt-33 mt-0">
+                  <div class="widget-boxed-header">
+                      <h4><i class="fa fa-calendar pr-3 padd-r-10"></i>Schedule an Appointment</h4>
+                  </div>
+
+                  <form method="post" action="{% url 'booking' pk=doctor.doctor_id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                      <div class="agent-contact-form-sidebar">
+                          <div class="row">
+                              <div class="col-lg-6 col-md-12 book">
+                                  <label>Appointment Date</label>
+                                  <input type="date" name="appoint_date" id="reservation-date" data-large-mode="true" data-lock="from" data-theme="my-style" class="form-control"/>
+                              </div>
+                              <div class="col-lg-6 col-md-12 book2">
+                                  <label>Appointment Time</label>
+                                  <input type="text" name="appoint_time" id="reservation-time" class="form-control" readonly="">
+                              </div>
+                              <div class="col-lg-6 col-md-12">
+                                <div class="form-group">
+                                  <label>Appointment Type</label>
+                                  <select
+                                    class="form-control select"
+                                    name="appointment_type"
+                                  >
+                                    <option value="checkup">Checkup</option>
+                                    <option value="report">Report Review</option>
+                                  </select>
+                                </div>
+                              </div>
+                              <div class="col-lg-12 col-md-12" style="padding-bottom: 10px;">
+                                <label>Message (Optional)</label>
+                                <textarea placeholder="Enter any additional information or concerns..." name="message"></textarea>
+                              </div>
+
+                          </div>
+                          <div class="submit-section text-right">
+                            <button
+                              type="submit"
+                              class="btn btn-primary submit-btn"
+                            >
+                              <i class="fas fa-paper-plane mr-2"></i> Submit Request
+                            </button>
+                          </div>
+                      </div>
+                  </form>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /Page Content -->
+
+      <!-- Footer -->
+      {% include 'footer.html' %}
+      <!-- /Footer -->
+    </div>
+    <!-- /Main Wrapper -->
+
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/Outside_assets/js/script.js' %}"></script>
+
+    <!-- booking js -->
+    <script src="{% static 'HealthStack-System/js/Normal/timedropper.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/date_dropper.js' %}"></script>
+
+    <!-- Date Dropper Script-->
+    <script>
+      $('#reservation-date').dateDropper();
+    </script>
+    <!-- Time Dropper Script-->
+    <script>
+      $('#reservation-time').timeDropper({
+          setCurrentTime: false,
+          meridians: true,
+          primaryColor: "#95C270",
+          borderColor: "#95C270",
+          minutesInterval: '15'
+      });
+    </script>
+
+    <script>
+      $(document).ready(function() {
+          $('.popup-youtube, .popup-vimeo, .popup-gmaps').magnificPopup({
+              disableOn: 700,
+              type: 'iframe',
+              mainClass: 'mfp-fade',
+              removalDelay: 160,
+              preloader: false,
+              fixedContentPos: false
+          });
+      });
+    </script>
+
+    <script>
+      $('.slick-carousel').each(function() {
+          var slider = $(this);
+          $(this).slick({
+              infinite: true,
+              dots: false,
+              arrows: false,
+              centerMode: true,
+              centerPadding: '0'
+          });
+
+          $(this).closest('.slick-slider-area').find('.slick-prev').on("click", function() {
+              slider.slick('slickPrev');
+          });
+          $(this).closest('.slick-slider-area').find('.slick-next').on("click", function() {
+              slider.slick('slickNext');
+          });
+      });
+    </script>
+  </body>
+</html>
