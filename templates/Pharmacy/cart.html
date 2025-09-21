@@ -348,23 +348,22 @@
     <h3 class="font-weight-bold mb-4">Cart Summary</h3>
     <div class="summary-item">
         <span>Subtotal</span>
-        <span>₱ {{ order.get_totals|floatformat:2 }}</span>
+        <span>₹{{ order.get_totals|floatformat:2 }}</span>
     </div>
     <div class="summary-item">
-        <span>Delivery Fee</span>
-        <span>₱ 40.00</span>
-    </div>
-    <div class="summary-item">
-        <span>Discount</span>
-        <span>₱ 0.00</span>
+        <span>GST (5%)</span>
+        <span>₹{{ order.get_gst_amount|floatformat:2 }}</span>
     </div>
     <hr>
     <div class="summary-item summary-total">
-        <span>Total</span>
-        <span>₱ {{ order.final_bill|floatformat:2 }}</span>
+        <span>Cart Total</span>
+        <span>₹{{ order.get_cart_total|floatformat:2 }}</span>
+    </div>
+    <div class="text-center mt-2">
+        <small class="text-muted">Delivery charges will be calculated at checkout</small>
     </div>
     <p class="text-center mt-4">
-        <a href="{% url 'razorpay-pharmacy-payment' order_id=order.id %}" class="btn btn-checkout">Proceed to Checkout with Razorpay</a>
+        <a href="{% url 'pharmacy-checkout' %}" class="btn btn-checkout">Proceed to Checkout</a>
     </p>
 </div>
                     </div>

@@ -41,7 +41,7 @@
 
       <div class="row mb-4">
         <div class="col-md-4">
-          <div class="card"><div class="card-body"><h6>Total Revenue</h6><h3>₱ {{ total_revenue }}</h3></div></div>
+          <div class="card"><div class="card-body"><h6>Total Revenue</h6><h3>₹{{ total_revenue }}</h3></div></div>
         </div>
         <div class="col-md-4">
           <div class="card"><div class="card-body"><h6>Total Orders</h6><h3>{{ total_orders }}</h3></div></div>
@@ -82,7 +82,7 @@
                   <td>{{ forloop.counter }}</td>
                   <td>{{ o.user.username }}</td>
                   <td>{{ o.created }}</td>
-                  <td>₱ {{ o.get_totals }}</td>
+                  <td>₹{{ o.get_totals }}</td>
                   <td>{{ o.payment_status }}</td>
                 </tr>
                 {% empty %}

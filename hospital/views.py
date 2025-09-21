@@ -251,6 +251,14 @@ def patient_dashboard(request):
             status='captured'
         ).order_by('-created_at')
         
+        # Get pharmacy orders for this patient
+        from pharmacy.models import Order
+        pharmacy_orders = Order.objects.filter(
+            user=request.user,
+            ordered=True,
+            payment_status='paid'
+        ).order_by('-created')
+        
         # Payment statistics
         total_payments = payments.count()
         total_amount_paid = sum([payment.amount for payment in payments])
@@ -309,6 +317,7 @@ def patient_dashboard(request):
             'payments': recent_payments,
             'report': reports,
             'prescription': recent_prescriptions,
+            'pharmacy_orders': pharmacy_orders,
             'health_summary': health_summary,
             'reports_stats': {
                 'pending': reports_pending,

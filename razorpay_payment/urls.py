@@ -18,4 +18,8 @@ urlpatterns = [
     path('invoice/download/<int:invoice_id>/', views.download_invoice, name='download-invoice'),
     path('invoice/view/<int:invoice_id>/', views.view_invoice, name='view-invoice'),
     path('invoice/regenerate/<int:payment_id>/', views.regenerate_invoice, name='regenerate-invoice'),
+    
+    # Pharmacy Invoice URLs
+    path('pharmacy-invoice/download/<int:order_id>/', views.download_pharmacy_invoice, name='download-pharmacy-invoice'),
+    path('pharmacy-invoice/view/<int:order_id>/', views.view_pharmacy_invoice, name='view-pharmacy-invoice'),
 ]

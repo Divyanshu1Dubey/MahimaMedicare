@@ -1495,7 +1495,16 @@ def pharmacist_purchase_history(request):
         return redirect('admin-logout')
     pharmacist = Pharmacist.objects.get(user=request.user)
 
-    # Each purchased cart item as row history
+    # Get completed orders with their items
+    from pharmacy.models import Order
+    completed_orders = (
+        Order.objects.filter(ordered=True, payment_status='paid')
+        .select_related('user')
+        .prefetch_related('orderitems__item')
+        .order_by('-created')
+    )
+
+    # Each purchased cart item as row history (for backward compatibility)
     purchased_items = (
         Cart.objects.filter(purchased=True)
         .select_related('item', 'user')
@@ -1504,9 +1513,77 @@ def pharmacist_purchase_history(request):
 
     context = {
         'purchased_items': purchased_items,
+        'completed_orders': completed_orders,
         'pharmacist': pharmacist,
     }
     return render(request, 'hospital_admin/pharmacist-purchase-history.html', context)
+
+
+@csrf_exempt
+@login_required(login_url='admin_login')
+def pharmacist_order_management(request):
+    if not request.user.is_pharmacist:
+        return redirect('admin-logout')
+    pharmacist = Pharmacist.objects.get(user=request.user)
+
+    # Get pending and processing orders
+    from pharmacy.models import Order
+    pending_orders = (
+        Order.objects.filter(ordered=True, payment_status='paid')
+        .exclude(order_status__in=['delivered', 'completed', 'cancelled'])
+        .select_related('user')
+        .prefetch_related('orderitems__item')
+        .order_by('created')
+    )
+
+    context = {
+        'pending_orders': pending_orders,
+        'pharmacist': pharmacist,
+    }
+    return render(request, 'hospital_admin/pharmacist-order-management.html', context)
+
+
+@csrf_exempt
+@login_required(login_url='admin_login')
+def update_order_status(request, order_id):
+    if not request.user.is_pharmacist:
+        return redirect('admin-logout')
+    
+    from pharmacy.models import Order
+    from django.http import JsonResponse
+    
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        new_status = request.POST.get('order_status')
+        pharmacist_notes = request.POST.get('pharmacist_notes', '')
+        
+        # Get valid status choices
+        valid_statuses = [choice[0] for choice in Order.ORDER_STATUS_CHOICES]
+        
+        if new_status in valid_statuses:
+            order.order_status = new_status
+            if pharmacist_notes:
+                order.pharmacist_notes = pharmacist_notes
+            order.save()
+            
+            # Check if it's an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Order #{order.id} status updated to {order.get_order_status_display()}'
+                })
+            
+            messages.success(request, f'Order #{order.id} status updated to {order.get_order_status_display()}')
+        else:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid order status'
+                })
+            messages.error(request, 'Invalid order status')
+    
+    return redirect('pharmacist-order-management')
 
 
 @csrf_exempt

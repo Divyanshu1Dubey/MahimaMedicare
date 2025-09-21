@@ -1,0 +1,333 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>My Medicine Orders - Mahima Medicare</title>
+    
+    <!-- Favicons -->
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}" />
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}" />
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}" />
+</head>
+<body>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        
+        <!-- Header -->
+        <header class="header">{% include 'navbar_home.html' %}</header>
+        <!-- /Header -->
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-bar">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-md-12 col-12">
+                        <nav aria-label="breadcrumb" class="page-breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{% url 'patient-dashboard' %}">Home</a></li>
+                                <li class="breadcrumb-item"><a href="{% url 'pharmacy-shop' %}">Pharmacy</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">My Orders</li>
+                            </ol>
+                        </nav>
+                        <h2 class="breadcrumb-title">My Medicine Orders</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Breadcrumb -->
+        
+        <!-- Page Content -->
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title"><i class="fas fa-pills text-primary"></i> Your Medicine Orders</h4>
+                            </div>
+                            <div class="card-body">
+                                {% if orders %}
+                                    {% for order in orders %}
+                                    <div class="card mb-4 border-left-primary">
+                                        <div class="card-header bg-light">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-6">
+                                                    <h5 class="mb-0">Order #{{ order.id }}</h5>
+                                                    <small class="text-muted">Placed on {{ order.created|date:"M d, Y h:i A" }}</small>
+                                                </div>
+                                                <div class="col-md-6 text-right">
+                                                    <span class="badge badge-{% if order.order_status == 'pending' %}warning{% elif order.order_status == 'confirmed' %}info{% elif order.order_status == 'preparing' %}primary{% elif order.order_status == 'ready' %}success{% elif order.order_status == 'out_for_delivery' %}info{% elif order.order_status == 'delivered' %}success{% elif order.order_status == 'completed' %}success{% else %}secondary{% endif %} badge-lg">
+                                                        {{ order.get_order_status_display }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-8">
+                                                    <h6 class="text-primary">Medicines Ordered:</h6>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Medicine</th>
+                                                                    <th>Quantity</th>
+                                                                    <th>Price</th>
+                                                                    <th>Total</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for item in order.orderitems.all %}
+                                                                <tr>
+                                                                    <td>
+                                                                        <div class="d-flex align-items-center">
+                                                                            <img src="{{ item.item.featured_image.url }}" alt="{{ item.item.name }}" class="avatar avatar-xs mr-2">
+                                                                            <div>
+                                                                                <strong>{{ item.item.name }}</strong>
+                                                                                <br><small class="text-muted">{{ item.item.description|truncatechars:30 }}</small>
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>{{ item.quantity }}</td>
+                                                                    <td>₹{{ item.item.price }}</td>
+                                                                    <td>₹{{ item.get_total }}</td>
+                                                                </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="card bg-light">
+                                                        <div class="card-body">
+                                                            <h6 class="text-primary">Order Summary</h6>
+                                                            <div class="d-flex justify-content-between">
+                                                                <span>Subtotal:</span>
+                                                                <span>₹{{ order.get_totals|floatformat:2 }}</span>
+                                                            </div>
+                                                            <div class="d-flex justify-content-between">
+                                                                <span>GST (5%):</span>
+                                                                <span>₹{{ order.get_gst_amount|floatformat:2 }}</span>
+                                                            </div>
+                                                            <div class="d-flex justify-content-between">
+                                                                <span>Delivery:</span>
+                                                                <span>{% if order.delivery_method == 'delivery' %}₹40{% else %}FREE{% endif %}</span>
+                                                            </div>
+                                                            <hr>
+                                                            <div class="d-flex justify-content-between font-weight-bold">
+                                                                <span>Total:</span>
+                                                                <span>₹{{ order.final_bill }}</span>
+                                                            </div>
+                                                            
+                                                            <hr>
+                                                            <h6 class="text-primary">Delivery Information</h6>
+                                                            <div class="mb-2">
+                                                                <span class="badge badge-{% if order.delivery_method == 'delivery' %}primary{% else %}secondary{% endif %}">
+                                                                    <i class="fas fa-{% if order.delivery_method == 'delivery' %}truck{% else %}store{% endif %}"></i>
+                                                                    {{ order.get_delivery_method_display }}
+                                                                </span>
+                                                            </div>
+                                                            {% if order.delivery_method == 'delivery' %}
+                                                                <p class="mb-1"><strong>Address:</strong></p>
+                                                                <p class="text-muted small">{{ order.delivery_address }}</p>
+                                                                <p class="mb-1"><strong>Phone:</strong> {{ order.delivery_phone }}</p>
+                                                            {% else %}
+                                                                <p class="text-muted small">
+                                                                    <i class="fas fa-map-marker-alt"></i> 
+                                                                    Mahima Medicare Pharmacy<br>
+                                                                    Odisha, India
+                                                                </p>
+                                                            {% endif %}
+                                                            
+                                                            {% if order.pharmacist_notes %}
+                                                            <hr>
+                                                            <h6 class="text-primary">Pharmacist Notes</h6>
+                                                            <p class="text-muted small">{{ order.pharmacist_notes }}</p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Order Status Timeline -->
+                                            <div class="row mt-3">
+                                                <div class="col-12">
+                                                    <h6 class="text-primary">Order Status</h6>
+                                                    <div class="order-timeline">
+                                                        <div class="timeline-item {% if order.order_status == 'pending' or order.order_status == 'confirmed' or order.order_status == 'preparing' or order.order_status == 'ready' or order.order_status == 'out_for_delivery' or order.order_status == 'delivered' or order.order_status == 'completed' %}active{% endif %}">
+                                                            <i class="fas fa-check-circle"></i>
+                                                            <span>Order Confirmed</span>
+                                                        </div>
+                                                        <div class="timeline-item {% if order.order_status == 'preparing' or order.order_status == 'ready' or order.order_status == 'out_for_delivery' or order.order_status == 'delivered' or order.order_status == 'completed' %}active{% endif %}">
+                                                            <i class="fas fa-cog"></i>
+                                                            <span>Preparing</span>
+                                                        </div>
+                                                        {% if order.delivery_method == 'pickup' %}
+                                                        <div class="timeline-item {% if order.order_status == 'ready' or order.order_status == 'completed' %}active{% endif %}">
+                                                            <i class="fas fa-store"></i>
+                                                            <span>Ready for Pickup</span>
+                                                        </div>
+                                                        {% else %}
+                                                        <div class="timeline-item {% if order.order_status == 'out_for_delivery' or order.order_status == 'delivered' or order.order_status == 'completed' %}active{% endif %}">
+                                                            <i class="fas fa-truck"></i>
+                                                            <span>Out for Delivery</span>
+                                                        </div>
+                                                        <div class="timeline-item {% if order.order_status == 'delivered' or order.order_status == 'completed' %}active{% endif %}">
+                                                            <i class="fas fa-home"></i>
+                                                            <span>Delivered</span>
+                                                        </div>
+                                                        {% endif %}
+                                                        <div class="timeline-item {% if order.order_status == 'completed' %}active{% endif %}">
+                                                            <i class="fas fa-star"></i>
+                                                            <span>Completed</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center py-5">
+                                        <i class="fas fa-pills fa-3x text-muted mb-3"></i>
+                                        <h4 class="text-muted">No Orders Yet</h4>
+                                        <p class="text-muted">You haven't placed any medicine orders yet.</p>
+                                        <a href="{% url 'pharmacy-shop' %}" class="btn btn-primary">
+                                            <i class="fas fa-shopping-cart"></i> Start Shopping
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Content -->
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-bottom">
+                <div class="container-fluid">
+                    <div class="copyright">
+                        <div class="row">
+                            <div class="col-md-6 col-lg-6">
+                                <div class="copyright-text">
+                                    <p class="mb-0">&copy; 2024 Mahima Medicare. All rights reserved.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-6">
+                                <div class="copyright-menu">
+                                    <ul class="policy-menu">
+                                        <li><a href="#">Terms and Conditions</a></li>
+                                        <li><a href="#">Policy</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- /Footer -->
+        
+    </div>
+    <!-- /Main Wrapper -->
+    
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/script.js' %}"></script>
+    
+    <style>
+        .border-left-primary {
+            border-left: 4px solid #007bff !important;
+        }
+        
+        .order-timeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            padding: 20px 0;
+        }
+        
+        .order-timeline::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e9ecef;
+            z-index: 1;
+        }
+        
+        .timeline-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            background: white;
+            padding: 0 10px;
+        }
+        
+        .timeline-item i {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .timeline-item.active i {
+            background: #28a745;
+            color: white;
+        }
+        
+        .timeline-item span {
+            font-size: 12px;
+            text-align: center;
+            color: #6c757d;
+        }
+        
+        .timeline-item.active span {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .order-timeline {
+                flex-wrap: wrap;
+            }
+            
+            .timeline-item {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+    
+</body>
+</html>

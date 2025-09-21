@@ -629,65 +629,79 @@
         <table class="table table-hover mb-0">
           <thead>
             <tr>
-              <th>Doctor / Test</th>
+              <th>Service Type</th>
               <th>Tranx ID</th>
               <th>Tranx Date</th>
               <th>Amount</th>
-              <th>Card Type</th>
-              <th>Card Issuer</th>
-              <th>Payment Status</th>
+              <th>Payment Method</th>
+              <th>Status</th>
               <th>Invoice</th>
             </tr>
           </thead>
           <tbody>
+            <!-- Pharmacy Orders -->
+            {% for order in pharmacy_orders %}
+            <tr>
+              <td>
+                <div class="table-avatar">
+                  <i class="fas fa-pills text-success"></i>
+                  <span class="ml-2">Medicine Purchase</span>
+                  <small class="d-block text-muted">{{ order.orderitems.count }} item(s)</small>
+                </div>
+              </td>
+              <td>{{ order.payment_id|default:"-" }}</td>
+              <td>{{ order.created|date:"M d, Y" }}</td>
+              <td>₹{{ order.final_bill|floatformat:2 }}</td>
+              <td>Razorpay</td>
+              <td>
+                <span class="badge bg-success-light">Paid</span>
+              </td>
+              <td>
+                <div class="table-action">
+                  <a href="{% url 'download-pharmacy-invoice' order.id %}" class="btn btn-sm btn-outline-success" title="Download Invoice">
+                    <i class="fas fa-download"></i>
+                  </a>
+                  <a href="{% url 'view-pharmacy-invoice' order.id %}" class="btn btn-sm btn-outline-primary" title="View Invoice">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+            
+            <!-- Doctor Appointments & Lab Tests -->
             {% for payment in payments %}
             <tr>
-              <!-- Doctor / Test -->
               <td>
                 {% if payment.appointment %}
                   <div class="table-avatar">
-                   
-                    <a href="doctor-profile.html">
-                      {{ payment.appointment.doctor.name }}
-                      <span>{{ payment.appointment.doctor.department }}</span>
-                    </a>
+                    <i class="fas fa-user-md text-primary"></i>
+                    <span class="ml-2">{{ payment.appointment.doctor.name }}</span>
+                    <small class="d-block text-muted">{{ payment.appointment.doctor.department }}</small>
                   </div>
                 {% elif payment.test_order %}
                   <div class="table-avatar">
-                    
-                    <span>Lab Test Payment</span>
+                    <i class="fas fa-flask text-info"></i>
+                    <span class="ml-2">Lab Test Payment</span>
                   </div>
                 {% else %}
                   <span>-</span>
                 {% endif %}
               </td>
-
-              <!-- Transaction ID -->
               <td>{{ payment.transaction_id|default:"-" }}</td>
-
-              <!-- Transaction Date -->
               <td>{{ payment.transaction_date|default:"-" }}</td>
-
-              <!-- Amount -->
               <td>
-  {% if payment.currency_amount %}
-    {{ payment.currency_amount }} PHP
-  {% elif payment.test_order %}
-    {{ payment.test_order.final_bill }} PHP
-  {% else %}
-    0.00 PHP
-  {% endif %}
-</td>
-
-              <!-- Card Type -->
-              <td>{{ payment.card_type|default:"Visa" }}</td>
-
-              <!-- Card Issuer -->
-              <td>{{ payment.card_issuer|default:"Razorpay" }}</td>
-
-              <!-- Payment Status -->
+                {% if payment.currency_amount %}
+                  ₹{{ payment.currency_amount|floatformat:2 }}
+                {% elif payment.test_order %}
+                  ₹{{ payment.test_order.final_bill|floatformat:2 }}
+                {% else %}
+                  ₹0.00
+                {% endif %}
+              </td>
+              <td>{{ payment.card_type|default:"Razorpay" }}</td>
               <td>
-                {% if payment.status|lower == 'paid' %}
+                {% if payment.status|lower == 'captured' or payment.status|lower == 'paid' %}
                   <span class="badge bg-success-light">Success</span>
                 {% elif payment.status|lower == 'failed' %}
                   <span class="badge bg-danger-light">Failed</span>
@@ -695,8 +709,6 @@
                   <span class="badge bg-warning-light">Pending</span>
                 {% endif %}
               </td>
-              
-              <!-- Invoice -->
               <td>
                 {% if payment.status|lower == 'captured' and payment.invoice %}
                   <div class="table-action">
@@ -713,9 +725,11 @@
               </td>
             </tr>
             {% empty %}
-            <tr>
-              <td colspan="8" class="text-center">No billing records found.</td>
-            </tr>
+              {% if not pharmacy_orders %}
+                <tr>
+                  <td colspan="7" class="text-center">No billing records found.</td>
+                </tr>
+              {% endif %}
             {% endfor %}
           </tbody>
         </table>

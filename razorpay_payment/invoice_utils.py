@@ -346,137 +346,291 @@ def generate_invoice_for_payment(payment):
     """
     Generate invoice for a successful payment
     """
-    from .models import Invoice, InvoiceItem
-    
-    # Check if invoice already exists
-    if hasattr(payment, 'invoice'):
-        return payment.invoice
-    
-    # Calculate amounts
-    subtotal = payment.amount
-    tax_amount = Decimal('0.00')  # You can calculate tax based on your business rules
-    discount_amount = Decimal('0.00')
-    total_amount = subtotal + tax_amount - discount_amount
-    
-    # Create invoice
-    invoice = Invoice.objects.create(
-        payment=payment,
-        customer_name=payment.name or 'Customer',
-        customer_email=payment.email or '',
-        customer_phone=payment.phone or '',
-        customer_address=payment.address or '',
-        subtotal=subtotal,
-        tax_amount=tax_amount,
-        discount_amount=discount_amount,
-        total_amount=total_amount,
-        status='paid'
-    )
-    
-    # Create invoice items based on payment type
-    if payment.payment_type == 'appointment' and payment.appointment:
-        # Determine if it's consultation or report based on appointment type
-        if payment.appointment.appointment_type == 'checkup':
-            description = f"Medical Consultation - Dr. {payment.appointment.doctor.name}"
-            service_type = "Medical Consultation"
-        else:  # report type
-            description = f"Medical Report Review - Dr. {payment.appointment.doctor.name}"
-            service_type = "Medical Report"
+    try:
+        from .models import Invoice, InvoiceItem
         
-        InvoiceItem.objects.create(
-            invoice=invoice,
-            description=description,
-            quantity=1,
-            unit_price=payment.amount,
-            item_type='appointment',
-            item_id=payment.appointment.id
+        # Check if invoice already exists
+        if hasattr(payment, 'invoice'):
+            return payment.invoice
+        
+        # Calculate amounts
+        subtotal = payment.amount
+        tax_amount = Decimal('0.00')  # You can calculate tax based on your business rules
+        discount_amount = Decimal('0.00')
+        total_amount = subtotal + tax_amount - discount_amount
+        
+        # Create invoice
+        invoice = Invoice.objects.create(
+            payment=payment,
+            customer_name=payment.name or 'Customer',
+            customer_email=payment.email or '',
+            customer_phone=payment.phone or '',
+            customer_address=payment.address or '',
+            subtotal=subtotal,
+            tax_amount=tax_amount,
+            discount_amount=discount_amount,
+            total_amount=total_amount,
+            status='paid'
         )
-    
-    elif payment.payment_type == 'pharmacy' and payment.order:
-        # For pharmacy orders, create items for each medicine
-        for order_item in payment.order.orderitems.all():
-            InvoiceItem.objects.create(
-                invoice=invoice,
-                description=f"{order_item.item.name} - {order_item.item.description}",
-                quantity=order_item.quantity,
-                unit_price=order_item.item.price,
-                item_type='medicine',
-                item_id=order_item.item.id
-            )
-    
-    elif payment.payment_type == 'test' and payment.test_order:
-        # Create description for test order
-        description = f"Laboratory Test Order #{payment.test_order.id}"
         
-        # Check if prescription exists (safely)
-        if hasattr(payment.test_order, 'prescription') and payment.test_order.prescription:
-            description += f" (Prescription #{payment.test_order.prescription.prescription_id})"
-        elif payment.prescription:
-            description += f" (Prescription #{payment.prescription.prescription_id})"
-        
-        # Get test details from order items if available
-        if hasattr(payment.test_order, 'orderitems'):
-            test_items = payment.test_order.orderitems.all()
-            if test_items.exists():
-                # Create separate items for each test
-                for test_item in test_items:
-                    # Get test name from the testCart item
-                    test_name = test_item.name or f'Test Item #{test_item.id}'
-                    if hasattr(test_item, 'item') and test_item.item:
-                        # Get test name from Prescription_test
-                        test_name = getattr(test_item.item, 'test_name', test_name)
-                    
-                    # Get test price from testCart total property
-                    test_price = getattr(test_item, 'total', payment.amount / len(test_items))
-                    
-                    InvoiceItem.objects.create(
-                        invoice=invoice,
-                        description=f"Lab Test: {test_name}",
-                        quantity=1,
-                        unit_price=test_price,
-                        item_type='test',
-                        item_id=test_item.id
-                    )
-            else:
-                # Fallback: single test item
-                InvoiceItem.objects.create(
-                    invoice=invoice,
-                    description=description,
-                    quantity=1,
-                    unit_price=payment.amount,
-                    item_type='test',
-                    item_id=payment.test_order.id
-                )
-        else:
-            # Fallback: single test item
+        # Create invoice items based on payment type
+        if payment.payment_type == 'appointment' and payment.appointment:
+            # Determine if it's consultation or report based on appointment type
+            if payment.appointment.appointment_type == 'checkup':
+                description = f"Medical Consultation - Dr. {payment.appointment.doctor.name}"
+                service_type = "Medical Consultation"
+            else:  # report type
+                description = f"Medical Report Review - Dr. {payment.appointment.doctor.name}"
+                service_type = "Medical Report"
+            
             InvoiceItem.objects.create(
                 invoice=invoice,
                 description=description,
                 quantity=1,
                 unit_price=payment.amount,
-                item_type='test',
-                item_id=payment.test_order.id
+                item_type='appointment',
+                item_id=payment.appointment.id
             )
-    
-    else:
-        # Generic item for other payment types
-        InvoiceItem.objects.create(
-            invoice=invoice,
-            description=f"{payment.get_payment_type_display()} Payment",
-            quantity=1,
-            unit_price=payment.amount,
-            item_type=payment.payment_type
+        
+        elif payment.payment_type == 'pharmacy' and payment.order:
+            # For pharmacy orders, create items for each medicine
+            for order_item in payment.order.orderitems.all():
+                InvoiceItem.objects.create(
+                    invoice=invoice,
+                    description=f"{order_item.item.name} - {order_item.item.description}",
+                    quantity=order_item.quantity,
+                    unit_price=order_item.item.price,
+                    item_type='medicine',
+                    item_id=order_item.item.serial_number
+                )
+        
+        elif payment.payment_type == 'test' and payment.test_order:
+            # Create description for test order
+            description = f"Laboratory Test Order #{payment.test_order.id}"
+            
+            # Check if prescription exists (safely)
+            if hasattr(payment.test_order, 'prescription') and payment.test_order.prescription:
+                description += f" (Prescription #{payment.test_order.prescription.prescription_id})"
+            elif payment.prescription:
+                description += f" (Prescription #{payment.prescription.prescription_id})"
+            
+            # Get test details from order items if available
+            if hasattr(payment.test_order, 'orderitems'):
+                test_items = payment.test_order.orderitems.all()
+                if test_items.exists():
+                    # Create separate items for each test
+                    for test_item in test_items:
+                        # Get test name from the testCart item
+                        test_name = test_item.name or f'Test Item #{test_item.id}'
+                        if hasattr(test_item, 'item') and test_item.item:
+                            # Get test name from Prescription_test
+                            test_name = getattr(test_item.item, 'test_name', test_name)
+                        
+                        # Get test price from testCart total property
+                        test_price = getattr(test_item, 'total', payment.amount / len(test_items))
+                        
+                        InvoiceItem.objects.create(
+                            invoice=invoice,
+                            description=f"Lab Test: {test_name}",
+                            quantity=1,
+                            unit_price=test_price,
+                            item_type='test',
+                            item_id=test_item.id
+                        )
+                else:
+                    # Fallback: single test item
+                    InvoiceItem.objects.create(
+                        invoice=invoice,
+                        description="Lab Test",
+                        quantity=1,
+                        unit_price=payment.amount,
+                        item_type='test'
+                    )
+        
+        # Generate PDF (outside all conditional blocks)
+        pdf_generator = InvoicePDFGenerator(invoice)
+        pdf_content = pdf_generator.generate_pdf()
+        
+        # Save PDF to invoice
+        from django.core.files.base import ContentFile
+        pdf_file = ContentFile(pdf_content)
+        invoice.pdf_file.save(
+            f"invoice_{invoice_number}.pdf",
+            pdf_file,
+            save=True
         )
-    
-    # Generate PDF
-    pdf_generator = InvoicePDFGenerator(invoice)
-    pdf_content = pdf_generator.generate_pdf()
-    
-    # Save PDF to invoice
-    pdf_file = ContentFile(pdf_content)
-    invoice.pdf_file.save(
-        f"invoice_{invoice.invoice_number}.pdf",
-        pdf_file,
-        save=True
-    )
-    
-    return invoice
+        
+        return invoice
+        
+    except Exception as e:
+        print(f"Error generating invoice: {str(e)}")
+        return None
+
+
+def generate_pharmacy_invoice_pdf(order):
+    """
+    Generate PDF invoice for pharmacy order
+    """
+    try:
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.lib import colors
+        from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
+        from io import BytesIO
+        from datetime import datetime
+        
+        # Create a BytesIO buffer to receive PDF data
+        buffer = BytesIO()
+        
+        # Create the PDF object, using the buffer as its "file"
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
+        
+        # Container for the 'Flowable' objects
+        elements = []
+        
+        # Get styles
+        styles = getSampleStyleSheet()
+        
+        # Custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            spaceAfter=30,
+            alignment=TA_CENTER,
+            textColor=colors.darkblue
+        )
+        
+        header_style = ParagraphStyle(
+            'CustomHeader',
+            parent=styles['Heading2'],
+            fontSize=16,
+            spaceAfter=12,
+            textColor=colors.darkblue
+        )
+        
+        # Title
+        title = Paragraph("MAHIMA MEDICARE", title_style)
+        elements.append(title)
+        
+        subtitle = Paragraph("Medicine Purchase Invoice", styles['Heading2'])
+        elements.append(subtitle)
+        elements.append(Spacer(1, 20))
+        
+        # Invoice details
+        invoice_data = [
+            ['Invoice Number:', f'INV-{order.id:06d}'],
+            ['Order Date:', order.created.strftime('%B %d, %Y')],
+            ['Payment Status:', 'Paid'],
+            ['Order Status:', order.get_order_status_display()],
+        ]
+        
+        invoice_table = Table(invoice_data, colWidths=[2*inch, 3*inch])
+        invoice_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        elements.append(invoice_table)
+        elements.append(Spacer(1, 20))
+        
+        # Patient details
+        patient_header = Paragraph("Patient Information", header_style)
+        elements.append(patient_header)
+        
+        patient_data = [
+            ['Name:', order.user.patient.name if hasattr(order.user, 'patient') else order.user.username],
+            ['Phone:', order.delivery_phone or 'N/A'],
+            ['Delivery Method:', order.get_delivery_method_display()],
+        ]
+        
+        if order.delivery_method == 'delivery' and order.delivery_address:
+            patient_data.append(['Address:', order.delivery_address])
+        
+        patient_table = Table(patient_data, colWidths=[2*inch, 4*inch])
+        patient_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        elements.append(patient_table)
+        elements.append(Spacer(1, 20))
+        
+        # Medicine details
+        medicine_header = Paragraph("Medicine Details", header_style)
+        elements.append(medicine_header)
+        
+        # Table headers
+        medicine_data = [['Medicine Name', 'Quantity', 'Unit Price', 'Total Price']]
+        
+        # Add medicine items
+        for item in order.orderitems.all():
+            medicine_data.append([
+                item.item.name,
+                str(item.quantity),
+                f'₹{item.item.price:.2f}',
+                f'₹{item.get_total():.2f}'
+            ])
+        
+        medicine_table = Table(medicine_data, colWidths=[3*inch, 1*inch, 1.5*inch, 1.5*inch])
+        medicine_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(medicine_table)
+        elements.append(Spacer(1, 20))
+        
+        # Billing summary
+        billing_header = Paragraph("Billing Summary", header_style)
+        elements.append(billing_header)
+        
+        subtotal = order.get_totals()
+        gst_amount = order.get_gst_amount()
+        delivery_fee = 40 if order.delivery_method == 'delivery' else 0
+        total_amount = order.final_bill()
+        
+        billing_data = [
+            ['Subtotal:', f'₹{subtotal:.2f}'],
+            ['GST (5%):', f'₹{gst_amount:.2f}'],
+            ['Delivery Charges:', f'₹{delivery_fee:.2f}' if delivery_fee > 0 else 'FREE'],
+            ['Total Amount:', f'₹{total_amount:.2f}']
+        ]
+        
+        billing_table = Table(billing_data, colWidths=[4*inch, 2*inch])
+        billing_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LINEABOVE', (0, -1), (-1, -1), 2, colors.black),
+        ]))
+        elements.append(billing_table)
+        elements.append(Spacer(1, 30))
+        
+        # Footer
+        footer_text = "Thank you for choosing Mahima Medicare for your healthcare needs!"
+        footer = Paragraph(footer_text, styles['Normal'])
+        elements.append(footer)
+        
+        # Build PDF
+        doc.build(elements)
+        
+        # Get the value of the BytesIO buffer and return it
+        pdf_content = buffer.getvalue()
+        buffer.close()
+        
+        return pdf_content
+        
+    except Exception as e:
+        print(f"Error generating pharmacy invoice PDF: {str(e)}")
+        return None

@@ -1,0 +1,380 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Medicine Checkout - Mahima Medicare</title>
+    
+    <!-- Favicons -->
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}" />
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}" />
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}" />
+</head>
+<body>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        
+        <!-- Header -->
+        <header class="header">{% include 'navbar_home.html' %}</header>
+        <!-- /Header -->
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-bar">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-md-12 col-12">
+                        <nav aria-label="breadcrumb" class="page-breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{% url 'patient-dashboard' %}">Home</a></li>
+                                <li class="breadcrumb-item"><a href="{% url 'pharmacy-shop' %}">Pharmacy</a></li>
+                                <li class="breadcrumb-item"><a href="{% url 'pharmacy-cart' %}">Cart</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+                            </ol>
+                        </nav>
+                        <h2 class="breadcrumb-title">Medicine Checkout</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Breadcrumb -->
+        
+        <!-- Page Content -->
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-7 col-lg-8">
+                        <div class="card">
+                            <div class="card-body">
+                                
+                                <!-- Patient Information -->
+                                <div class="info-widget">
+                                    <h4 class="card-title">Patient Information</h4>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Name:</strong> {{ patient.name }}</p>
+                                            <p><strong>Email:</strong> {{ patient.email }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Phone:</strong> {{ patient.phone_number }}</p>
+                                            <p><strong>Address:</strong> {{ patient.address }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Order Summary -->
+                                <div class="payment-widget">
+                                    <h4 class="card-title">Your Medicine Order</h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-center mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Medicine</th>
+                                                    <th>Quantity</th>
+                                                    <th>Price</th>
+                                                    <th>Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for cart in carts %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="table-avatar">
+                                                            <a href="#" class="avatar avatar-sm mr-2">
+                                                                <img class="avatar-img rounded" src="{{ cart.item.featured_image.url }}" alt="{{ cart.item.name }}">
+                                                            </a>
+                                                            <div>
+                                                                <strong>{{ cart.item.name }}</strong>
+                                                                <br><small class="text-muted">{{ cart.item.description|truncatechars:50 }}</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>{{ cart.quantity }}</td>
+                                                    <td>₹{{ cart.item.price }}</td>
+                                                    <td>₹{{ cart.get_total }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- /Order Summary -->
+                                
+                                <!-- Delivery Options -->
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <div class="payment-widget">
+                                        <h4 class="card-title">Delivery Options</h4>
+                                        
+                                        <div class="payment-list">
+                                            <label class="payment-radio">
+                                                <input type="radio" name="delivery_method" value="pickup" checked>
+                                                <span class="checkmark"></span>
+                                                <div class="radio-content">
+                                                    <div class="radio-header">
+                                                        <h5><i class="fas fa-store text-primary"></i> Pickup at Pharmacy</h5>
+                                                        <span class="radio-details text-success">FREE</span>
+                                                    </div>
+                                                    <p class="text-muted">Collect your medicines from Mahima Medicare Pharmacy counter</p>
+                                                    <small class="text-info"><i class="fas fa-clock"></i> Ready for pickup in 30-60 minutes</small>
+                                                </div>
+                                            </label>
+                                            
+                                            <label class="payment-radio">
+                                                <input type="radio" name="delivery_method" value="delivery">
+                                                <span class="checkmark"></span>
+                                                <div class="radio-content">
+                                                    <div class="radio-header">
+                                                        <h5><i class="fas fa-truck text-success"></i> Home Delivery</h5>
+                                                        <span class="radio-details text-primary">₹40</span>
+                                                    </div>
+                                                    <p class="text-muted">Get your medicines delivered to your doorstep</p>
+                                                    <small class="text-info"><i class="fas fa-clock"></i> Delivered within 2-4 hours</small>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        
+                                        <!-- Delivery Address (shown when delivery is selected) -->
+                                        <div id="delivery-address" style="display: none;" class="mt-3">
+                                            <div class="card bg-light">
+                                                <div class="card-body">
+                                                    <h6 class="card-title">Delivery Details</h6>
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <div class="form-group">
+                                                                <label>Complete Delivery Address <span class="text-danger">*</span></label>
+                                                                <textarea class="form-control" name="delivery_address" rows="3" placeholder="Enter your complete delivery address with landmark">{{ patient.address }}</textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label>Contact Phone <span class="text-danger">*</span></label>
+                                                                <input class="form-control" name="delivery_phone" type="text" placeholder="Phone number for delivery" value="{{ patient.phone_number }}">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label>Preferred Delivery Time</label>
+                                                                <select class="form-control" name="preferred_time">
+                                                                    <option value="anytime">Anytime (2-4 hours)</option>
+                                                                    <option value="morning">Morning (9 AM - 12 PM)</option>
+                                                                    <option value="afternoon">Afternoon (12 PM - 4 PM)</option>
+                                                                    <option value="evening">Evening (4 PM - 8 PM)</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="submit-section mt-4">
+                                        <button type="submit" class="btn btn-primary submit-btn btn-lg btn-block">
+                                            <i class="fas fa-credit-card"></i> Proceed to Payment with Razorpay
+                                        </button>
+                                    </div>
+                                </form>
+                                <!-- /Delivery Options -->
+                                
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-5 col-lg-4">
+                        <!-- Medicine Order Summary -->
+                        <div class="card booking-card">
+                            <div class="card-header">
+                                <h4 class="card-title"><i class="fas fa-pills text-primary"></i> Order Summary</h4>
+                            </div>
+                            <div class="card-body">
+                                
+                                <!-- Pharmacy Info -->
+                                <div class="booking-doc-info">
+                                    <div class="booking-doc-img">
+                                        <img src="{% static 'HealthStack-System/images/Normal/pharmacy-logo.png' %}" alt="Mahima Medicare Pharmacy">
+                                    </div>
+                                    <div class="booking-info">
+                                        <h4>Mahima Medicare Pharmacy</h4>
+                                        <div class="rating">
+                                            <i class="fas fa-star filled"></i>
+                                            <i class="fas fa-star filled"></i>
+                                            <i class="fas fa-star filled"></i>
+                                            <i class="fas fa-star filled"></i>
+                                            <i class="fas fa-star filled"></i>
+                                            <span class="d-inline-block average-rating">5.0</span>
+                                        </div>
+                                        <div class="clinic-details">
+                                            <p class="doc-location"><i class="fas fa-map-marker-alt"></i> Odisha, India</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Order Details -->
+                                <div class="booking-summary">
+                                    <div class="booking-item-wrap">
+                                        <ul class="booking-date">
+                                            <li>Order Date <span>{{ order.created|date:"d M Y" }}</span></li>
+                                            <li>Order Time <span>{{ order.created|date:"h:i A" }}</span></li>
+                                            <li>Items Count <span>{{ carts.count }} medicine(s)</span></li>
+                                        </ul>
+                                        <ul class="booking-fee">
+                                            <li>Medicines Subtotal <span>₹{{ order.get_totals|floatformat:2 }}</span></li>
+                                            <li>GST (5%) <span>₹{{ order.get_gst_amount|floatformat:2 }}</span></li>
+                                            <li>Delivery Charges <span id="delivery-fee">FREE</span></li>
+                                        </ul>
+                                        <div class="booking-total">
+                                            <ul class="booking-total-list">
+                                                <li>
+                                                    <span>Total Amount</span>
+                                                    <span class="total-cost" id="final-total">₹{{ order.final_bill }}</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Payment Security -->
+                                <div class="payment-security mt-3">
+                                    <div class="text-center">
+                                        <p class="text-muted mb-2"><i class="fas fa-shield-alt text-success"></i> Secure Payment with Razorpay</p>
+                                        <div class="payment-methods">
+                                            <img src="{% static 'HealthStack-System/images/payment/visa.png' %}" alt="Visa" class="payment-img">
+                                            <img src="{% static 'HealthStack-System/images/payment/mastercard.png' %}" alt="Mastercard" class="payment-img">
+                                            <img src="{% static 'HealthStack-System/images/payment/upi.png' %}" alt="UPI" class="payment-img">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                        <!-- /Medicine Order Summary -->
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Content -->
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-bottom">
+                <div class="container-fluid">
+                    <div class="copyright">
+                        <div class="row">
+                            <div class="col-md-6 col-lg-6">
+                                <div class="copyright-text">
+                                    <p class="mb-0">&copy; 2024 Mahima Medicare. All rights reserved.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-6">
+                                <div class="copyright-menu">
+                                    <ul class="policy-menu">
+                                        <li><a href="#">Terms and Conditions</a></li>
+                                        <li><a href="#">Policy</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- /Footer -->
+        
+    </div>
+    <!-- /Main Wrapper -->
+    
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/script.js' %}"></script>
+    
+    <script>
+        $(document).ready(function() {
+            var subtotal = parseFloat('{{ order.get_totals|default:0 }}');
+            var gst = subtotal * 0.05;
+            var deliveryFee = 40;
+            
+            function updateTotal() {
+                var selectedMethod = $('input[name="delivery_method"]:checked').val();
+                var deliveryAddress = $('#delivery-address');
+                var deliveryFeeSpan = $('#delivery-fee');
+                var finalTotal = $('#final-total');
+                
+                if (selectedMethod === 'delivery') {
+                    deliveryAddress.show();
+                    deliveryFeeSpan.text('₹' + deliveryFee);
+                    finalTotal.text('₹' + Math.round(subtotal + gst + deliveryFee));
+                } else {
+                    deliveryAddress.hide();
+                    deliveryFeeSpan.text('FREE');
+                    finalTotal.text('₹' + Math.round(subtotal + gst));
+                }
+            }
+            
+            $('input[name="delivery_method"]').change(updateTotal);
+            
+            // Form validation
+            $('form').submit(function(e) {
+                var selectedMethod = $('input[name="delivery_method"]:checked').val();
+                if (selectedMethod === 'delivery') {
+                    var address = $('textarea[name="delivery_address"]').val().trim();
+                    var phone = $('input[name="delivery_phone"]').val().trim();
+                    
+                    if (!address) {
+                        alert('Please enter delivery address');
+                        e.preventDefault();
+                        return false;
+                    }
+                    if (!phone) {
+                        alert('Please enter contact phone number');
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            });
+            
+            // Initialize
+            updateTotal();
+        });
+    </script>
+    
+    <style>
+        .radio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .radio-details {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .payment-img {
+            height: 25px;
+            margin: 0 5px;
+        }
+        .booking-doc-img img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+    </style>
+    
+</body>
+</html>

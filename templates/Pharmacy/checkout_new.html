@@ -1,0 +1,227 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Checkout - Mahima Medicare</title>
+    
+    <!-- Favicons -->
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}" />
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}" />
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}" />
+</head>
+<body>
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        
+        <!-- Header -->
+        {% include 'hospital/patient-navbar.html' %}
+        <!-- /Header -->
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-bar">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-md-12 col-12">
+                        <nav aria-label="breadcrumb" class="page-breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{% url 'patient-dashboard' %}">Home</a></li>
+                                <li class="breadcrumb-item"><a href="{% url 'pharmacy-shop' %}">Pharmacy</a></li>
+                                <li class="breadcrumb-item"><a href="{% url 'pharmacy-cart' %}">Cart</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+                            </ol>
+                        </nav>
+                        <h2 class="breadcrumb-title">Checkout</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Breadcrumb -->
+        
+        <!-- Page Content -->
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-7 col-lg-8">
+                        <div class="card">
+                            <div class="card-body">
+                                
+                                <!-- Order Summary -->
+                                <div class="payment-widget">
+                                    <h4 class="card-title">Order Summary</h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-center">
+                                            <thead>
+                                                <tr>
+                                                    <th>Medicine</th>
+                                                    <th>Quantity</th>
+                                                    <th>Price</th>
+                                                    <th>Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for cart in carts %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="table-avatar">
+                                                            <a href="#" class="avatar avatar-sm mr-2">
+                                                                <img class="avatar-img rounded" src="{{ cart.item.featured_image.url }}" alt="{{ cart.item.name }}">
+                                                            </a>
+                                                            <a href="#">{{ cart.item.name }}</a>
+                                                        </div>
+                                                    </td>
+                                                    <td>{{ cart.quantity }}</td>
+                                                    <td>₹{{ cart.item.price }}</td>
+                                                    <td>₹{{ cart.get_total }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- /Order Summary -->
+                                
+                                <!-- Delivery Options -->
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <div class="payment-widget">
+                                        <h4 class="card-title">Delivery Options</h4>
+                                        
+                                        <div class="payment-list">
+                                            <label class="payment-radio">
+                                                <input type="radio" name="delivery_method" value="pickup" checked>
+                                                <span class="checkmark"></span>
+                                                <div class="radio-content">
+                                                    <h5>Pickup at Pharmacy</h5>
+                                                    <p>Collect your medicines from our pharmacy counter</p>
+                                                    <span class="radio-details">Free - Ready in 30 minutes</span>
+                                                </div>
+                                            </label>
+                                            
+                                            <label class="payment-radio">
+                                                <input type="radio" name="delivery_method" value="delivery">
+                                                <span class="checkmark"></span>
+                                                <div class="radio-content">
+                                                    <h5>Home Delivery</h5>
+                                                    <p>Get your medicines delivered to your doorstep</p>
+                                                    <span class="radio-details">₹40 - Delivered within 2-4 hours</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        
+                                        <!-- Delivery Address (shown when delivery is selected) -->
+                                        <div id="delivery-address" style="display: none;">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-group">
+                                                        <label>Delivery Address</label>
+                                                        <textarea class="form-control" name="delivery_address" rows="3" placeholder="Enter your complete delivery address"></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Contact Phone</label>
+                                                        <input class="form-control" name="delivery_phone" type="text" placeholder="Phone number for delivery" value="{{ patient.phone_number }}">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="submit-section mt-4">
+                                        <button type="submit" class="btn btn-primary submit-btn">Proceed to Payment</button>
+                                    </div>
+                                </form>
+                                <!-- /Delivery Options -->
+                                
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-5 col-lg-4">
+                        <!-- Booking Summary -->
+                        <div class="card booking-card">
+                            <div class="card-header">
+                                <h4 class="card-title">Order Total</h4>
+                            </div>
+                            <div class="card-body">
+                                
+                                <!-- Total Detail -->
+                                <div class="booking-summary">
+                                    <div class="booking-item-wrap">
+                                        <ul class="booking-date">
+                                            <li>Subtotal <span>₹{{ order.get_totals }}</span></li>
+                                            <li>Delivery <span id="delivery-fee">Free</span></li>
+                                        </ul>
+                                        <ul class="booking-fee">
+                                            <li class="total">
+                                                <div class="booking-total">
+                                                    <strong>Total <span id="final-total">₹{{ order.get_totals }}</span></strong>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                        <!-- /Booking Summary -->
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Content -->
+        
+        <!-- Footer -->
+        {% include 'hospital/footer.html' %}
+        <!-- /Footer -->
+        
+    </div>
+    <!-- /Main Wrapper -->
+    
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/script.js' %}"></script>
+    
+    <script>
+        $(document).ready(function() {
+            var subtotal = parseFloat('{{ order.get_totals|default:0 }}');
+            var deliveryFee = 40;
+            
+            $('input[name="delivery_method"]').change(function() {
+                var selectedMethod = $(this).val();
+                var deliveryAddress = $('#delivery-address');
+                var deliveryFeeSpan = $('#delivery-fee');
+                var finalTotal = $('#final-total');
+                
+                if (selectedMethod === 'delivery') {
+                    deliveryAddress.show();
+                    deliveryFeeSpan.text('₹' + deliveryFee);
+                    finalTotal.text('₹' + (subtotal + deliveryFee));
+                } else {
+                    deliveryAddress.hide();
+                    deliveryFeeSpan.text('Free');
+                    finalTotal.text('₹' + subtotal);
+                }
+            });
+        });
+    </script>
+    
+</body>
+</html>

@@ -1,51 +1,25 @@
 {% load static %}
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
-	
-<!-- doccure/checkout.html  30 Nov 2019 04:12:16 GMT -->
 <head>
-		<meta charset="utf-8">
-
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
-		
-		    <!-- Favicons -->
-			<link
-			type="image/x-icon"
-			href="{% static 'HealthStack-System/images/Normal/favicon.png' %}"
-			rel="icon"
-		  />
-	  
-		  <!-- Bootstrap CSS -->
-		  <link
-			rel="stylesheet"
-			href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}"
-		  />
-	  
-		  <!-- Fontawesome CSS -->
-		  <link
-			rel="stylesheet"
-			href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}"
-		  />
-		  <link
-			rel="stylesheet"
-			href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}"
-		  />
-	  
-		  <!-- Main CSS -->
-		  <link
-			rel="stylesheet"
-			href="{% static 'HealthStack-System/css/Normal/style.css' %}"
-		  />
-	  
-		
-		<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-		<!--[if lt IE 9]>
-			<script src="assets/js/html5shiv.min.js"></script>
-			<script src="assets/js/respond.min.js"></script>
-		<![endif]-->
-	
-	</head>
-	<body>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Medicine Checkout - Mahima Medicare</title>
+    
+    <!-- Favicons -->
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}" />
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}" />
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}" />
+</head>
+<body>
 
 		<!-- Main Wrapper -->
 		<div class="main-wrapper">
@@ -113,7 +87,7 @@
 													</div>
 												</div>
 											</div>
-											<div class="exist-customer">Existing Customer? <a href="#">Click here to login</a></div>
+											<!-- Patient is already logged in, no need for login prompt -->
 										</div>
 										<!-- /Personal Information -->
 										

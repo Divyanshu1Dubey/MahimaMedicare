@@ -48,6 +48,35 @@
 			}
 
 			/* --- Layout & Typography --- */
+			.page-title-wrapper {
+				margin-bottom: 0.5rem;
+			}
+			
+			.page-title {
+				font-size: 1.75rem;
+				font-weight: 600;
+				color: var(--text-dark);
+				margin-bottom: 0.25rem;
+			}
+			
+			.header-actions {
+				display: flex;
+				justify-content: flex-end;
+				gap: 0.5rem;
+			}
+			
+			.top-nav-search .input-group {
+				max-width: 300px;
+				margin-left: auto;
+			}
+			
+			.page-header {
+				background: white;
+				padding: 1.5rem;
+				border-radius: var(--card-border-radius);
+				box-shadow: var(--card-shadow);
+				margin-bottom: 1.5rem;
+			}
 			.page-wrapper {
 				background-color: var(--body-bg);
 			}
@@ -195,18 +224,38 @@
 
 					<div class="page-header">
 						<div class="row align-items-center">
-							<div class="col-md-6">
-								<h3 class="page-title">List of Medicines</h3>
-								<ul class="breadcrumb">
-									<li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-									<li class="breadcrumb-item active">Medicine</li>
+							<div class="col-md-8">
+								<div class="page-title-wrapper">
+									<h3 class="page-title mb-2">
+										<i class="fas fa-pills text-success mr-2"></i>
+										Medicine Stock Management
+									</h3>
+									<p class="text-muted mb-0">Manage your pharmacy inventory and stock levels</p>
+								</div>
+								<ul class="breadcrumb mt-2">
+									<li class="breadcrumb-item"><a href="{% url 'pharmacist-dashboard' %}">Dashboard</a></li>
+									<li class="breadcrumb-item active">Medicine Stock</li>
 								</ul>
 							</div>
-							<div class="col-md-6 text-right">
+							<div class="col-md-4 text-right">
+								<div class="header-actions mb-3">
+									<a href="{% url 'add-medicine' %}" class="btn btn-success btn-sm mr-2">
+										<i class="fas fa-plus"></i> Add Medicine
+									</a>
+									<a href="{% url 'bulk-medicine-management' %}" class="btn btn-primary btn-sm">
+										<i class="fas fa-upload"></i> Bulk Upload
+									</a>
+								</div>
 								<div class="top-nav-search">
 								  <form action="{% url 'medicine-list' %}" method="GET">
-									<input type="text" class="form-control" placeholder="Search medicine" name="search_query" value="{{search_query}}">
-									<button class="btn" type="submit"><i class="fa fa-search"></i></button>
+									<div class="input-group">
+										<input type="text" class="form-control" placeholder="Search medicines..." name="search_query" value="{{search_query}}">
+										<div class="input-group-append">
+											<button class="btn btn-outline-secondary" type="submit">
+												<i class="fa fa-search"></i>
+											</button>
+										</div>
+									</div>
 								  </form>
 								</div>
 							</div>
@@ -242,7 +291,7 @@
 													<td>{{medicine.stock_quantity}}</td>
 													<td>{{medicine.medicine_type}}</td>
 													<td>{{medicine.medicine_category}}</td>
-													<td>₱{{medicine.price}}</td>
+													<td>₹{{medicine.price}}</td>
 													<td>{{medicine.quantity}}</td>
 													<td class="text-center">
 														<a href="{% url 'edit-medicine' pk=medicine.serial_number %}" class="btn btn-sm btn-primary mr-1">Edit</a>

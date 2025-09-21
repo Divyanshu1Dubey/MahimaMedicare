@@ -146,7 +146,7 @@ def add_to_cart(request, pk):
                     return redirect('pharmacy-cart')
                 order_item.quantity += 1
                 order_item.save()
-                messages.info(request, f"{item.name} quantity was updated.")
+                messages.info(request, f"{item.name} quantity in cart was updated.")
             else:
                 order.orderitems.add(order_item)
                 messages.success(request, f"{item.name} was added to your cart.")
@@ -202,7 +202,7 @@ def increase_cart(request, pk):
                     return redirect('pharmacy-cart')
                 order_item.quantity += 1
                 order_item.save()
-                messages.info(request, f"{item.name} quantity has been updated.")
+                messages.info(request, f"{item.name} quantity in cart has been updated.")
         return redirect('pharmacy-cart')
     else:
         logout(request)
@@ -223,12 +223,81 @@ def decrease_cart(request, pk):
                 if order_item.quantity > 1:
                     order_item.quantity -= 1
                     order_item.save()
-                    messages.info(request, f"{item.name} quantity has been updated")
+                    messages.info(request, f"{item.name} quantity in cart has been updated")
                 else:
                     order.orderitems.remove(order_item)
                     order_item.delete()
                     messages.warning(request, f"{item.name} has been removed from your cart.")
         return redirect('pharmacy-cart')
+    else:
+        logout(request)
+        messages.error(request, 'Not Authorized')
+        return render(request, 'patient-login.html')
+
+
+@csrf_exempt
+@login_required(login_url="login")
+def checkout_view(request):
+    if request.user.is_authenticated and request.user.is_patient:
+        patient = Patient.objects.get(user=request.user)
+        carts = Cart.objects.filter(user=request.user, purchased=False)
+        orders = Order.objects.filter(user=request.user, ordered=False)
+
+        if not carts.exists() or not orders.exists():
+            messages.info(request, "Your cart is empty.")
+            return redirect('pharmacy-shop')
+
+        order = orders[0]
+        
+        if request.method == 'POST':
+            delivery_method = request.POST.get('delivery_method', 'pickup')
+            delivery_address = request.POST.get('delivery_address', '')
+            delivery_phone = request.POST.get('delivery_phone', patient.phone_number)
+            
+            # Update order with delivery information
+            order.delivery_method = delivery_method
+            if delivery_method == 'delivery':
+                order.delivery_address = delivery_address
+                order.delivery_phone = delivery_phone
+            else:
+                # For pickup, use patient's existing info
+                order.delivery_phone = patient.phone_number
+            order.save()
+            
+            # Redirect directly to Razorpay payment like other places
+            return redirect('razorpay-pharmacy-payment', order_id=order.id)
+        
+        context = {
+            'carts': carts,
+            'order': order,
+            'patient': patient
+        }
+        return render(request, 'Pharmacy/checkout_fixed.html', context)
+    else:
+        logout(request)
+        messages.error(request, 'Not Authorized')
+        return render(request, 'patient-login.html')
+
+
+@csrf_exempt
+@login_required(login_url="login")
+def my_orders(request):
+    """View for patients to see their medicine orders"""
+    if request.user.is_authenticated and request.user.is_patient:
+        patient = Patient.objects.get(user=request.user)
+        
+        # Get all completed orders for this patient
+        orders = Order.objects.filter(
+            user=request.user, 
+            ordered=True, 
+            payment_status='paid'
+        ).order_by('-created')
+        
+        context = {
+            'orders': orders,
+            'patient': patient
+        }
+        return render(request, 'Pharmacy/my_orders.html', context)
     else:
         logout(request)
         messages.error(request, 'Not Authorized')

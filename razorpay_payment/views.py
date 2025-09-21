@@ -258,8 +258,22 @@ def payment_success(request):
                 payment.appointment.save()
                 
             elif payment.payment_type == 'pharmacy' and payment.order:
+                # Update payment status
                 payment.order.payment_status = 'paid'
+                payment.order.ordered = True
+                payment.order.order_status = 'confirmed'  # Set initial status after payment
                 payment.order.save()
+                
+                # Update stock quantities
+                try:
+                    payment.order.stock_quantity_decrease()
+                except ValueError as e:
+                    messages.warning(request, f'Stock update warning: {str(e)}')
+                
+                # Mark cart items as purchased
+                for cart_item in payment.order.orderitems.all():
+                    cart_item.purchased = True
+                    cart_item.save()
                 
             elif payment.payment_type == 'test' and payment.test_order:
                 payment.test_order.payment_status = 'paid'
@@ -421,23 +435,86 @@ def view_invoice(request, invoice_id):
         return redirect('patient-dashboard')
 
 
-@login_required
+@login_required(login_url='login')
 def regenerate_invoice(request, payment_id):
-    """Regenerate invoice for a payment (admin function)"""
+    """Regenerate invoice for a payment"""
     try:
         payment = get_object_or_404(RazorpayPayment, id=payment_id)
         
-        # Check if invoice already exists
-        if hasattr(payment, 'invoice'):
-            # Delete existing invoice
-            payment.invoice.delete()
+        # Check permissions
+        if hasattr(request.user, 'patient') and request.user.patient != payment.patient:
+            messages.error(request, 'You do not have permission to access this invoice.')
+            return redirect('patient-dashboard')
         
         # Generate new invoice
-        invoice = generate_invoice_for_payment(payment)
+        invoice_path = generate_invoice(payment)
         
-        messages.success(request, f'Invoice {invoice.invoice_number} regenerated successfully.')
-        return redirect('patient-dashboard')
-        
+        if invoice_path:
+            messages.success(request, 'Invoice regenerated successfully!')
+        else:
+            messages.error(request, 'Failed to regenerate invoice.')
+            
     except Exception as e:
         messages.error(request, f'Error regenerating invoice: {str(e)}')
+    
+    return redirect('patient-dashboard')
+
+
+@csrf_exempt
+@login_required(login_url='login')
+def download_pharmacy_invoice(request, order_id):
+    """Download pharmacy invoice PDF"""
+    try:
+        from pharmacy.models import Order
+        order = get_object_or_404(Order, id=order_id)
+        
+        # Check permissions - only the patient who made the order can download
+        if request.user != order.user:
+            messages.error(request, 'You do not have permission to access this invoice.')
+            return redirect('patient-dashboard')
+        
+        # Generate invoice PDF
+        from .invoice_utils import generate_pharmacy_invoice_pdf
+        pdf_content = generate_pharmacy_invoice_pdf(order)
+        
+        if pdf_content:
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="pharmacy_invoice_{order.id}.pdf"'
+            return response
+        else:
+            messages.error(request, 'Failed to generate invoice PDF.')
+            return redirect('patient-dashboard')
+            
+    except Exception as e:
+        messages.error(request, f'Error downloading invoice: {str(e)}')
+        return redirect('patient-dashboard')
+
+
+@csrf_exempt
+@login_required(login_url='login')
+def view_pharmacy_invoice(request, order_id):
+    """View pharmacy invoice in browser"""
+    try:
+        from pharmacy.models import Order
+        order = get_object_or_404(Order, id=order_id)
+        
+        # Check permissions - only the patient who made the order can view
+        if request.user != order.user:
+            messages.error(request, 'You do not have permission to access this invoice.')
+            return redirect('patient-dashboard')
+        
+        # Generate invoice PDF
+        from .invoice_utils import generate_pharmacy_invoice_pdf
+        pdf_content = generate_pharmacy_invoice_pdf(order)
+        
+        if pdf_content:
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="pharmacy_invoice_{order.id}.pdf"'
+            return response
+        else:
+            messages.error(request, 'Failed to generate invoice PDF.')
+            return redirect('patient-dashboard')
+            
+    except Exception as e:
+        messages.error(request, f'Error viewing invoice: {str(e)}')
         return redirect('patient-dashboard')

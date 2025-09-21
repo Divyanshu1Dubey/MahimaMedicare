@@ -94,10 +94,36 @@ class Cart(models.Model):
 
 
 class Order(models.Model):
+    DELIVERY_CHOICES = (
+        ('pickup', 'Pickup at Pharmacy'),
+        ('delivery', 'Home Delivery'),
+    )
+    
+    ORDER_STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('preparing', 'Preparing'),
+        ('ready', 'Ready for Pickup'),
+        ('out_for_delivery', 'Out for Delivery'),
+        ('delivered', 'Delivered'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    )
+    
     orderitems = models.ManyToManyField(Cart)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     ordered = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
+    
+    # Delivery information
+    delivery_method = models.CharField(max_length=20, choices=DELIVERY_CHOICES, default='pickup')
+    delivery_address = models.TextField(blank=True, null=True)
+    delivery_phone = models.CharField(max_length=15, blank=True, null=True)
+    order_status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
+    
+    # Pharmacy processing
+    pharmacist_notes = models.TextField(blank=True, null=True)
+    estimated_ready_time = models.DateTimeField(blank=True, null=True)
 
     # Payment info
     payment_status = models.CharField(max_length=200, blank=True, null=True)
@@ -167,9 +193,21 @@ class Order(models.Model):
         
         return True, None
 
-    # TOTAL
+    # GST amount (5%)
+    def get_gst_amount(self):
+        subtotal = self.get_totals()
+        return subtotal * 0.05 if subtotal > 0 else 0
+    
+    # Cart total (subtotal + GST, without delivery)
+    def get_cart_total(self):
+        subtotal = self.get_totals()
+        gst = self.get_gst_amount()
+        return subtotal + gst
+    
+    # Final Bill with delivery and GST
     def final_bill(self):
-        delivery_price = 40.00
-        bill = self.get_totals() + delivery_price
-        float_bill = format(bill, '0.2f')
-        return float_bill
+        cart_total = self.get_cart_total()
+        if cart_total > 0:
+            delivery_fee = 40 if self.delivery_method == 'delivery' else 0
+            return cart_total + delivery_fee
+        return 0
