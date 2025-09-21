@@ -1,0 +1,588 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Lab Analytics Dashboard - Mahima Medicare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css' %}">
+    
+    <!-- Feathericon CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css' %}">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #95C270;
+            --primary-dark: #7ea65d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+        }
+
+        .analytics-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .analytics-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            text-align: center;
+            padding: 25px 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card.warning {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #e0a800 100%);
+        }
+
+        .metric-card.info {
+            background: linear-gradient(135deg, var(--info-color) 0%, #117a8b 100%);
+        }
+
+        .metric-card.success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #1e7e34 100%);
+        }
+
+        .metric-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        .performance-metric {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            margin-bottom: 15px;
+        }
+
+        .performance-number {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .performance-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .equipment-status-card {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .utilization-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .utilization-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--warning-color));
+            transition: width 0.3s ease;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-bottom: 3px solid var(--primary-color);
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            margin: 0;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .technician-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .technician-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .completion-badge {
+            background: var(--success-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .workload-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .workload-low { background: var(--success-color); }
+        .workload-medium { background: var(--warning-color); }
+        .workload-high { background: var(--danger-color); }
+
+        @media (max-width: 768px) {
+            .metric-number {
+                font-size: 1.8rem;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        
+        <!-- Header -->
+        {% include 'hospital_admin/labworker-navbar.html' %}
+        <!-- /Header -->
+        
+        <!-- Sidebar -->
+        {% include 'hospital_admin/labworker-sidebar.html' %}
+        <!-- /Sidebar -->
+        
+        <!-- Page Wrapper -->
+        <div class="page-wrapper">
+            <div class="content container-fluid">
+                
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h1 class="page-title">Lab Analytics Dashboard</h1>
+                            <p class="text-muted">Comprehensive laboratory statistics and performance analytics</p>
+                        </div>
+                        <div class="col-auto">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-primary" onclick="exportReport()">
+                                    <i class="fe fe-download"></i> Export Report
+                                </button>
+                                <button class="btn btn-primary" onclick="refreshAnalytics()">
+                                    <i class="fe fe-refresh-cw"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Page Header -->
+
+                <!-- Test Volume Analytics -->
+                <div class="row">
+                    <div class="col-xl-3 col-md-6">
+                        <div class="metric-card">
+                            <div class="metric-number">{{ test_analytics.daily_tests }}</div>
+                            <div class="metric-label">Today's Tests</div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="metric-card warning">
+                            <div class="metric-number">{{ test_analytics.weekly_tests }}</div>
+                            <div class="metric-label">This Week</div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="metric-card info">
+                            <div class="metric-number">{{ test_analytics.monthly_tests }}</div>
+                            <div class="metric-label">This Month</div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="metric-card success">
+                            <div class="metric-number">{{ test_analytics.yearly_tests }}</div>
+                            <div class="metric-label">This Year</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts and Analytics -->
+                <div class="row">
+                    <!-- Daily Trends Chart -->
+                    <div class="col-xl-8">
+                        <div class="analytics-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-trending-up"></i> Daily Test Completion Trends (Last 7 Days)
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="dailyTrendsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quality Metrics -->
+                    <div class="col-xl-4">
+                        <div class="analytics-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-check-circle"></i> Quality Metrics
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="performance-metric">
+                                    <div class="performance-number">{{ quality_metrics.accuracy_rate }}%</div>
+                                    <div class="performance-label">Accuracy Rate</div>
+                                </div>
+                                
+                                <div class="performance-metric">
+                                    <div class="performance-number">{{ quality_metrics.repeat_rate }}%</div>
+                                    <div class="performance-label">Repeat Rate</div>
+                                </div>
+                                
+                                <div class="performance-metric">
+                                    <div class="performance-number">{{ quality_metrics.equipment_uptime }}%</div>
+                                    <div class="performance-label">Equipment Uptime</div>
+                                </div>
+                                
+                                <div class="performance-metric">
+                                    <div class="performance-number">{{ quality_metrics.patient_satisfaction }}/5</div>
+                                    <div class="performance-label">Patient Satisfaction</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Types and Department Analysis -->
+                <div class="row">
+                    <!-- Most Requested Tests -->
+                    <div class="col-xl-6">
+                        <div class="analytics-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-bar-chart"></i> Most Requested Tests
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% for test in test_type_stats %}
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <strong>{{ test.test_name }}</strong>
+                                        <div class="small text-muted">
+                                            Completed: {{ test.completed_count }} | Pending: {{ test.pending_count }}
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="completion-badge">{{ test.count }}</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Department Statistics -->
+                    <div class="col-xl-6">
+                        <div class="analytics-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-users"></i> Department Activity (Last 30 Days)
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% for dept in department_stats %}
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <strong>{{ dept.doctor__department|default:"General" }}</strong>
+                                        <div class="small text-muted">
+                                            {{ dept.total_patients }} patients | Avg: {{ dept.avg_tests_per_patient|floatformat:1 }} tests/patient
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="badge badge-primary">{{ dept.total_tests }} tests</div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Technician Performance -->
+                <div class="row">
+                    <div class="col-xl-8">
+                        <div class="analytics-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-user-check"></i> Technician Performance (This Week)
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% for tech in technician_performance %}
+                                <div class="technician-card">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-4">
+                                            <div class="d-flex align-items-center">
+                                                <span class="workload-indicator workload-{% if tech.weekly_assigned_tests > 15 %}high{% elif tech.weekly_assigned_tests > 5 %}medium{% else %}low{% endif %}"></span>
+                                                <div>
+                                                    <strong>{{ tech.name }}</strong>
+                                                    <div class="small text-muted">{{ tech.employee_id }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 text-center">
+                                            <div class="performance-number" style="font-size: 1.2rem;">{{ tech.weekly_assigned_tests }}</div>
+                                            <div class="performance-label">Assigned</div>
+                                        </div>
+                                        <div class="col-md-2 text-center">
+                                            <div class="performance-number" style="font-size: 1.2rem;">{{ tech.weekly_completed_tests }}</div>
+                                            <div class="performance-label">Completed</div>
+                                        </div>
+                                        <div class="col-md-2 text-center">
+                                            <div class="performance-number" style="font-size: 1.2rem;">{{ tech.weekly_pending_tests }}</div>
+                                            <div class="performance-label">Pending</div>
+                                        </div>
+                                        <div class="col-md-2 text-center">
+                                            <span class="completion-badge">{{ tech.completion_rate }}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Equipment Status -->
+                    <div class="col-xl-4">
+                        <div class="analytics-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-monitor"></i> Equipment Status
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% for equipment in equipment_stats %}
+                                <div class="equipment-status-card">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <strong>{{ equipment.name }}</strong>
+                                            <div class="small text-muted">{{ equipment.tests_today }}/{{ equipment.tests_capacity }} tests today</div>
+                                        </div>
+                                        <span class="badge badge-{% if equipment.uptime > 98 %}success{% elif equipment.uptime > 95 %}warning{% else %}danger{% endif %}">
+                                            {{ equipment.uptime }}% uptime
+                                        </span>
+                                    </div>
+                                    <div class="utilization-bar">
+                                        <div class="utilization-fill" style="width: {{ equipment.utilization }}%"></div>
+                                    </div>
+                                    <div class="small text-muted mt-1">Utilization: {{ equipment.utilization }}%</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue and Turnaround Time -->
+                <div class="row">
+                    <div class="col-xl-6">
+                        <div class="analytics-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-dollar-sign"></i> Revenue Analytics
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="performance-metric">
+                                            <div class="performance-number">₹{{ revenue_analytics.daily_revenue|floatformat:0 }}</div>
+                                            <div class="performance-label">Today</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="performance-metric">
+                                            <div class="performance-number">₹{{ revenue_analytics.weekly_revenue|floatformat:0 }}</div>
+                                            <div class="performance-label">This Week</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="performance-metric">
+                                            <div class="performance-number">₹{{ revenue_analytics.monthly_revenue|floatformat:0 }}</div>
+                                            <div class="performance-label">This Month</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-6">
+                        <div class="analytics-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-clock"></i> Turnaround Time Analysis
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="performance-metric">
+                                            <div class="performance-number">{{ turnaround_stats.avg_completion_time }}</div>
+                                            <div class="performance-label">Average Time</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="performance-metric">
+                                            <div class="performance-number">{{ turnaround_stats.on_time_percentage }}%</div>
+                                            <div class="performance-label">On Time</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="performance-metric">
+                                            <div class="performance-number">{{ turnaround_stats.same_day_percentage }}%</div>
+                                            <div class="performance-label">Same Day</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="performance-metric">
+                                            <div class="performance-number">{{ turnaround_stats.target_time }}</div>
+                                            <div class="performance-label">Target Time</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Wrapper -->
+    </div>
+    <!-- /Main Wrapper -->
+    
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
+    
+    <script>
+        // Daily Trends Chart
+        const dailyCtx = document.getElementById('dailyTrendsChart').getContext('2d');
+        const dailyTrendsData = {{ daily_trends|safe }};
+        
+        const dailyChart = new Chart(dailyCtx, {
+            type: 'line',
+            data: {
+                labels: dailyTrendsData.map(item => item.date_display),
+                datasets: [{
+                    label: 'Completed Tests',
+                    data: dailyTrendsData.map(item => item.completed_tests),
+                    borderColor: '#95C270',
+                    backgroundColor: 'rgba(149, 194, 112, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Refresh function
+        function refreshAnalytics() {
+            location.reload();
+        }
+        
+        // Export function
+        function exportReport() {
+            alert('Export functionality would generate a PDF report with all analytics data');
+        }
+        
+        // Auto-refresh every 5 minutes
+        setTimeout(function() {
+            location.reload();
+        }, 300000);
+    </script>
+    
+</body>
+</html>

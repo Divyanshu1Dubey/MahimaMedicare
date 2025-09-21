@@ -117,83 +117,137 @@
                 <div class="card-header">
                   <div class="row align-items-center">
                     <div class="col-md-6">
-                      <h4 class="card-title mb-0">Patient List</h4>
+                      <h4 class="card-title mb-0">Lab Test Management</h4>
+                      <small class="text-light">Manage paid tests and upload results</small>
                     </div>
                     <div class="col-md-6">
                       <div class="btn-group float-right" role="group">
-                        <a href="?show=pending" class="btn btn-sm {% if show_filter == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                          <i class="fas fa-clock"></i> Pending Reports
+                        <a href="?show=pending" class="btn btn-sm {% if show_filter == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                          <i class="fas fa-clock"></i> Pending Collection ({{ stats.pending }})
+                        </a>
+                        <a href="?show=processing" class="btn btn-sm {% if show_filter == 'processing' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                          <i class="fas fa-flask"></i> Processing ({{ stats.processing }})
                         </a>
                         <a href="?show=completed" class="btn btn-sm {% if show_filter == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
-                          <i class="fas fa-check"></i> Completed
+                          <i class="fas fa-check"></i> Completed ({{ stats.completed }})
                         </a>
                         <a href="?show=all" class="btn btn-sm {% if show_filter == 'all' %}btn-info{% else %}btn-outline-info{% endif %}">
-                          <i class="fas fa-list"></i> All Patients
+                          <i class="fas fa-list"></i> All Tests ({{ stats.all }})
                         </a>
                       </div>
                     </div>
                   </div>
                 </div>
-                <p class="card-text mb-0">Create reports from <b>Prescriptions</b> or upload <b>PDF Reports</b> directly</p>
+                <p class="card-text mb-0">Manage lab tests from <b>Collection</b> to <b>Result Upload</b></p>
                 <div class="card-body">
                   <div class="table-responsive">
                     <table class="table table-hover table-center mb-0">
                       <thead>
                         <tr>													
-                          <th>Patient Name</th>
-                          <th>Phone</th>
-                          <th>Email</th>
-                          <th>Report Status</th>
+                          <th>Patient Info</th>
+                          <th>Test Details</th>
+                          <th>Doctor</th>
+                          <th>Status</th>
                           <th>Actions</th>														
                         </tr>
                       </thead>
                       <tbody>
-                        {% for p in patient %}
+                        {% for test in tests %}
                         <tr>
                           <td>
                             <h2 class="table-avatar">
                               <a href="#" class="avatar avatar-sm mr-2">
-                                <img class="avatar-img rounded-circle" src="{{p.featured_image.url}}" alt="User Image">
+                                {% if test.patient_image %}
+                                  <img class="avatar-img rounded-circle" src="{{test.patient_image.url}}" alt="User Image">
+                                {% else %}
+                                  <img class="avatar-img rounded-circle" src="{% static 'HealthStack-System/images/Normal/user-default.png' %}" alt="User Image">
+                                {% endif %}
                               </a>
-                              <a href="{% url 'prescription-list' pk=p.patient_id %}">{{p.name}}</a>
+                              <div>
+                                <strong>{{ test.patient_name }}</strong><br>
+                                <small class="text-muted">ID: #{{ test.patient_id }}</small>
+                              </div>
                             </h2>
-                          </td>
-                          <td>{{p.phone_number}}</td>
-                          <td>{{p.email}}</td>
-                          <td>
-                            {% if p.latest_report %}
-                              <span class="badge badge-{{ p.latest_report.get_status_display_color }}">
-                                {{ p.latest_report.get_status_display }}
-                              </span>
-                              {% if p.latest_report.priority != 'normal' %}
-                                <br><span class="badge badge-{{ p.latest_report.get_priority_display_color }} mt-1">
-                                  {{ p.latest_report.get_priority_display }}
-                                </span>
-                              {% endif %}
-                            {% else %}
-                              <span class="badge badge-secondary">No Report</span>
-                            {% endif %}
-                          </td>
-                          <td>
-                            {% if not p.latest_report or p.latest_report.status != 'completed' and p.latest_report.status != 'delivered' %}
-                            <div class="btn-group" role="group">
-                              <a href="{% url 'prescription-list' pk=p.patient_id %}" class="btn btn-primary btn-sm" title="Create Report from Prescription">
-                                <i class="fas fa-file-medical"></i> Create Report
-                              </a>
-                              <a href="{% url 'direct-upload-pdf-report' patient_id=p.patient_id %}" class="btn btn-success btn-sm ml-1" title="Upload PDF Report Directly">
-                                <i class="fas fa-upload"></i> Upload PDF
-                              </a>
+                            <div class="small text-muted mt-1">
+                              <i class="fas fa-phone"></i> {{ test.patient_phone }}<br>
+                              <i class="fas fa-envelope"></i> {{ test.patient_email }}
                             </div>
-                            {% else %}
-                              <span class="text-success">
-                                <i class="fas fa-check-circle"></i> Report Completed
-                              </span>
-                              {% if p.latest_report.report_pdf %}
-                                <br><a href="{% url 'download-report-pdf' p.latest_report.report_id %}" class="btn btn-outline-info btn-sm mt-1">
-                                  <i class="fas fa-download"></i> Download
-                                </a>
+                          </td>
+                          <td>
+                            <strong>{{ test.test_name }}</strong><br>
+                            <small class="text-muted">
+                              Test ID: #{{ test.test_id }}<br>
+                              {% if test.test_description %}
+                                Notes: {{ test.test_description|truncatechars:50 }}
                               {% endif %}
-                            {% endif %}
+                            </small>
+                          </td>
+                          <td>
+                            <strong>Dr. {{ test.doctor_name }}</strong><br>
+                            <small class="text-muted">{{ test.prescription.create_date }}</small>
+                          </td>
+                          <td>
+                            <span class="badge badge-{% if test.test_status == 'completed' %}success{% elif test.test_status == 'processing' %}primary{% elif test.test_status == 'collected' %}info{% elif test.test_status == 'paid' %}warning{% else %}secondary{% endif %}">
+                              {{ test.get_test_status_display|default:test.test_status|title }}
+                            </span>
+                            <br>
+                            <span class="badge badge-success mt-1">
+                              <i class="fas fa-check"></i> Paid
+                            </span>
+                          </td>
+                          <td>
+                            <div class="btn-group-vertical btn-sm" role="group">
+                              {% if test.can_collect %}
+                                <button class="btn btn-success btn-sm mb-1" onclick="updateTestStatus({{ test.test_id }}, 'collected')" title="Collect Sample">
+                                  <i class="fas fa-vial"></i> Collect Sample
+                                </button>
+                              {% elif test.can_process %}
+                                <button class="btn btn-primary btn-sm mb-1" onclick="updateTestStatus({{ test.test_id }}, 'processing')" title="Start Processing">
+                                  <i class="fas fa-play"></i> Start Processing
+                                </button>
+                              {% elif test.can_complete %}
+                                <button class="btn btn-info btn-sm mb-1" onclick="showCompleteModal({{ test.test_id }}, '{{ test.test_name }}', '{{ test.patient_name }}')" title="Complete & Enter Results">
+                                  <i class="fas fa-check-circle"></i> Complete Test
+                                </button>
+                              {% elif test.can_create_report or test.can_resubmit_report %}
+                                <button class="btn btn-success btn-sm mb-1" onclick="createReport({{ test.prescription.prescription_id }})" title="Create Report">
+                                  <i class="fas fa-file-medical"></i> Create Report
+                                </button>
+                              {% endif %}
+                              
+                              {% if test.show_upload_pdf %}
+                                <button class="btn btn-outline-success btn-sm mb-1" onclick="uploadResult({{ test.test_id }})" title="Upload PDF Result">
+                                  <i class="fas fa-upload"></i> Upload PDF
+                                </button>
+                              {% elif test.show_reupload_pdf %}
+                                <button class="btn btn-outline-warning btn-sm mb-1" onclick="reuploadResult({{ test.test_id }})" title="Reupload PDF Result">
+                                  <i class="fas fa-sync"></i> Reupload PDF
+                                </button>
+                              {% endif %}
+                              
+                              <!-- Always show view test details -->
+                              <button class="btn btn-outline-secondary btn-sm" onclick="viewTestDetails({{ test.test_id }})" title="View Details">
+                                <i class="fas fa-eye"></i> View Details
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                          <td colspan="5" class="text-center py-4">
+                            <i class="fas fa-flask" style="font-size: 3rem; color: #ccc;"></i>
+                            <h5 class="mt-3">No Tests Found</h5>
+                            <p class="text-muted">
+                              {% if show_filter == 'pending' %}
+                                No tests pending collection at the moment.
+                              {% elif show_filter == 'processing' %}
+                                No tests currently being processed.
+                              {% elif show_filter == 'completed' %}
+                                No completed tests found.
+                              {% else %}
+                                No paid tests available for processing.
+                              {% endif %}
+                            </p>
                           </td>
                         </tr>
                         {% endfor %}
@@ -211,6 +265,65 @@
     </div>
     <!-- /Main Wrapper -->
 
+    <!-- Complete Test Modal -->
+    <div class="modal fade" id="completeTestModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Complete Test & Upload Results</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="completeTestForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="testId" name="test_id">
+                        
+                        <div class="alert alert-info">
+                            <strong>Test:</strong> <span id="testName"></span><br>
+                            <strong>Patient:</strong> <span id="patientName"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Test Results *</label>
+                            <textarea class="form-control" name="results" rows="4" 
+                                    placeholder="Enter detailed test results..." required></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Unit</label>
+                                    <input type="text" class="form-control" name="unit" 
+                                           placeholder="e.g., mg/dL, mmol/L">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Reference Range</label>
+                                    <input type="text" class="form-control" name="reference_range" 
+                                           placeholder="e.g., 70-100 mg/dL">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Additional Comments</label>
+                            <textarea class="form-control" name="comments" rows="2" 
+                                    placeholder="Any additional observations or comments..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> Complete Test
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- jQuery -->
     <script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js'%}"></script>
     <script src="{% static 'HealthStack-System/js/admin/popper.min.js'%}"></script>
@@ -220,5 +333,105 @@
     <script src=" {% static 'HealthStack-System/plugins/admin/morris/morris.min.js'%}"></script>
     <script src="{% static 'HealthStack-System/js/admin/chart.morris.js'%}"></script>
     <script src="{% static 'HealthStack-System/js/admin/script.js'%}"></script>
+
+    <script>
+        // Update test status function
+        function updateTestStatus(testId, newStatus) {
+            let confirmMessage = '';
+            switch(newStatus) {
+                case 'collected':
+                    confirmMessage = 'Mark this test as sample collected?';
+                    break;
+                case 'processing':
+                    confirmMessage = 'Start processing this test?';
+                    break;
+                default:
+                    confirmMessage = `Update test status to ${newStatus}?`;
+            }
+            
+            if (confirm(confirmMessage)) {
+                $.ajax({
+                    url: '{% url "lab-update-test-status" %}',
+                    type: 'POST',
+                    data: {
+                        'test_id': testId,
+                        'status': newStatus,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Error updating test status. Please try again.');
+                    }
+                });
+            }
+        }
+
+        // Show complete test modal
+        function showCompleteModal(testId, testName, patientName) {
+            $('#testId').val(testId);
+            $('#testName').text(testName);
+            $('#patientName').text(patientName);
+            $('#completeTestModal').modal('show');
+        }
+
+        // Handle complete test form submission
+        $('#completeTestForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            $.ajax({
+                url: '{% url "lab-complete-test" %}',
+                type: 'POST',
+                data: $(this).serialize() + '&csrfmiddlewaretoken={{ csrf_token }}',
+                success: function(response) {
+                    if (response.success) {
+                        $('#completeTestModal').modal('hide');
+                        alert('Test completed successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error completing test. Please try again.');
+                }
+            });
+        });
+
+        // Upload result function
+        function uploadResult(testId) {
+            // Redirect to upload page or open upload modal
+            window.location.href = `/hospital_admin/upload-test-result/${testId}/`;
+        }
+
+        // View test details function
+        function viewTestDetails(testId) {
+            window.location.href = `/hospital_admin/test-details/${testId}/`;
+        }
+
+        // Create report function
+        function createReport(prescriptionId) {
+            window.location.href = `/hospital_admin/create-report/${prescriptionId}/`;
+        }
+
+        // Resubmit report function
+        function resubmitReport(prescriptionId) {
+            if (confirm('This will allow you to resubmit the report. Continue?')) {
+                window.location.href = `/hospital_admin/create-report/${prescriptionId}/`;
+            }
+        }
+
+        // Reupload result function (for existing PDFs) 
+        function reuploadResult(testId) {
+            if (confirm('This will replace the existing PDF report. Continue?')) {
+                window.location.href = `/hospital_admin/upload-test-result/${testId}/`;
+            }
+        }
+    </script>
   </body>
 </html>

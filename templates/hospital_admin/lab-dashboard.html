@@ -3,172 +3,283 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     <title>Lab Dashboard - Mahima Medicare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     
     <!-- Favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
     
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css' %}">
     
     <!-- Fontawesome CSS -->
-    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css' %}">
+    
+    <!-- Feathericon CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css' %}">
     
     <!-- Main CSS -->
-    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css' %}">
     
     <style>
-        .stats-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        :root {
+            --primary-color: #95C270;
+            --primary-dark: #7ea65d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+        }
+
+        .dashboard-card {
+            border: none;
             border-radius: 15px;
-            padding: 20px;
-            color: white;
-            margin-bottom: 20px;
-            transition: transform 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
         
-        .stats-card:hover {
+        .dashboard-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
-        
-        .stats-card.pending {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
         }
-        
-        .stats-card.processing {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+
+        .stats-card.success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #1e7e34 100%);
         }
-        
-        .stats-card.completed {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+
+        .stats-card.warning {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #e0a800 100%);
         }
-        
-        .stats-card.delivered {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+
+        .stats-card.danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #c82333 100%);
         }
-        
+
+        .stats-card.info {
+            background: linear-gradient(135deg, var(--info-color) 0%, #117a8b 100%);
+        }
+
         .stats-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .stats-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-        
-        .urgent-badge {
-            background: #dc3545;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-        
-        .stat-badge {
-            background: #28a745;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-        
-        .recent-activity {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .activity-item {
-            padding: 10px;
-            border-left: 3px solid #007bff;
+            font-size: 3rem;
+            font-weight: 700;
             margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .stats-label {
+            font-size: 1rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-bottom: 3px solid var(--primary-color);
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            margin: 0;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .prescription-card {
+            border-left: 4px solid var(--primary-color);
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .prescription-card:hover {
+            border-left-color: var(--primary-dark);
+            transform: translateX(5px);
+        }
+
+        .doctor-badge {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .patient-info {
             background: #f8f9fa;
-            border-radius: 5px;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
         }
-        
-        .activity-item.completed {
-            border-left-color: #28a745;
+
+        .test-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin: 2px;
+            display: inline-block;
         }
-        
-        .activity-item.processing {
-            border-left-color: #ffc107;
+
+        .urgency-high {
+            border-left-color: var(--danger-color) !important;
+            background: rgba(220, 53, 69, 0.05);
         }
-        
-        .activity-item.pending {
-            border-left-color: #dc3545;
+
+        .urgency-medium {
+            border-left-color: var(--warning-color) !important;
+            background: rgba(255, 193, 7, 0.05);
+        }
+
+        .urgency-normal {
+            border-left-color: var(--success-color) !important;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            transition: background 0.3s ease;
+        }
+
+        .activity-item:hover {
+            background: #f8f9fa;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+        }
+
+        .activity-icon.success {
+            background: var(--success-color);
+        }
+
+        .activity-icon.info {
+            background: var(--info-color);
+        }
+
+        .performance-metric {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+            border: 2px solid #e9ecef;
+            margin-bottom: 15px;
+        }
+
+        .metric-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .quick-action-btn {
+            background: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+
+        .workload-progress {
+            margin-top: 15px;
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 10px;
+        }
+
+        .doctor-stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .doctor-stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .auto-refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success-color);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .stats-number {
+                font-size: 2rem;
+            }
+            
+            .quick-action-btn {
+                display: block;
+                text-align: center;
+                margin: 5px 0;
+            }
         }
     </style>
 </head>
 
 <body>
+    <!-- Auto-refresh indicator -->
+    <div class="auto-refresh-indicator" id="refreshIndicator" style="display: none;">
+        <i class="fe fe-refresh-cw"></i> Auto-refreshing...
+    </div>
+
+    <!-- Main Wrapper -->
     <div class="main-wrapper">
+        
         <!-- Header -->
-        <div class="header">
-            <div class="header-left">
-                <a href="{% url 'lab-dashboard' %}" class="logo">
-                    <img src="{% static 'HealthStack-System/images/Normal/logo.png' %}" alt="Logo">
-                </a>
-            </div>
-            
-            <a href="javascript:void(0);" id="toggle_btn">
-                <i class="fe fe-text-align-left"></i>
-            </a>
-            
-            <ul class="nav user-menu">
-                <li class="nav-item dropdown has-arrow">
-                    <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
-                        <span class="user-img">
-                            <img class="rounded-circle" src="{% static 'HealthStack-System/images/Normal/user.jpg' %}" width="31" alt="{{ lab_worker.name }}">
-                        </span>
-                    </a>
-                    <div class="dropdown-menu">
-                        <div class="user-header">
-                            <div class="avatar avatar-sm">
-                                <img src="{% static 'HealthStack-System/images/Normal/user.jpg' %}" alt="User Image" class="avatar-img rounded-circle">
-                            </div>
-                            <div class="user-text">
-                                <h6>{{ lab_worker.name }}</h6>
-                                <p class="text-muted mb-0">Lab Technician</p>
-                            </div>
-                        </div>
-                        <a class="dropdown-item" href="{% url 'admin-logout' %}">Logout</a>
-                    </div>
-                </li>
-            </ul>
-        </div>
+        {% include 'hospital_admin/labworker-navbar.html' %}
         <!-- /Header -->
         
         <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-inner slimscroll">
-                <div id="sidebar-menu" class="sidebar-menu">
-                    <ul>
-                        <li class="menu-title">
-                            <span>Lab Management</span>
-                        </li>
-                        <li class="active">
-                            <a href="{% url 'lab-dashboard' %}"><i class="fe fe-home"></i> <span>Dashboard</span></a>
-                        </li>
-                        <li>
-                            <a href="{% url 'lab-report-queue' %}"><i class="fe fe-list"></i> <span>Report Queue</span></a>
-                        </li>
-                        <li>
-                            <a href="{% url 'my-assigned-reports' %}"><i class="fe fe-user"></i> <span>My Reports</span></a>
-                        </li>
-                        <li>
-                            <a href="{% url 'mypatient-list' %}"><i class="fe fe-users"></i> <span>Patients</span></a>
-                        </li>
-                        <li>
-                            <a href="{% url 'test-list' %}"><i class="fe fe-clipboard"></i> <span>Test Catalog</span></a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+        {% include 'hospital_admin/labworker-sidebar.html' %}
         <!-- /Sidebar -->
         
         <!-- Page Wrapper -->
@@ -177,189 +288,435 @@
                 
                 <!-- Page Header -->
                 <div class="page-header">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <h3 class="page-title">Lab Dashboard</h3>
-                            <ul class="breadcrumb">
-                                <li class="breadcrumb-item active">Dashboard</li>
-                            </ul>
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h1 class="page-title">Lab Dashboard</h1>
+                            <p class="text-muted">Welcome back, {{ lab_worker.name }}! Here's your laboratory overview for {{ today|date:"F d, Y" }}</p>
+                        </div>
+                        <div class="col-auto">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-primary" onclick="refreshDashboard()">
+                                    <i class="fe fe-refresh-cw"></i> Refresh
+                                </button>
+                                <a href="{% url 'mypatient-list' %}" class="btn btn-primary">
+                                    <i class="fe fe-list"></i> Test Queue
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <!-- /Page Header -->
-                
-                <!-- Statistics Cards -->
-                <div class="row">
-                    <div class="col-xl-3 col-sm-6 col-12">
-                        <div class="stats-card pending">
-                            <div class="stats-number">{{ pending_reports }}</div>
-                            <div class="stats-label">Pending Reports</div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-sm-6 col-12">
-                        <div class="stats-card processing">
-                            <div class="stats-number">{{ processing_reports }}</div>
-                            <div class="stats-label">Processing</div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-sm-6 col-12">
-                        <div class="stats-card completed">
-                            <div class="stats-number">{{ completed_reports }}</div>
-                            <div class="stats-label">Completed</div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-sm-6 col-12">
-                        <div class="stats-card delivered">
-                            <div class="stats-number">{{ delivered_reports }}</div>
-                            <div class="stats-label">Delivered</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- My Work Statistics -->
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">My Work Statistics</h4>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <div class="text-center">
-                                            <h3 class="text-warning">{{ my_pending }}</h3>
-                                            <p class="mb-0">My Pending</p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="text-center">
-                                            <h3 class="text-info">{{ my_processing }}</h3>
-                                            <p class="mb-0">Processing</p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="text-center">
-                                            <h3 class="text-success">{{ my_completed }}</h3>
-                                            <p class="mb-0">Completed</p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="text-center">
-                                            <h3 class="text-primary">{{ weekly_completed }}</h3>
-                                            <p class="mb-0">This Week</p>
-                                        </div>
-                                    </div>
+
+                <!-- Quick Actions -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="dashboard-card">
+                            <div class="card-body text-center">
+                                <h5>Quick Actions</h5>
+                                <div class="mt-3">
+                                    <a href="{% url 'mypatient-list' %}?status=paid" class="quick-action-btn">
+                                        <i class="fe fe-vial"></i> Collect Samples ({{ test_stats.pending_collection }})
+                                    </a>
+                                    <a href="{% url 'mypatient-list' %}?status=collected" class="quick-action-btn">
+                                        <i class="fe fe-play"></i> Start Processing ({{ test_stats.collected }})
+                                    </a>
+                                    <a href="{% url 'mypatient-list' %}?status=processing" class="quick-action-btn">
+                                        <i class="fe fe-check-circle"></i> Complete Tests ({{ test_stats.processing }})
+                                    </a>
+                                    <a href="{% url 'mypatient-list' %}" class="quick-action-btn">
+                                        <i class="fe fe-users"></i> Manage Tests
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Quick Actions and Recent Activity -->
+                <!-- Statistics Overview -->
                 <div class="row">
-                    <!-- Quick Actions -->
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">Quick Actions</h4>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="dashboard-card stats-card">
+                            <div class="stats-number">{{ test_stats.total_prescribed }}</div>
+                            <div class="stats-label">Total Tests Prescribed</div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="dashboard-card stats-card warning">
+                            <div class="stats-number">{{ test_stats.pending_collection }}</div>
+                            <div class="stats-label">Pending Collection</div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="dashboard-card stats-card info">
+                            <div class="stats-number">{{ test_stats.processing }}</div>
+                            <div class="stats-label">Currently Processing</div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="dashboard-card stats-card success">
+                            <div class="stats-number">{{ test_stats.completed }}</div>
+                            <div class="stats-label">Completed Tests</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Workload Overview -->
+                <div class="row">
+                    <div class="col-xl-8">
+                        <!-- Recent Prescriptions with Doctor-Patient Details -->
+                        <div class="dashboard-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-file-text"></i> Recent Prescriptions - Doctor-Patient Integration
+                                </h5>
                             </div>
                             <div class="card-body">
-                                <div class="row">
-                                    <div class="col-6 mb-3">
-                                        <a href="{% url 'lab-report-queue' %}?assigned=unassigned" class="btn btn-primary btn-block">
-                                            <i class="fe fe-plus"></i> View Unassigned
-                                            {% if unassigned_reports > 0 %}
-                                                <span class="badge badge-light ml-2">{{ unassigned_reports }}</span>
-                                            {% endif %}
-                                        </a>
-                                    </div>
-                                    <div class="col-6 mb-3">
-                                        <a href="{% url 'my-assigned-reports' %}?status=active" class="btn btn-success btn-block">
-                                            <i class="fe fe-user"></i> My Active Reports
-                                        </a>
-                                    </div>
-                                    <div class="col-6 mb-3">
-                                        <a href="{% url 'lab-report-queue' %}?priority=urgent" class="btn btn-warning btn-block">
-                                            <i class="fe fe-alert-triangle"></i> Urgent Reports
-                                        </a>
-                                    </div>
-                                    <div class="col-6 mb-3">
-                                        <a href="{% url 'mypatient-list' %}" class="btn btn-info btn-block">
-                                            <i class="fe fe-users"></i> View Patients
-                                        </a>
+                                {% for prescription in recent_prescriptions %}
+                                <div class="prescription-card card">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6>Prescription #{{ prescription.prescription_id }}</h6>
+                                                    <small class="text-muted">{{ prescription.create_date|date:"M d, Y" }}</small>
+                                                </div>
+                                                
+                                                <!-- Doctor Information -->
+                                                <div class="mb-2">
+                                                    <span class="doctor-badge">
+                                                        <i class="fe fe-user-md"></i> Dr. {{ prescription.doctor_info.name }}
+                                                    </span>
+                                                    <small class="text-muted ml-2">{{ prescription.doctor_info.department }} | {{ prescription.doctor_info.specialization }}</small>
+                                                </div>
+                                                
+                                                <!-- Patient Information -->
+                                                <div class="patient-info">
+                                                    <strong><i class="fe fe-user"></i> {{ prescription.patient_info.name }}</strong>
+                                                    <div class="row mt-1">
+                                                        <div class="col-6">
+                                                            <small><i class="fe fe-calendar"></i> Age: {{ prescription.patient_info.age }}</small>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <small><i class="fe fe-phone"></i> {{ prescription.patient_info.phone }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <h6>Prescribed Tests:</h6>
+                                                <div class="test-list">
+                                                    {% for test in prescription.tests %}
+                                                    <span class="test-badge">{{ test.test_name }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                                <div class="mt-2">
+                                                    <a href="{% url 'test-details' prescription.tests.first.test_id %}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fe fe-eye"></i> View Details
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Urgent Reports -->
-                        {% if urgent_reports %}
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title text-danger">
-                                    <i class="fe fe-alert-triangle"></i> Urgent Reports
-                                </h4>
-                            </div>
-                            <div class="card-body">
-                                {% for report in urgent_reports %}
-                                <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
-                                    <div>
-                                        <strong>Report #{{ report.report_id }}</strong><br>
-                                        <small>{{ report.patient.name }} - {{ report.test_name }}</small>
-                                    </div>
-                                    <div>
-                                        {% if report.priority == 'stat' %}
-                                            <span class="urgent-badge">STAT</span>
-                                        {% else %}
-                                            <span class="stat-badge">URGENT</span>
-                                        {% endif %}
-                                    </div>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <i class="fe fe-inbox text-muted" style="font-size: 3rem;"></i>
+                                    <h5 class="mt-3 text-muted">No Recent Prescriptions</h5>
+                                    <p class="text-muted">No new test prescriptions found.</p>
                                 </div>
                                 {% endfor %}
                             </div>
                         </div>
-                        {% endif %}
                     </div>
                     
-                    <!-- Recent Activity -->
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">Recent Activity</h4>
+                    <div class="col-xl-4">
+                        <!-- My Workload -->
+                        <div class="dashboard-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-briefcase"></i> My Workload
+                                </h5>
                             </div>
                             <div class="card-body">
-                                <div class="recent-activity">
-                                    {% for report in recent_reports %}
-                                    <div class="activity-item {{ report.status }}">
-                                        <div class="d-flex justify-content-between">
-                                            <div>
-                                                <strong>Report #{{ report.report_id }}</strong>
-                                                <br>
-                                                <small>{{ report.patient.name }} - {{ report.test_name }}</small>
-                                            </div>
-                                            <div class="text-right">
-                                                <span class="badge badge-{{ report.get_status_display_color }}">
-                                                    {{ report.get_status_display }}
-                                                </span>
-                                                <br>
-                                                <small class="text-muted">{{ report.updated_at|timesince }} ago</small>
-                                            </div>
+                                <div class="performance-metric">
+                                    <div class="metric-number">{{ my_workload.total_assigned }}</div>
+                                    <div class="metric-label">Total Assigned</div>
+                                </div>
+                                
+                                <div class="performance-metric">
+                                    <div class="metric-number">{{ my_workload.pending_work }}</div>
+                                    <div class="metric-label">Pending Work</div>
+                                </div>
+                                
+                                <div class="performance-metric">
+                                    <div class="metric-number">{{ my_workload.currently_processing }}</div>
+                                    <div class="metric-label">Processing</div>
+                                </div>
+                                
+                                <div class="workload-progress">
+                                    <h6>Today's Progress</h6>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" 
+                                             style="width: {{ my_workload.completion_percentage|floatformat:1 }}%">
                                         </div>
                                     </div>
-                                    {% empty %}
-                                    <p class="text-muted text-center">No recent activity</p>
-                                    {% endfor %}
+                                    <small class="text-muted">{{ my_workload.completed_today }}/{{ my_workload.total_assigned }} completed today</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Performance Metrics -->
+                        <div class="dashboard-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-trending-up"></i> Performance
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="performance-metric">
+                                    <div class="metric-number">{{ performance_metrics.daily_throughput }}</div>
+                                    <div class="metric-label">Today's Completed</div>
+                                </div>
+                                
+                                <div class="performance-metric">
+                                    <div class="metric-number">{{ my_workload.completed_week }}</div>
+                                    <div class="metric-label">This Week</div>
+                                </div>
+                                
+                                <div class="performance-metric">
+                                    <div class="metric-number">{{ performance_metrics.accuracy_rate }}%</div>
+                                    <div class="metric-label">Accuracy Rate</div>
+                                </div>
+                                
+                                <div class="performance-metric">
+                                    <div class="metric-number">{{ performance_metrics.patient_satisfaction }}</div>
+                                    <div class="metric-label">Patient Rating</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
+                <!-- Urgent Work Queue and Doctor Statistics -->
+                <div class="row">
+                    <div class="col-xl-6">
+                        <!-- Urgent Work Queue -->
+                        <div class="dashboard-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-alert-triangle"></i> Urgent Work Queue
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% for test in urgent_tests %}
+                                <div class="card prescription-card urgency-{{ test.urgency }}">
+                                    <div class="card-body py-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>{{ test.test_name }}</strong>
+                                                <div class="small text-muted">
+                                                    Patient: {{ test.patient_name }} | Dr. {{ test.doctor_name }}
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="badge badge-{% if test.urgency == 'high' %}danger{% elif test.urgency == 'medium' %}warning{% else %}success{% endif %}">
+                                                    {{ test.days_since_prescription }} day{{ test.days_since_prescription|pluralize }} ago
+                                                </div>
+                                                <div class="mt-1">
+                                                    <a href="{% url 'test-details' test.test_id %}" class="btn btn-sm btn-outline-primary">
+                                                        Action
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-3">
+                                    <i class="fe fe-check-circle text-success" style="font-size: 2rem;"></i>
+                                    <p class="text-muted mt-2">All caught up! No urgent tests pending.</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-6">
+                        <!-- Doctor Activity Statistics -->
+                        <div class="dashboard-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-users"></i> Doctor Activity (Last 30 Days)
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% for doctor in doctor_stats %}
+                                <div class="doctor-stat-item">
+                                    <div>
+                                        <strong>Dr. {{ doctor.doctor__name }}</strong>
+                                        <div class="small text-muted">{{ doctor.doctor__department }}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="badge badge-primary">{{ doctor.total_tests_prescribed }} tests</div>
+                                        <div class="small text-muted">{{ doctor.total_patients }} patients</div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-3">
+                                    <i class="fe fe-user-md text-muted" style="font-size: 2rem;"></i>
+                                    <p class="text-muted mt-2">No doctor activity data available.</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Activity Feed -->
+                        <div class="dashboard-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-activity"></i> Recent Activity
+                                </h5>
+                            </div>
+                            <div class="card-body p-0">
+                                {% for activity in recent_activity %}
+                                <div class="activity-item">
+                                    <div class="activity-icon {{ activity.color }}">
+                                        <i class="fas {{ activity.icon }}"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="activity-message">{{ activity.message }}</div>
+                                        <div class="small text-muted">{{ activity.time|timesince }} ago</div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <i class="fe fe-clock text-muted" style="font-size: 2rem;"></i>
+                                    <p class="text-muted mt-2">No recent activity.</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comprehensive Test Management Section -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="dashboard-card">
+                            <div class="section-header">
+                                <h5 class="section-title">
+                                    <i class="fe fe-activity"></i> Test Workflow Management
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if tests_with_workflow %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Patient</th>
+                                                <th>Test Details</th>
+                                                <th>Doctor</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for test in tests_with_workflow %}
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="avatar avatar-sm mr-2">
+                                                            {% if test.patient_image %}
+                                                                <img class="avatar-img rounded-circle" src="{{test.patient_image.url}}" alt="User Image">
+                                                            {% else %}
+                                                                <img class="avatar-img rounded-circle" src="{% static 'HealthStack-System/images/Normal/user-default.png' %}" alt="User Image">
+                                                            {% endif %}
+                                                        </div>
+                                                        <div>
+                                                            <strong>{{ test.patient_name }}</strong><br>
+                                                            <small class="text-muted">ID: #{{ test.patient_id }}</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <strong>{{ test.test_name }}</strong><br>
+                                                    <small class="text-muted">Test ID: #{{ test.test_id }}</small>
+                                                    {% if test.has_pdf %}
+                                                        <br><span class="badge badge-success badge-sm"><i class="fas fa-file-pdf"></i> PDF Available</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <strong>Dr. {{ test.doctor_name }}</strong><br>
+                                                    <small class="text-muted">{{ test.prescription.create_date }}</small>
+                                                </td>
+                                                <td>
+                                                    <span class="badge badge-{% if test.test_status == 'completed' %}success{% elif test.test_status == 'processing' %}primary{% elif test.test_status == 'collected' %}info{% elif test.test_status == 'paid' %}warning{% else %}secondary{% endif %}">
+                                                        {{ test.get_test_status_display|default:test.test_status|title }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group-sm" role="group">
+                                                        {% if test.can_collect %}
+                                                            <button class="btn btn-success btn-sm mb-1" onclick="updateTestStatus({{ test.test_id }}, 'collected')" title="Collect Sample">
+                                                                <i class="fas fa-vial"></i> Collect
+                                                            </button>
+                                                        {% elif test.can_process %}
+                                                            <button class="btn btn-primary btn-sm mb-1" onclick="updateTestStatus({{ test.test_id }}, 'processing')" title="Start Processing">
+                                                                <i class="fas fa-play"></i> Process
+                                                            </button>
+                                                        {% elif test.can_complete %}
+                                                            <button class="btn btn-info btn-sm mb-1" onclick="showCompleteModal({{ test.test_id }}, '{{ test.test_name }}', '{{ test.patient_name }}')" title="Complete & Enter Results">
+                                                                <i class="fas fa-check-circle"></i> Complete
+                                                            </button>
+                                                        {% elif test.can_create_report or test.can_resubmit_report %}
+                                                            <button class="btn btn-success btn-sm mb-1" onclick="createReport({{ test.prescription.prescription_id }})" title="Create Report">
+                                                                <i class="fas fa-file-medical"></i> Create Report
+                                                            </button>
+                                                        {% endif %}
+                                                        
+                                                        {% if test.show_upload_pdf %}
+                                                            <button class="btn btn-outline-success btn-sm mb-1" onclick="uploadResult({{ test.test_id }})" title="Upload PDF Result">
+                                                                <i class="fas fa-upload"></i> Upload PDF
+                                                            </button>
+                                                        {% elif test.show_reupload_pdf %}
+                                                            <button class="btn btn-outline-warning btn-sm mb-1" onclick="reuploadResult({{ test.test_id }})" title="Reupload PDF Result">
+                                                                <i class="fas fa-sync"></i> Reupload PDF
+                                                            </button>
+                                                        {% endif %}
+                                                        
+                                                        <button class="btn btn-outline-secondary btn-sm" onclick="viewTestDetails({{ test.test_id }})" title="View Details">
+                                                            <i class="fas fa-eye"></i> Details
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <a href="{% url 'mypatient-list' %}" class="btn btn-primary">
+                                        <i class="fas fa-list"></i> View All Tests
+                                    </a>
+                                </div>
+                                {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-flask text-muted" style="font-size: 3rem;"></i>
+                                    <h5 class="mt-3 text-muted">No Tests Available</h5>
+                                    <p class="text-muted">No tests found for workflow management.</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- /Page Wrapper -->
         
     </div>
+    <!-- /Main Wrapper -->
     
     <!-- jQuery -->
     <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
@@ -368,17 +725,235 @@
     <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
     <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
     
-    <!-- Slimscroll JS -->
-    <script src="{% static 'HealthStack-System/plugins/Normal/slimscroll/jquery.slimscroll.min.js' %}"></script>
-    
     <!-- Custom JS -->
-    <script src="{% static 'HealthStack-System/js/Normal/script.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
+
+    <!-- Complete Test Modal -->
+    <div class="modal fade" id="completeTestModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Complete Test & Enter Results</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="completeTestForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="testId" name="test_id">
+                        
+                        <div class="alert alert-info">
+                            <strong>Test:</strong> <span id="testName"></span><br>
+                            <strong>Patient:</strong> <span id="patientName"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Test Results *</label>
+                            <textarea class="form-control" name="results" rows="4" 
+                                    placeholder="Enter detailed test results..." required></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Unit</label>
+                                    <input type="text" class="form-control" name="unit" 
+                                           placeholder="e.g., mg/dL, mmol/L">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Reference Range</label>
+                                    <input type="text" class="form-control" name="reference_range" 
+                                           placeholder="e.g., 70-100 mg/dL">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Additional Comments</label>
+                            <textarea class="form-control" name="comments" rows="2" 
+                                    placeholder="Any additional observations or comments..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> Complete Test
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     
     <script>
-        // Auto-refresh dashboard every 30 seconds
-        setInterval(function() {
-            location.reload();
-        }, 30000);
+        // Auto-refresh dashboard every 5 minutes
+        let refreshInterval;
+        
+        function startAutoRefresh() {
+            refreshInterval = setInterval(function() {
+                $('#refreshIndicator').show();
+                setTimeout(function() {
+                    location.reload();
+                }, 1000);
+            }, 300000); // 5 minutes
+        }
+        
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        }
+        
+        function refreshDashboard() {
+            $('#refreshIndicator').show();
+            setTimeout(function() {
+                location.reload();
+            }, 500);
+        }
+        
+        // Start auto-refresh on page load
+        $(document).ready(function() {
+            startAutoRefresh();
+            
+            // Stop auto-refresh when user is inactive
+            let inactivityTimer;
+            function resetInactivityTimer() {
+                clearTimeout(inactivityTimer);
+                inactivityTimer = setTimeout(stopAutoRefresh, 600000); // 10 minutes
+            }
+            
+            $(document).on('mousemove keypress', resetInactivityTimer);
+            resetInactivityTimer();
+        });
+        
+        // Smooth animations for cards
+        $('.dashboard-card').each(function(index) {
+            $(this).css('animation-delay', (index * 0.1) + 's');
+            $(this).addClass('animate__animated animate__fadeInUp');
+        });
+
+        // ===== TEST WORKFLOW FUNCTIONS =====
+        
+        // Update test status function
+        function updateTestStatus(testId, newStatus) {
+            let confirmMessage = '';
+            switch(newStatus) {
+                case 'collected':
+                    confirmMessage = 'Mark this test as sample collected?';
+                    break;
+                case 'processing':
+                    confirmMessage = 'Start processing this test?';
+                    break;
+                default:
+                    confirmMessage = `Update test status to ${newStatus}?`;
+            }
+            
+            if (confirm(confirmMessage)) {
+                $.ajax({
+                    url: '{% url "lab-update-test-status" %}',
+                    type: 'POST',
+                    data: {
+                        'test_id': testId,
+                        'status': newStatus,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Error updating test status. Please try again.');
+                    }
+                });
+            }
+        }
+
+        // Show complete test modal
+        function showCompleteModal(testId, testName, patientName) {
+            $('#testId').val(testId);
+            $('#testName').text(testName);
+            $('#patientName').text(patientName);
+            $('#completeTestModal').modal('show');
+        }
+
+        // Handle complete test form submission
+        $('#completeTestForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            $.ajax({
+                url: '{% url "lab-complete-test" %}',
+                type: 'POST',
+                data: $(this).serialize() + '&csrfmiddlewaretoken={{ csrf_token }}',
+                success: function(response) {
+                    if (response.success) {
+                        $('#completeTestModal').modal('hide');
+                        alert('Test completed successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error completing test. Please try again.');
+                }
+            });
+        });
+
+        // Upload result function (for new PDFs)
+        function uploadResult(testId) {
+            window.location.href = `/hospital_admin/upload-test-result/${testId}/`;
+        }
+        
+        // Reupload result function (for existing PDFs) 
+        function reuploadResult(testId) {
+            if (confirm('This will replace the existing PDF report. Continue?')) {
+                window.location.href = `/hospital_admin/upload-test-result/${testId}/`;
+            }
+        }
+
+        // View test details function
+        function viewTestDetails(testId) {
+            window.location.href = `/hospital_admin/test-details/${testId}/`;
+        }
+
+        // Create report function
+        function createReport(prescriptionId) {
+            window.location.href = `/hospital_admin/create-report/${prescriptionId}/`;
+        }
+
+        // Resubmit report function
+        function resubmitReport(prescriptionId) {
+            if (confirm('This will allow you to resubmit the report. Continue?')) {
+                window.location.href = `/hospital_admin/create-report/${prescriptionId}/`;
+            }
+        }
     </script>
+    
+    <style>
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate__animated {
+            animation-duration: 0.5s;
+            animation-fill-mode: both;
+        }
+        
+        .animate__fadeInUp {
+            animation-name: fadeInUp;
+        }
+    </style>
 </body>
 </html>

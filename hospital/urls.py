@@ -71,6 +71,10 @@ urlpatterns = [
 
     # Delete prescription
     path('delete-prescription/<int:pk>/', views.delete_prescription, name='delete-prescription'),
+    
+    # Lab Tests
+    path('patient-lab-tests/', views.patient_lab_tests, name='patient-lab-tests'),
+    path('patient-view-report/<int:report_id>/', views.patient_view_report, name='patient-view-report'),
 ]
 
 # Static & media files

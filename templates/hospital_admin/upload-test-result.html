@@ -1,0 +1,414 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Upload Test Result - Mahima Medicare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css' %}">
+    
+    <!-- Feathericon CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css' %}">
+    
+    <style>
+        .upload-area {
+            border: 2px dashed #95C270;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f8fff2;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: #7ea65d;
+            background: #f0f8e8;
+        }
+        
+        .upload-area.dragover {
+            border-color: #5a7c41;
+            background: #e8f5d8;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            color: #95C270;
+            margin-bottom: 20px;
+        }
+        
+        .test-info-card {
+            background: linear-gradient(135deg, #95C270 0%, #7ea65d 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .patient-info {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .info-item i {
+            margin-right: 10px;
+            width: 20px;
+        }
+        
+        .btn-upload {
+            background: #95C270;
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-upload:hover {
+            background: #7ea65d;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(149, 194, 112, 0.3);
+        }
+        
+        .progress-container {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .selected-file {
+            background: #e8f5d8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        
+        <!-- Header -->
+        {% include 'hospital_admin/labworker-navbar.html' %}
+        <!-- /Header -->
+        
+        <!-- Sidebar -->
+        {% include 'hospital_admin/labworker-sidebar.html' %}
+        <!-- /Sidebar -->
+        
+        <!-- Page Wrapper -->
+        <div class="page-wrapper">
+            <div class="content container-fluid">
+                
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h1 class="page-title">Upload Test Result</h1>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{% url 'admin-dashboard' %}">Dashboard</a></li>
+                                <li class="breadcrumb-item"><a href="{% url 'mypatient-list' %}">Test Management</a></li>
+                                <li class="breadcrumb-item active">Upload Result</li>
+                            </ul>
+                        </div>
+                        <div class="col-auto">
+                            <a href="{% url 'mypatient-list' %}" class="btn btn-outline-secondary">
+                                <i class="fe fe-arrow-left"></i> Back to Tests
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Page Header -->
+                
+                <!-- Test Information Card -->
+                <div class="test-info-card">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h3><i class="fe fe-vial"></i> {{ test.test_name }}</h3>
+                            <p class="mb-0">Test ID: #{{ test.test_id }}</p>
+                            {% if test.test_description %}
+                                <p class="mt-2 mb-0">{{ test.test_description }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <div class="status-badge">
+                                <span class="badge badge-light">{{ test.get_test_status_display|title }}</span>
+                            </div>
+                            <div class="mt-2">
+                                <small>Prescribed: {{ test.prescription.create_date }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Patient Information -->
+                <div class="patient-info">
+                    <h5><i class="fe fe-user"></i> Patient Information</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <i class="fe fe-user"></i>
+                                <strong>Name:</strong> {{ test.prescription.patient.user.first_name }} {{ test.prescription.patient.user.last_name }}
+                            </div>
+                            <div class="info-item">
+                                <i class="fe fe-credit-card"></i>
+                                <strong>Patient ID:</strong> #{{ test.prescription.patient.patient_id }}
+                            </div>
+                            <div class="info-item">
+                                <i class="fe fe-phone"></i>
+                                <strong>Phone:</strong> {{ test.prescription.patient.phone_number|default:"N/A" }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <i class="fe fe-user-md"></i>
+                                <strong>Prescribed by:</strong> Dr. {{ test.prescription.doctor.name }}
+                            </div>
+                            <div class="info-item">
+                                <i class="fe fe-calendar"></i>
+                                <strong>Date:</strong> {{ test.prescription.create_date }}
+                            </div>
+                            <div class="info-item">
+                                <i class="fe fe-check-circle"></i>
+                                <strong>Payment:</strong> <span class="badge badge-success">Paid</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Upload Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Upload Test Result PDF</h5>
+                        <small class="text-muted">Upload the completed test result as a PDF file</small>
+                    </div>
+                    <div class="card-body">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <form method="post" enctype="multipart/form-data" id="uploadForm">
+                            {% csrf_token %}
+                            
+                            <!-- Upload Area -->
+                            <div class="upload-area" id="uploadArea">
+                                <div class="upload-icon">
+                                    <i class="fe fe-upload-cloud"></i>
+                                </div>
+                                <h4>Drop PDF file here or click to browse</h4>
+                                <p class="text-muted mb-3">Maximum file size: 10MB | Supported format: PDF only</p>
+                                <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('pdfFile').click()">
+                                    <i class="fe fe-folder"></i> Choose PDF File
+                                </button>
+                                <input type="file" id="pdfFile" name="result_pdf" class="file-input" accept=".pdf" required>
+                            </div>
+                            
+                            <!-- Selected File Info -->
+                            <div class="selected-file" id="selectedFileInfo">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <i class="fe fe-file-text text-success"></i>
+                                        <span id="fileName"></span>
+                                        <small class="text-muted d-block" id="fileSize"></small>
+                                    </div>
+                                    <div class="col-md-4 text-right">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile()">
+                                            <i class="fe fe-x"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div class="progress-container" id="progressContainer">
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                         role="progressbar" style="width: 0%" id="uploadProgress"></div>
+                                </div>
+                                <small class="text-muted">Uploading result...</small>
+                            </div>
+                            
+                            <!-- Form Actions -->
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <a href="{% url 'mypatient-list' %}" class="btn btn-outline-secondary">
+                                        <i class="fe fe-arrow-left"></i> Cancel
+                                    </a>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <button type="submit" class="btn btn-upload" id="uploadBtn" disabled>
+                                        <i class="fe fe-upload"></i> Upload Result
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Wrapper -->
+    </div>
+    <!-- /Main Wrapper -->
+    
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
+    
+    <script>
+        $(document).ready(function() {
+            const uploadArea = $('#uploadArea');
+            const fileInput = $('#pdfFile');
+            const uploadBtn = $('#uploadBtn');
+            const selectedFileInfo = $('#selectedFileInfo');
+            const progressContainer = $('#progressContainer');
+            
+            // Drag and drop functionality
+            uploadArea.on('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.addClass('dragover');
+            });
+            
+            uploadArea.on('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.removeClass('dragover');
+            });
+            
+            uploadArea.on('drop', function(e) {
+                e.preventDefault();
+                uploadArea.removeClass('dragover');
+                
+                const files = e.originalEvent.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type === 'application/pdf') {
+                        handleFileSelection(file);
+                        fileInput[0].files = files;
+                    } else {
+                        alert('Please select a PDF file only.');
+                    }
+                }
+            });
+            
+            // File input change
+            fileInput.on('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    handleFileSelection(file);
+                }
+            });
+            
+            // Click to browse
+            uploadArea.on('click', function() {
+                fileInput.click();
+            });
+            
+            function handleFileSelection(file) {
+                if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                    alert('File size must be less than 10MB.');
+                    return;
+                }
+                
+                $('#fileName').text(file.name);
+                $('#fileSize').text(formatFileSize(file.size));
+                selectedFileInfo.show();
+                uploadBtn.prop('disabled', false);
+            }
+            
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            window.removeFile = function() {
+                fileInput.val('');
+                selectedFileInfo.hide();
+                uploadBtn.prop('disabled', true);
+            }
+            
+            // Form submission with progress
+            $('#uploadForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                if (!fileInput[0].files.length) {
+                    alert('Please select a PDF file to upload.');
+                    return;
+                }
+                
+                const formData = new FormData(this);
+                
+                uploadBtn.prop('disabled', true).html('<i class="fe fe-loader"></i> Uploading...');
+                progressContainer.show();
+                
+                $.ajax({
+                    url: '{% url "upload-test-result" test.test_id %}',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    xhr: function() {
+                        const xhr = new window.XMLHttpRequest();
+                        xhr.upload.addEventListener('progress', function(e) {
+                            if (e.lengthComputable) {
+                                const percentComplete = (e.loaded / e.total) * 100;
+                                $('#uploadProgress').css('width', percentComplete + '%');
+                            }
+                        });
+                        return xhr;
+                    },
+                    success: function(response) {
+                        alert('Test result uploaded successfully!');
+                        window.location.href = '{% url "mypatient-list" %}';
+                    },
+                    error: function() {
+                        alert('Error uploading file. Please try again.');
+                        uploadBtn.prop('disabled', false).html('<i class="fe fe-upload"></i> Upload Result');
+                        progressContainer.hide();
+                    }
+                });
+            });
+        });
+    </script>
+    
+</body>
+</html>

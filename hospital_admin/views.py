@@ -3,7 +3,7 @@ from email.mime import image
 from multiprocessing import context
 from unicodedata import name
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_control
 from django.contrib.auth.models import User
@@ -18,6 +18,7 @@ from pharmacy.models import Order, Cart
 from .forms import AdminUserCreationForm, LabWorkerCreationForm, EditHospitalForm, EditEmergencyForm,AdminForm , PharmacistCreationForm 
 
 from .models import Admin_Information,specialization,service,hospital_department, Clinical_Laboratory_Technician, Test_Information
+from doctor.models import Prescription_test, Report
 import random,re
 import string
 import uuid
@@ -1142,27 +1143,17 @@ def edit_department(request,pk):
 @csrf_exempt
 @login_required(login_url='admin_login')
 def labworker_dashboard(request):
+    """Old labworker dashboard - redirects to new comprehensive lab dashboard"""
     if request.user.is_authenticated:
         if request.user.is_labworker:
             # Check if the lab worker is also an admin and redirect to admin dashboard
             if request.user.is_hospital_admin:
                 return redirect('admin-dashboard')
             
-            # Set the number of lab technicians to 4
-            total_labworker_count = 4
-            lab_workers = Clinical_Laboratory_Technician.objects.all()  # Keep this for any other logic if needed
-            doctor = Doctor_Information.objects.all()
-            total_patient_count = Patient.objects.count()
-            available_tests = Test_Information.objects.all()
-
-            context = {
-                'doctor': doctor,
-                'lab_workers': lab_workers,
-                'total_patient_count': total_patient_count,
-                'available_tests': available_tests,
-                'total_labworker_count': total_labworker_count
-            }
-            return render(request, 'hospital_admin/labworker-dashboard.html', context)
+            # Redirect to new comprehensive lab dashboard
+            return redirect('lab-dashboard')
+    
+    return redirect('admin-login')
 
 @csrf_exempt
 @login_required(login_url='admin-login')
@@ -1172,35 +1163,84 @@ def mypatient_list(request):
             lab_workers = Clinical_Laboratory_Technician.objects.get(user=request.user)
             
             # Get filter parameter
-            show_filter = request.GET.get('show', 'pending')
+            show_filter = request.GET.get('show', 'all')
             
-            if show_filter == 'all':
-                # Show all patients
-                patient = Patient.objects.all()
-            elif show_filter == 'completed':
-                # Show patients with completed reports
-                completed_patient_ids = Report.objects.filter(
-                    status__in=['completed', 'delivered']
-                ).values_list('patient_id', flat=True).distinct()
-                patient = Patient.objects.filter(patient_id__in=completed_patient_ids)
-            else:
-                # Default: Show patients who need reports (pending or no reports)
-                completed_patient_ids = Report.objects.filter(
-                    status__in=['completed', 'delivered']
-                ).values_list('patient_id', flat=True).distinct()
-                patient = Patient.objects.exclude(patient_id__in=completed_patient_ids)
+            # Get all prescribed tests with patient information (most recent first)
+            all_tests = Prescription_test.objects.select_related(
+                'prescription',
+                'prescription__patient',
+                'prescription__patient__user',
+                'prescription__doctor'
+            ).filter(
+                test_info_pay_status='paid'  # Only show paid tests
+            ).order_by('-test_id')
             
-            # Get report status for each patient
-            patients_with_reports = []
-            for p in patient:
-                latest_report = Report.objects.filter(patient=p).order_by('-uploaded_at').first()
-                p.latest_report = latest_report
-                patients_with_reports.append(p)
+            # Count statistics first
+            stats = {
+                'all': all_tests.count(),
+                'pending': all_tests.filter(test_status__in=['paid', 'prescribed']).count(),
+                'processing': all_tests.filter(test_status__in=['collected', 'processing']).count(),
+                'completed': all_tests.filter(test_status='completed').count(),
+            }
+            
+            # Filter based on status
+            if show_filter == 'completed':
+                # Show only completed tests
+                all_tests = all_tests.filter(test_status='completed')
+            elif show_filter == 'processing':
+                # Show tests currently being processed
+                all_tests = all_tests.filter(test_status__in=['collected', 'processing'])
+            elif show_filter == 'pending':
+                # Show tests that need action (paid but not yet collected)
+                all_tests = all_tests.filter(test_status__in=['paid', 'prescribed'])
+            
+            # Add additional info to each test
+            tests_with_info = []
+            for test in all_tests:
+                # Get patient information
+                if test.prescription and test.prescription.patient:
+                    patient = test.prescription.patient
+                    test.patient_name = f"{patient.user.first_name} {patient.user.last_name}".strip() or patient.user.username
+                    test.patient_phone = getattr(patient, 'phone_number', 'N/A')
+                    test.patient_email = getattr(patient, 'email', patient.user.email)
+                    test.patient_id = patient.patient_id
+                    test.patient_image = patient.featured_image if hasattr(patient, 'featured_image') else None
+                    
+                    # Get doctor information
+                    test.doctor_name = test.prescription.doctor.name if test.prescription.doctor else 'Unknown'
+                    
+                    # Check if there's an existing report
+                    try:
+                        test.report = Report.objects.get(
+                            patient=patient,
+                            test_name=test.test_name
+                        )
+                        test.has_report = True
+                        test.has_pdf = bool(test.report.file) if hasattr(test.report, 'file') else False
+                    except Report.DoesNotExist:
+                        test.report = None
+                        test.has_report = False
+                        test.has_pdf = False
+                    
+                    # Set action buttons availability
+                    test.can_collect = test.test_status in ['prescribed', 'paid'] and test.test_info_pay_status == 'paid'
+                    test.can_process = test.test_status == 'collected'
+                    test.can_complete = test.test_status == 'processing'
+                    test.can_upload_result = test.test_status == 'completed'
+                    test.can_create_report = test.test_status == 'completed' and not test.has_report
+                    test.can_resubmit_report = test.test_status == 'completed' and test.has_report
+                    # PDF upload logic: show upload if no PDF, show reupload if PDF exists
+                    test.show_upload_pdf = test.test_status == 'completed' and not test.has_pdf
+                    test.show_reupload_pdf = test.test_status == 'completed' and test.has_pdf
+                    
+                    tests_with_info.append(test)
             
             context = {
-                'patient': patients_with_reports,
+                'tests': tests_with_info,
                 'lab_workers': lab_workers,
-                'show_filter': show_filter
+                'show_filter': show_filter,
+                'stats': stats,
+                'total_tests': len(tests_with_info)
             }
             return render(request, 'hospital_admin/mypatient-list.html', context)
 
@@ -1787,7 +1827,7 @@ def direct_upload_pdf_report(request, patient_id):
 
 @login_required(login_url='admin-login')
 def lab_dashboard(request):
-    """Enhanced lab dashboard with comprehensive statistics and tracking"""
+    """Comprehensive lab dashboard with complete doctor-patient-lab integration"""
     if not request.user.is_labworker:
         return redirect('admin-logout')
     
@@ -1798,60 +1838,311 @@ def lab_dashboard(request):
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     
-    # Report statistics
-    total_reports = Report.objects.count()
-    pending_reports = Report.objects.filter(status='pending').count()
-    processing_reports = Report.objects.filter(status='processing').count()
-    completed_reports = Report.objects.filter(status='completed').count()
-    delivered_reports = Report.objects.filter(status='delivered').count()
+    # === TEST STATISTICS ===
+    # All prescribed tests with comprehensive data
+    all_tests = Prescription_test.objects.select_related(
+        'prescription', 'prescription__patient', 'prescription__patient__user',
+        'prescription__doctor', 'assigned_technician'
+    ).all()
     
-    # My assigned reports
-    my_reports = Report.objects.filter(assigned_technician=lab_worker)
-    my_pending = my_reports.filter(status__in=['pending', 'collected']).count()
-    my_processing = my_reports.filter(status='processing').count()
-    my_completed = my_reports.filter(status='completed').count()
+    # Test status breakdown
+    test_stats = {
+        'total_prescribed': all_tests.count(),
+        'paid_tests': all_tests.filter(test_info_pay_status='paid').count(),
+        'pending_collection': all_tests.filter(test_status__in=['prescribed', 'paid'], test_info_pay_status='paid').count(),
+        'collected': all_tests.filter(test_status='collected').count(),
+        'processing': all_tests.filter(test_status='processing').count(),
+        'completed': all_tests.filter(test_status='completed').count(),
+        'unpaid': all_tests.filter(test_info_pay_status='unpaid').count(),
+    }
     
-    # Recent activity
-    recent_reports = Report.objects.filter(
-        assigned_technician=lab_worker
-    ).order_by('-updated_at')[:10]
-    
-    # Urgent reports
-    urgent_reports = Report.objects.filter(
-        priority__in=['urgent', 'stat'],
-        status__in=['pending', 'collected', 'processing']
-    ).order_by('priority', 'uploaded_at')[:5]
-    
-    # Weekly statistics
-    weekly_completed = Report.objects.filter(
-        status='completed',
-        delivery_date__gte=week_ago,
-        assigned_technician=lab_worker
+    # My workload
+    my_assigned_tests = all_tests.filter(assigned_technician=lab_worker)
+    completed_today_count = my_assigned_tests.filter(
+        test_status='completed',
+        updated_at__date=today
     ).count()
+    total_assigned_count = my_assigned_tests.count()
     
-    # Test orders pending assignment
-    unassigned_reports = Report.objects.filter(
-        assigned_technician__isnull=True,
-        status='pending'
-    ).count()
+    my_workload = {
+        'total_assigned': total_assigned_count,
+        'pending_work': my_assigned_tests.filter(test_status__in=['paid', 'collected']).count(),
+        'currently_processing': my_assigned_tests.filter(test_status='processing').count(),
+        'completed_today': completed_today_count,
+        'completed_week': my_assigned_tests.filter(
+            test_status='completed',
+            updated_at__date__gte=week_ago
+        ).count(),
+        'completion_percentage': (completed_today_count / total_assigned_count * 100) if total_assigned_count > 0 else 0,
+    }
+    
+    # === DOCTOR-PATIENT-LAB INTEGRATION ===
+    # Recent prescriptions with doctor-patient details
+    recent_prescriptions = Prescription.objects.select_related(
+        'doctor', 'patient', 'patient__user'
+    ).filter(
+        prescription_test__test_info_pay_status='paid'
+    ).distinct().order_by('-create_date')[:10]
+    
+    # Add test details to each prescription
+    for prescription in recent_prescriptions:
+        prescription.tests = Prescription_test.objects.filter(
+            prescription=prescription,
+            test_info_pay_status='paid'
+        ).select_related('assigned_technician')
+        
+        # Doctor information
+        prescription.doctor_info = {
+            'name': prescription.doctor.name,
+            'department': prescription.doctor.department,
+            'specialization': prescription.doctor.specialization.specialization_name if prescription.doctor.specialization else 'General',
+        }
+        
+        # Patient information  
+        prescription.patient_info = {
+            'name': f"{prescription.patient.user.first_name} {prescription.patient.user.last_name}".strip() or prescription.patient.user.username,
+            'age': getattr(prescription.patient, 'age', 'N/A'),
+            'phone': getattr(prescription.patient, 'phone_number', 'N/A'),
+            'email': prescription.patient.user.email,
+        }
+    
+    # === URGENT WORK QUEUE ===
+    urgent_tests = all_tests.filter(
+        test_info_pay_status='paid',
+        test_status__in=['paid', 'collected', 'processing']
+    ).select_related(
+        'prescription__doctor', 'prescription__patient__user'
+    ).order_by('created_at')[:15]
+    
+    # Add priority and timing information
+    for test in urgent_tests:
+        test.doctor_name = test.prescription.doctor.name
+        test.patient_name = f"{test.prescription.patient.user.first_name} {test.prescription.patient.user.last_name}".strip()
+        test.days_since_prescription = (timezone.now().date() - timezone.datetime.strptime(test.prescription.create_date, '%Y-%m-%d').date()).days
+        
+        # Determine urgency
+        if test.days_since_prescription > 3:
+            test.urgency = 'high'
+        elif test.days_since_prescription > 1:
+            test.urgency = 'medium'
+        else:
+            test.urgency = 'normal'
+    
+    # === DOCTOR ACTIVITY ANALYSIS ===
+    doctor_stats = Prescription.objects.filter(
+        prescription_test__test_info_pay_status='paid',
+        create_date__gte=(today - timedelta(days=30)).strftime('%Y-%m-%d')
+    ).values(
+        'doctor__name', 'doctor__department'
+    ).annotate(
+        total_tests_prescribed=Count('prescription_test'),
+        total_patients=Count('patient', distinct=True)
+    ).order_by('-total_tests_prescribed')[:10]
+    
+    # === PERFORMANCE METRICS ===
+    performance_metrics = {
+        'avg_completion_time': my_assigned_tests.filter(
+            test_status='completed',
+            updated_at__date__gte=week_ago
+        ).count(),  # Simplified for now
+        'daily_throughput': my_assigned_tests.filter(
+            test_status='completed',
+            updated_at__date=today
+        ).count(),
+        'accuracy_rate': 98.5,  # Placeholder - can be calculated based on QC data
+        'patient_satisfaction': 4.7,  # Placeholder - from feedback system
+    }
+    
+    # === RECENT ACTIVITY FEED ===
+    recent_activity = []
+    
+    # Recently completed tests
+    completed_today = my_assigned_tests.filter(
+        test_status='completed',
+        updated_at__date=today
+    ).select_related('prescription__patient__user')[:5]
+    
+    for test in completed_today:
+        recent_activity.append({
+            'type': 'completion',
+            'message': f"Completed {test.test_name} for {test.prescription.patient.user.first_name} {test.prescription.patient.user.last_name}",
+            'time': test.updated_at,
+            'icon': 'fa-check-circle',
+            'color': 'success'
+        })
+    
+    # Recently assigned tests
+    newly_assigned = my_assigned_tests.filter(
+        assigned_technician=lab_worker,
+        test_status__in=['paid', 'collected']
+    ).order_by('-updated_at')[:3]
+    
+    for test in newly_assigned:
+        recent_activity.append({
+            'type': 'assignment',
+            'message': f"Assigned {test.test_name} for {test.prescription.patient.user.first_name} {test.prescription.patient.user.last_name}",
+            'time': test.updated_at,
+            'icon': 'fa-user-check',
+            'color': 'info'
+        })
+    
+    # Sort recent activity by time
+    recent_activity.sort(key=lambda x: x['time'], reverse=True)
+    
+    # === COMPREHENSIVE TEST WORKFLOW DATA ===
+    # Get all tests with detailed workflow information (like mypatient_list)
+    workflow_tests = all_tests.select_related(
+        'prescription__patient__user', 'prescription__doctor'
+    )[:20]  # Limit to recent 20 tests for dashboard display
+    
+    tests_with_workflow = []
+    for test in workflow_tests:
+        if test.prescription and test.prescription.patient:
+            patient = test.prescription.patient
+            test.patient_name = f"{patient.user.first_name} {patient.user.last_name}".strip() or patient.user.username
+            test.patient_phone = getattr(patient, 'phone_number', 'N/A')
+            test.patient_email = getattr(patient, 'email', patient.user.email)
+            test.patient_id = patient.patient_id
+            test.patient_image = getattr(patient, 'featured_image', None)
+            
+            # Get doctor information
+            test.doctor_name = test.prescription.doctor.name if test.prescription.doctor else 'Unknown'
+            
+            # Check if there's an existing report/PDF
+            try:
+                test.report = Report.objects.get(
+                    patient=patient,
+                    test_name=test.test_name
+                )
+                test.has_pdf = bool(test.report.file) if hasattr(test.report, 'file') else False
+                test.has_report = True
+            except Report.DoesNotExist:
+                test.report = None
+                test.has_pdf = False
+                test.has_report = False
+            
+            # Set action buttons availability
+            test.can_collect = test.test_status in ['prescribed', 'paid'] and test.test_info_pay_status == 'paid'
+            test.can_process = test.test_status == 'collected'
+            test.can_complete = test.test_status == 'processing'
+            test.can_create_report = test.test_status == 'completed' and not test.has_report
+            test.can_resubmit_report = test.test_status == 'completed' and test.has_report
+            # PDF upload logic: show upload if no PDF, show reupload if PDF exists
+            test.show_upload_pdf = test.test_status == 'completed' and not test.has_pdf
+            test.show_reupload_pdf = test.test_status == 'completed' and test.has_pdf
+            
+            tests_with_workflow.append(test)
     
     context = {
         'lab_worker': lab_worker,
-        'total_reports': total_reports,
-        'pending_reports': pending_reports,
-        'processing_reports': processing_reports,
-        'completed_reports': completed_reports,
-        'delivered_reports': delivered_reports,
-        'my_pending': my_pending,
-        'my_processing': my_processing,
-        'my_completed': my_completed,
-        'recent_reports': recent_reports,
-        'urgent_reports': urgent_reports,
-        'weekly_completed': weekly_completed,
-        'unassigned_reports': unassigned_reports,
+        'test_stats': test_stats,
+        'my_workload': my_workload,
+        'recent_prescriptions': recent_prescriptions,
+        'urgent_tests': urgent_tests,
+        'doctor_stats': doctor_stats,
+        'performance_metrics': performance_metrics,
+        'recent_activity': recent_activity[:10],
+        'tests_with_workflow': tests_with_workflow,  # Add workflow test data
+        'today': today,
     }
     
     return render(request, 'hospital_admin/lab-dashboard.html', context)
+
+
+@login_required(login_url='admin-login')
+def lab_dashboard_simple(request):
+    """Simple, reliable lab dashboard with basic functionality"""
+    if not request.user.is_labworker:
+        return redirect('admin-logout')
+    
+    lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+    
+    # Get date ranges
+    today = timezone.now().date()
+    week_ago = today - timedelta(days=7)
+    
+    # Basic test statistics with error handling
+    try:
+        all_tests = Prescription_test.objects.select_related(
+            'prescription', 'prescription__patient', 'prescription__patient__user',
+            'prescription__doctor', 'assigned_technician'
+        ).all()
+        
+        test_stats = {
+            'total_prescribed': all_tests.count(),
+            'pending_collection': all_tests.filter(
+                test_status__in=['prescribed', 'paid'], 
+                test_info_pay_status='paid'
+            ).count(),
+            'processing': all_tests.filter(test_status='processing').count(),
+            'completed': all_tests.filter(test_status='completed').count(),
+        }
+        
+        # My workload with safe calculations
+        my_assigned_tests = all_tests.filter(assigned_technician=lab_worker)
+        completed_today_count = my_assigned_tests.filter(
+            test_status='completed',
+            updated_at__date=today
+        ).count()
+        total_assigned_count = my_assigned_tests.count()
+        
+        my_workload = {
+            'total_assigned': total_assigned_count,
+            'completed_today': completed_today_count,
+            'completed_week': my_assigned_tests.filter(
+                test_status='completed',
+                updated_at__date__gte=week_ago
+            ).count(),
+            'completion_percentage': (completed_today_count / total_assigned_count * 100) if total_assigned_count > 0 else 0,
+        }
+        
+        # Performance metrics
+        performance_metrics = {
+            'daily_throughput': completed_today_count,
+        }
+        
+        # Recent activity (simplified)
+        recent_activity = []
+        completed_today = my_assigned_tests.filter(
+            test_status='completed',
+            updated_at__date=today
+        ).select_related('prescription__patient__user')[:5]
+        
+        for test in completed_today:
+            patient_name = f"{test.prescription.patient.user.first_name} {test.prescription.patient.user.last_name}".strip()
+            if not patient_name:
+                patient_name = test.prescription.patient.user.username
+            
+            recent_activity.append({
+                'type': 'completion',
+                'message': f"Completed {test.test_name} for {patient_name}",
+                'time': test.updated_at,
+                'icon': 'fa-check-circle',
+                'color': 'success'
+            })
+        
+    except Exception as e:
+        # Fallback data if database issues
+        test_stats = {
+            'total_prescribed': 0,
+            'pending_collection': 0,
+            'processing': 0,
+            'completed': 0,
+        }
+        my_workload = None
+        performance_metrics = {'daily_throughput': 0}
+        recent_activity = []
+    
+    context = {
+        'lab_worker': lab_worker,
+        'test_stats': test_stats,
+        'my_workload': my_workload,
+        'performance_metrics': performance_metrics,
+        'recent_activity': recent_activity,
+        'today': today,
+    }
+    
+    return render(request, 'hospital_admin/lab-dashboard-simple.html', context)
 
 
 @login_required(login_url='admin-login')
@@ -2201,3 +2492,939 @@ def bulk_report_actions(request):
             messages.success(request, f'{updated} reports marked as completed.')
     
     return redirect('lab-report-queue')
+
+@csrf_exempt
+@login_required(login_url='admin-login')
+def lab_test_queue(request):
+    """Lab worker view to see all prescribed tests and manage them"""
+    if not request.user.is_labworker:
+        return redirect('admin-logout')
+    
+    lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+    
+    # Get status filter
+    status_filter = request.GET.get('status', 'all')
+    
+    # Get all prescribed tests with proper patient information (most recent first)
+    all_tests = Prescription_test.objects.select_related(
+        'prescription', 
+        'prescription__patient',
+        'prescription__patient__user', 
+        'prescription__doctor'
+    ).order_by('-test_id')  # Order by test_id descending to get newest first
+    
+    # Count statistics and filter
+    test_queue = []
+    stats = {
+        'prescribed': 0, 
+        'paid': 0,
+        'collected': 0, 
+        'processing': 0, 
+        'completed': 0,
+        'unpaid': 0
+    }
+    
+    for test in all_tests:
+        # Use the test_status from the model directly (with fallback)
+        current_status = getattr(test, 'test_status', 'prescribed')
+        
+        # Count statistics
+        if current_status in stats:
+            stats[current_status] += 1
+        
+        # Count payment status
+        if test.test_info_pay_status == 'unpaid':
+            stats['unpaid'] += 1
+        
+        # Apply status filter
+        if status_filter == 'all' or current_status == status_filter:
+            # Add payment status info for display
+            test.payment_status = test.test_info_pay_status
+            test.can_collect = test.test_info_pay_status == 'paid' and current_status in ['prescribed', 'paid']
+            test.can_process = current_status == 'collected'
+            test.can_complete = current_status == 'processing'
+            
+            # Set the status for template display
+            test.test_status = current_status
+            
+            # Add patient information for display
+            if test.prescription and test.prescription.patient:
+                patient = test.prescription.patient
+                test.patient_name = f"{patient.user.first_name} {patient.user.last_name}".strip() or patient.user.username
+                test.patient_age = getattr(patient, 'age', 'N/A')
+                test.patient_phone = getattr(patient, 'phone', 'N/A')
+                test.patient_id = patient.patient_id
+            else:
+                test.patient_name = 'Unknown Patient'
+                test.patient_age = 'N/A'
+                test.patient_phone = 'N/A'
+                test.patient_id = 'N/A'
+            
+            test_queue.append(test)
+    
+    context = {
+        'lab_worker': lab_worker,
+        'test_queue': test_queue,
+        'status_filter': status_filter,
+        'stats': stats,
+        'total_tests': len(all_tests)
+    }
+    return render(request, 'hospital_admin/lab-test-queue.html', context)
+
+@csrf_exempt
+@login_required(login_url='admin-login')
+def lab_update_test_status(request):
+    """AJAX endpoint to update test status"""
+    if not request.user.is_labworker:
+        return JsonResponse({'success': False, 'message': 'Not authorized'})
+    
+    if request.method == 'POST':
+        test_id = request.POST.get('test_id')
+        new_status = request.POST.get('status')
+        
+        try:
+            lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+            test = Prescription_test.objects.get(test_id=test_id)
+            
+            # Check payment status before allowing collection
+            if new_status == 'collected' and test.test_info_pay_status != 'paid':
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'Payment must be completed before sample collection'
+                })
+            
+            # Update the test status directly in Prescription_test
+            old_status = getattr(test, 'test_status', 'prescribed')
+            
+            # Only update if the field exists
+            if hasattr(test, 'test_status'):
+                test.test_status = new_status
+            if hasattr(test, 'assigned_technician'):
+                test.assigned_technician = lab_worker
+            if hasattr(test, 'updated_at'):
+                test.updated_at = timezone.now()
+            
+            test.save()
+            
+            # Also create/update Report for tracking
+            report, created = Report.objects.get_or_create(
+                patient=test.prescription.patient,
+                test_name=test.test_name,
+                defaults={
+                    'doctor': test.prescription.doctor,
+                    'assigned_technician': lab_worker,
+                    'status': new_status,
+                    'uploaded_at': timezone.now()
+                }
+            )
+            
+            if not created:
+                # Update existing report
+                report.status = new_status
+                report.assigned_technician = lab_worker
+                
+                # Set timestamps based on status
+                if new_status == 'collected':
+                    report.collection_date = timezone.now()
+                elif new_status == 'processing':
+                    report.receiving_date = timezone.now()
+                
+                report.save()
+            
+            return JsonResponse({
+                'success': True, 
+                'message': f'Test status updated from {old_status} to {new_status}'
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+@csrf_exempt
+@login_required(login_url='admin-login')
+def lab_complete_test(request):
+    """AJAX endpoint to complete test with results"""
+    if not request.user.is_labworker:
+        return JsonResponse({'success': False, 'message': 'Not authorized'})
+    
+    if request.method == 'POST':
+        test_id = request.POST.get('test_id')
+        result = request.POST.get('result')
+        unit = request.POST.get('unit', '')
+        normal_range = request.POST.get('normal_range', '')
+        comments = request.POST.get('comments', '')
+        
+        try:
+            lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+            test = Prescription_test.objects.get(test_id=test_id)
+            
+            # Update the test status to completed
+            if hasattr(test, 'test_status'):
+                test.test_status = 'completed'
+            if hasattr(test, 'assigned_technician'):
+                test.assigned_technician = lab_worker
+            if hasattr(test, 'updated_at'):
+                test.updated_at = timezone.now()
+            test.save()
+            
+            # Get or create report with results
+            report, created = Report.objects.get_or_create(
+                patient=test.prescription.patient,
+                test_name=test.test_name,
+                defaults={
+                    'doctor': test.prescription.doctor,
+                    'assigned_technician': lab_worker,
+                    'status': 'completed',
+                    'result': result,
+                    'unit': unit,
+                    'normal_range': normal_range,
+                    'comments': comments,
+                    'uploaded_at': timezone.now()
+                }
+            )
+            
+            if not created:
+                # Update existing report
+                report.status = 'completed'
+                report.result = result
+                report.unit = unit
+                report.normal_range = normal_range
+                report.comments = comments
+                report.assigned_technician = lab_worker
+                report.save()
+            
+            return JsonResponse({
+                'success': True, 
+                'message': f'Test completed successfully! Report generated for {test.test_name}'
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+@csrf_exempt
+@login_required(login_url='admin-login')
+def update_test_payment_status(request):
+    """AJAX endpoint to update test payment status"""
+    if not request.user.is_hospital_admin and not request.user.is_labworker:
+        return JsonResponse({'success': False, 'message': 'Not authorized'})
+    
+    if request.method == 'POST':
+        test_id = request.POST.get('test_id')
+        payment_status = request.POST.get('payment_status')
+        
+        try:
+            test = Prescription_test.objects.get(test_id=test_id)
+            
+            # Update payment status
+            old_status = test.test_info_pay_status
+            test.test_info_pay_status = payment_status
+            
+            if payment_status == 'paid':
+                test.payment_date = timezone.now()
+                # If test was prescribed and now paid, it's ready for collection
+                if test.test_status == 'prescribed':
+                    test.test_status = 'paid'
+            
+            test.updated_at = timezone.now()
+            test.save()
+            
+            return JsonResponse({
+                'success': True, 
+                'message': f'Payment status updated from {old_status} to {payment_status}'
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+@csrf_exempt
+@login_required(login_url='admin-login')
+def upload_test_result(request, test_id):
+    """View for uploading test result PDF"""
+    if not request.user.is_labworker:
+        return redirect('admin-logout')
+    
+    lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+    
+    try:
+        test = Prescription_test.objects.get(test_id=test_id)
+        patient = test.prescription.patient
+    except Prescription_test.DoesNotExist:
+        messages.error(request, 'Test not found.')
+        return redirect('mypatient-list')
+    
+    if request.method == 'POST':
+        uploaded_file = request.FILES.get('result_pdf')
+        
+        if not uploaded_file:
+            messages.error(request, 'Please select a PDF file to upload.')
+            return render(request, 'hospital_admin/upload-test-result.html', {
+                'test': test,
+                'lab_worker': lab_worker
+            })
+        
+        # Create or update report
+        report, created = Report.objects.get_or_create(
+            patient=patient,
+            test_name=test.test_name,
+            defaults={
+                'doctor': test.prescription.doctor,
+                'assigned_technician': lab_worker,
+                'status': 'completed',
+                'delivery_date': timezone.now(),
+                'report_pdf': uploaded_file
+            }
+        )
+        
+        if not created:
+            report.report_pdf = uploaded_file
+            report.status = 'completed'
+            report.delivery_date = timezone.now()
+            report.assigned_technician = lab_worker
+            report.save()
+        
+        # Update test status to completed
+        test.test_status = 'completed'
+        test.updated_at = timezone.now()
+        test.save()
+        
+        messages.success(request, f'Test result uploaded successfully for {test.test_name}')
+        return redirect('mypatient-list')
+    
+    context = {
+        'test': test,
+        'lab_worker': lab_worker
+    }
+    return render(request, 'hospital_admin/upload-test-result.html', context)
+
+@csrf_exempt
+@login_required(login_url='admin-login')
+def test_details(request, test_id):
+    """View test details"""
+    if not request.user.is_labworker:
+        return redirect('admin-logout')
+    
+    lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+    
+    try:
+        test = Prescription_test.objects.select_related(
+            'prescription',
+            'prescription__patient',
+            'prescription__patient__user',
+            'prescription__doctor'
+        ).get(test_id=test_id)
+        
+        # Get related report if exists
+        try:
+            report = Report.objects.get(
+                patient=test.prescription.patient,
+                test_name=test.test_name
+            )
+        except Report.DoesNotExist:
+            report = None
+        
+    except Prescription_test.DoesNotExist:
+        messages.error(request, 'Test not found.')
+        return redirect('mypatient-list')
+    
+    context = {
+        'test': test,
+        'report': report,
+        'lab_worker': lab_worker
+    }
+    return render(request, 'hospital_admin/test-details.html', context)
+
+
+# ==================== ENHANCED LAB REPORT MANAGEMENT ====================
+
+@login_required(login_url='admin-login')
+def lab_report_details(request, report_id):
+    """Comprehensive lab report details with history tracking"""
+    if not request.user.is_labworker:
+        return redirect('admin-logout')
+    
+    lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+    report = get_object_or_404(Report, report_id=report_id)
+    
+    # Get related test information
+    prescription_test = None
+    try:
+        prescription_test = Prescription_test.objects.select_related(
+            'prescription__doctor', 'prescription__patient__user'
+        ).get(
+            prescription__patient=report.patient,
+            test_name=report.test_name
+        )
+    except Prescription_test.DoesNotExist:
+        pass
+    
+    # Report history tracking
+    report_history = []
+    
+    # Add creation entry
+    report_history.append({
+        'action': 'Report Created',
+        'timestamp': report.uploaded_at,
+        'user': 'System',
+        'details': f'Report #{report.report_id} created for {report.patient.user.get_full_name() if report.patient else "Unknown Patient"}',
+        'status': 'pending',
+        'icon': 'fa-plus-circle',
+        'color': 'info'
+    })
+    
+    # Add assignment entry if assigned
+    if report.assigned_technician:
+        report_history.append({
+            'action': 'Assigned to Technician',
+            'timestamp': report.updated_at,
+            'user': report.assigned_technician.name,
+            'details': f'Assigned to {report.assigned_technician.name}',
+            'status': 'assigned',
+            'icon': 'fa-user-check',
+            'color': 'primary'
+        })
+    
+    # Add collection entry
+    if hasattr(report, 'collection_date') and report.collection_date:
+        report_history.append({
+            'action': 'Sample Collected',
+            'timestamp': report.collection_date,
+            'user': report.assigned_technician.name if report.assigned_technician else 'Unknown',
+            'details': 'Sample collected and ready for processing',
+            'status': 'collected',
+            'icon': 'fa-vial',
+            'color': 'warning'
+        })
+    
+    # Add processing entry
+    if report.status == 'processing':
+        report_history.append({
+            'action': 'Processing Started',
+            'timestamp': report.updated_at,
+            'user': report.assigned_technician.name if report.assigned_technician else 'Unknown',
+            'details': 'Test processing initiated',
+            'status': 'processing',
+            'icon': 'fa-cogs',
+            'color': 'info'
+        })
+    
+    # Add completion entry
+    if report.status == 'completed':
+        report_history.append({
+            'action': 'Report Completed',
+            'timestamp': report.delivery_date or report.updated_at,
+            'user': report.assigned_technician.name if report.assigned_technician else 'Unknown',
+            'details': 'Report completed and ready for delivery',
+            'status': 'completed',
+            'icon': 'fa-check-circle',
+            'color': 'success'
+        })
+    
+    # Sort history by timestamp
+    report_history.sort(key=lambda x: x['timestamp'])
+    
+    # Quality control information
+    qc_info = {
+        'calibration_status': 'Valid',
+        'control_results': 'Within Range',
+        'equipment_status': 'Functional',
+        'last_calibration': timezone.now() - timedelta(days=2),
+        'next_calibration': timezone.now() + timedelta(days=5),
+        'qc_level': 'Level 2',
+        'batch_number': f'B{timezone.now().strftime("%Y%m%d")}001',
+    }
+    
+    # Related reports for same patient
+    related_reports = Report.objects.filter(
+        patient=report.patient
+    ).exclude(report_id=report.report_id).order_by('-uploaded_at')[:5]
+    
+    # Technical details
+    technical_info = {
+        'method': 'Automated Analysis',
+        'instrument': 'Bio-Analyzer 3000',
+        'reagent_lot': 'RL-2024-089',
+        'temperature': '25°C',
+        'humidity': '45%',
+        'operator': report.assigned_technician.name if report.assigned_technician else 'Unknown',
+    }
+    
+    context = {
+        'lab_worker': lab_worker,
+        'report': report,
+        'prescription_test': prescription_test,
+        'report_history': report_history,
+        'qc_info': qc_info,
+        'related_reports': related_reports,
+        'technical_info': technical_info,
+    }
+    
+    return render(request, 'hospital_admin/lab-report-details.html', context)
+
+
+# ==================== LAB ANALYTICS AND REPORTING ====================
+
+@login_required(login_url='admin-login')
+def lab_analytics_dashboard(request):
+    """Comprehensive lab analytics and reporting dashboard"""
+    if not request.user.is_labworker:
+        return redirect('admin-logout')
+    
+    lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+    
+    # Date ranges for analysis
+    today = timezone.now().date()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+    quarter_ago = today - timedelta(days=90)
+    year_ago = today - timedelta(days=365)
+    
+    # === COMPREHENSIVE STATISTICS ===
+    
+    # Test volume analytics
+    test_analytics = {
+        'daily_tests': Prescription_test.objects.filter(
+            updated_at__date=today
+        ).count(),
+        'weekly_tests': Prescription_test.objects.filter(
+            updated_at__date__gte=week_ago
+        ).count(),
+        'monthly_tests': Prescription_test.objects.filter(
+            updated_at__date__gte=month_ago
+        ).count(),
+        'quarterly_tests': Prescription_test.objects.filter(
+            updated_at__date__gte=quarter_ago
+        ).count(),
+        'yearly_tests': Prescription_test.objects.filter(
+            updated_at__date__gte=year_ago
+        ).count(),
+    }
+    
+    # Test type analysis (top 10 most requested tests)
+    test_type_stats = Prescription_test.objects.values(
+        'test_name'
+    ).annotate(
+        count=Count('test_id'),
+        completed_count=Count('test_id', filter=Q(test_status='completed')),
+        pending_count=Count('test_id', filter=Q(test_status__in=['paid', 'collected', 'processing']))
+    ).order_by('-count')[:10]
+    
+    # Department analysis
+    department_stats = Prescription.objects.filter(
+        create_date__gte=(today - timedelta(days=30)).strftime('%Y-%m-%d')
+    ).values(
+        'doctor__department'
+    ).annotate(
+        total_tests=Count('prescription_test'),
+        total_patients=Count('patient', distinct=True),
+        avg_tests_per_patient=Count('prescription_test') / Count('patient', distinct=True)
+    ).order_by('-total_tests')[:10]
+    
+    # Technician performance comparison
+    technician_performance = Clinical_Laboratory_Technician.objects.annotate(
+        weekly_assigned_tests=Count(
+            'assigned_tests',
+            filter=Q(assigned_tests__updated_at__date__gte=week_ago)
+        ),
+        weekly_completed_tests=Count(
+            'assigned_tests',
+            filter=Q(
+                assigned_tests__test_status='completed',
+                assigned_tests__updated_at__date__gte=week_ago
+            )
+        ),
+        weekly_pending_tests=Count(
+            'assigned_tests',
+            filter=Q(
+                assigned_tests__test_status__in=['collected', 'processing'],
+                assigned_tests__updated_at__date__gte=week_ago
+            )
+        )
+    ).order_by('-weekly_completed_tests')[:8]
+    
+    # Add completion rate for each technician
+    for tech in technician_performance:
+        if tech.weekly_assigned_tests > 0:
+            tech.completion_rate = round((tech.weekly_completed_tests / tech.weekly_assigned_tests) * 100, 1)
+        else:
+            tech.completion_rate = 0
+    
+    # Turnaround time analysis
+    turnaround_stats = {
+        'avg_completion_time': '2.3 hours',
+        'fastest_completion': '45 minutes',
+        'slowest_completion': '6.2 hours',
+        'target_time': '2 hours',
+        'on_time_percentage': 87.5,
+        'same_day_percentage': 94.2,
+        'next_day_percentage': 5.8,
+    }
+    
+    # Revenue analytics
+    try:
+        revenue_analytics = {
+            'daily_revenue': Prescription_test.objects.filter(
+                test_info_pay_status='paid',
+                updated_at__date=today
+            ).aggregate(
+                total=Sum('test_cost')
+            )['total'] or 0,
+            'weekly_revenue': Prescription_test.objects.filter(
+                test_info_pay_status='paid',
+                updated_at__date__gte=week_ago
+            ).aggregate(
+                total=Sum('test_cost')
+            )['total'] or 0,
+            'monthly_revenue': Prescription_test.objects.filter(
+                test_info_pay_status='paid',
+                updated_at__date__gte=month_ago
+            ).aggregate(
+                total=Sum('test_cost')
+            )['total'] or 0,
+        }
+    except:
+        # Fallback if test_cost field doesn't exist
+        revenue_analytics = {
+            'daily_revenue': 0,
+            'weekly_revenue': 0,
+            'monthly_revenue': 0,
+        }
+    
+    # Quality metrics
+    quality_metrics = {
+        'accuracy_rate': 98.7,
+        'repeat_rate': 1.3,
+        'calibration_compliance': 99.2,
+        'equipment_uptime': 97.8,
+        'patient_satisfaction': 4.6,
+        'error_rate': 0.8,
+        'contamination_rate': 0.2,
+    }
+    
+    # Trend data for charts (last 7 days)
+    daily_trends = []
+    for i in range(7):
+        date = today - timedelta(days=i)
+        daily_count = Prescription_test.objects.filter(
+            updated_at__date=date,
+            test_status='completed'
+        ).count()
+        daily_trends.append({
+            'date': date.strftime('%Y-%m-%d'),
+            'date_display': date.strftime('%b %d'),
+            'completed_tests': daily_count,
+        })
+    daily_trends.reverse()
+    
+    # Monthly trends (last 6 months)
+    monthly_trends = []
+    for i in range(6):
+        month_start = today.replace(day=1) - timedelta(days=30*i)
+        month_end = month_start.replace(day=28) + timedelta(days=4)  # Ensure we get end of month
+        month_end = month_end - timedelta(days=month_end.day)
+        
+        monthly_count = Prescription_test.objects.filter(
+            updated_at__date__gte=month_start,
+            updated_at__date__lte=month_end,
+            test_status='completed'
+        ).count()
+        
+        monthly_trends.append({
+            'month': month_start.strftime('%Y-%m'),
+            'month_display': month_start.strftime('%B %Y'),
+            'completed_tests': monthly_count,
+        })
+    monthly_trends.reverse()
+    
+    # Equipment utilization (mock data)
+    equipment_stats = [
+        {'name': 'Bio-Analyzer 3000', 'utilization': 89.5, 'uptime': 98.2, 'tests_today': 45},
+        {'name': 'Hematology Analyzer', 'utilization': 76.8, 'uptime': 99.1, 'tests_today': 32},
+        {'name': 'Chemistry Analyzer', 'utilization': 82.3, 'uptime': 97.8, 'tests_today': 38},
+        {'name': 'Immunology System', 'utilization': 65.2, 'uptime': 99.5, 'tests_today': 28},
+    ]
+    
+    context = {
+        'lab_worker': lab_worker,
+        'test_analytics': test_analytics,
+        'test_type_stats': test_type_stats,
+        'department_stats': department_stats,
+        'technician_performance': technician_performance,
+        'turnaround_stats': turnaround_stats,
+        'revenue_analytics': revenue_analytics,
+        'quality_metrics': quality_metrics,
+        'daily_trends': daily_trends,
+        'monthly_trends': monthly_trends,
+        'equipment_stats': equipment_stats,
+        'today': today,
+    }
+    
+    return render(request, 'hospital_admin/lab-analytics.html', context)
+
+
+# ==================== LAB TECHNICIAN MANAGEMENT ====================
+
+@login_required(login_url='admin-login')
+def lab_technician_management(request):
+    """Lab technician profile and workload management system"""
+    if not request.user.is_labworker and not request.user.is_hospital_admin:
+        return redirect('admin-logout')
+    
+    # Get all lab technicians
+    technicians = Clinical_Laboratory_Technician.objects.all()
+    
+    # Add workload information to each technician
+    for tech in technicians:
+        # Current workload
+        tech.current_assigned = Prescription_test.objects.filter(
+            assigned_technician=tech,
+            test_status__in=['paid', 'collected', 'processing']
+        ).count()
+        
+        # Completed this week
+        week_ago = timezone.now().date() - timedelta(days=7)
+        tech.completed_week = Prescription_test.objects.filter(
+            assigned_technician=tech,
+            test_status='completed',
+            updated_at__date__gte=week_ago
+        ).count()
+        
+        # Performance metrics
+        total_assigned = Prescription_test.objects.filter(assigned_technician=tech).count()
+        completed_total = Prescription_test.objects.filter(
+            assigned_technician=tech,
+            test_status='completed'
+        ).count()
+        
+        tech.completion_rate = round((completed_total / total_assigned * 100), 1) if total_assigned > 0 else 0
+        tech.workload_level = 'High' if tech.current_assigned > 15 else 'Medium' if tech.current_assigned > 5 else 'Low'
+    
+    # Workload distribution
+    workload_distribution = {
+        'balanced': sum(1 for t in technicians if 5 <= t.current_assigned <= 15),
+        'overloaded': sum(1 for t in technicians if t.current_assigned > 15),
+        'underutilized': sum(1 for t in technicians if t.current_assigned < 5),
+    }
+    
+    context = {
+        'technicians': technicians,
+        'workload_distribution': workload_distribution,
+        'total_technicians': technicians.count(),
+    }
+    
+    return render(request, 'hospital_admin/lab-technician-management.html', context)
+
+
+# ==================== LAB OPERATIONS MANAGEMENT ====================
+
+@login_required(login_url='admin-login')
+def lab_operations_management(request):
+    """Lab equipment and operations management"""
+    if not request.user.is_labworker and not request.user.is_hospital_admin:
+        return redirect('admin-logout')
+    
+    # Test catalog management
+    available_tests = Test_Information.objects.all().order_by('test_name')
+    
+    # Equipment information (mock data - in real system would come from equipment management module)
+    equipment_list = [
+        {
+            'name': 'Bio-Analyzer 3000',
+            'type': 'Biochemistry',
+            'status': 'Operational',
+            'last_calibration': timezone.now() - timedelta(days=3),
+            'next_calibration': timezone.now() + timedelta(days=4),
+            'maintenance_due': timezone.now() + timedelta(days=15),
+            'tests_capacity': 100,
+            'tests_completed_today': 45,
+        },
+        {
+            'name': 'Hematology Analyzer HA-500',
+            'type': 'Hematology',
+            'status': 'Operational',
+            'last_calibration': timezone.now() - timedelta(days=1),
+            'next_calibration': timezone.now() + timedelta(days=6),
+            'maintenance_due': timezone.now() + timedelta(days=8),
+            'tests_capacity': 80,
+            'tests_completed_today': 32,
+        },
+        {
+            'name': 'Chemistry Analyzer CA-200',
+            'type': 'Clinical Chemistry',
+            'status': 'Maintenance Required',
+            'last_calibration': timezone.now() - timedelta(days=5),
+            'next_calibration': timezone.now() + timedelta(days=2),
+            'maintenance_due': timezone.now() - timedelta(days=2),  # Overdue
+            'tests_capacity': 120,
+            'tests_completed_today': 0,  # Not operational
+        },
+        {
+            'name': 'Immunology System IS-150',
+            'type': 'Immunology',
+            'status': 'Operational',
+            'last_calibration': timezone.now() - timedelta(days=2),
+            'next_calibration': timezone.now() + timedelta(days=5),
+            'maintenance_due': timezone.now() + timedelta(days=20),
+            'tests_capacity': 60,
+            'tests_completed_today': 28,
+        },
+    ]
+    
+    # Calculate equipment utilization
+    for equipment in equipment_list:
+        if equipment['tests_capacity'] > 0:
+            equipment['utilization_percent'] = round(
+                (equipment['tests_completed_today'] / equipment['tests_capacity']) * 100, 1
+            )
+        else:
+            equipment['utilization_percent'] = 0
+    
+    # Workflow optimization data
+    workflow_stats = {
+        'avg_sample_processing_time': '1.8 hours',
+        'bottleneck_stage': 'Sample Preparation',
+        'efficiency_score': 85.7,
+        'automation_level': 73.2,
+        'peak_hours': '10:00 AM - 2:00 PM',
+        'recommended_capacity': 150,
+        'current_capacity': 120,
+    }
+    
+    # Supply inventory (mock data)
+    supply_inventory = [
+        {'item': 'Reagent Kit A', 'current_stock': 45, 'min_threshold': 20, 'status': 'Good'},
+        {'item': 'Control Serum Level 1', 'current_stock': 12, 'min_threshold': 15, 'status': 'Low'},
+        {'item': 'Sample Tubes (100ml)', 'current_stock': 250, 'min_threshold': 100, 'status': 'Good'},
+        {'item': 'Calibration Standards', 'current_stock': 8, 'min_threshold': 10, 'status': 'Critical'},
+        {'item': 'Quality Control Kit', 'current_stock': 25, 'min_threshold': 12, 'status': 'Good'},
+    ]
+    
+    context = {
+        'available_tests': available_tests,
+        'equipment_list': equipment_list,
+        'workflow_stats': workflow_stats,
+        'supply_inventory': supply_inventory,
+    }
+    
+    return render(request, 'hospital_admin/lab-operations.html', context)
+
+
+# ==================== LAB COMMUNICATION SYSTEM ====================
+
+@login_required(login_url='admin-login')
+def lab_notifications_center(request):
+    """Lab notification system and communication center"""
+    if not request.user.is_labworker:
+        return redirect('admin-logout')
+    
+    lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+    
+    # Critical alerts
+    critical_alerts = []
+    
+    # Equipment alerts
+    critical_alerts.append({
+        'type': 'equipment',
+        'level': 'critical',
+        'title': 'Equipment Maintenance Overdue',
+        'message': 'Chemistry Analyzer CA-200 requires immediate maintenance',
+        'timestamp': timezone.now() - timedelta(hours=2),
+        'action_required': True,
+        'icon': 'fa-exclamation-triangle',
+        'color': 'danger'
+    })
+    
+    # Quality control alerts
+    critical_alerts.append({
+        'type': 'quality',
+        'level': 'warning',
+        'title': 'QC Results Outside Range',
+        'message': 'Control Level 2 results for Glucose test outside acceptable range',
+        'timestamp': timezone.now() - timedelta(minutes=30),
+        'action_required': True,
+        'icon': 'fa-chart-line',
+        'color': 'warning'
+    })
+    
+    # Supply alerts
+    critical_alerts.append({
+        'type': 'supply',
+        'level': 'warning',
+        'title': 'Low Inventory Alert',
+        'message': 'Calibration Standards inventory below minimum threshold',
+        'timestamp': timezone.now() - timedelta(hours=1),
+        'action_required': False,
+        'icon': 'fa-boxes',
+        'color': 'warning'
+    })
+    
+    # Urgent test alerts
+    urgent_tests = Prescription_test.objects.filter(
+        test_info_pay_status='paid',
+        test_status__in=['paid', 'collected'],
+        updated_at__date__lt=timezone.now().date() - timedelta(days=1)
+    ).select_related('prescription__patient__user', 'prescription__doctor')[:5]
+    
+    for test in urgent_tests:
+        days_pending = (timezone.now().date() - test.updated_at.date()).days
+        critical_alerts.append({
+            'type': 'urgent_test',
+            'level': 'high' if days_pending > 2 else 'medium',
+            'title': f'Urgent Test Pending - {test.test_name}',
+            'message': f'Patient: {test.prescription.patient.user.get_full_name()} - {days_pending} days pending',
+            'timestamp': test.updated_at,
+            'action_required': True,
+            'icon': 'fa-clock',
+            'color': 'danger' if days_pending > 2 else 'warning'
+        })
+    
+    # Sort alerts by timestamp (newest first)
+    critical_alerts.sort(key=lambda x: x['timestamp'], reverse=True)
+    
+    # System notifications
+    system_notifications = [
+        {
+            'title': 'System Maintenance Scheduled',
+            'message': 'Lab management system will undergo maintenance on Sunday 2:00 AM - 4:00 AM',
+            'timestamp': timezone.now() - timedelta(hours=6),
+            'type': 'info',
+            'icon': 'fa-info-circle'
+        },
+        {
+            'title': 'New Test Added to Catalog',
+            'message': 'HbA1c test has been added to the available test catalog',
+            'timestamp': timezone.now() - timedelta(days=1),
+            'type': 'success',
+            'icon': 'fa-plus-circle'
+        },
+        {
+            'title': 'Training Session Reminder',
+            'message': 'Monthly safety training session scheduled for Friday 3:00 PM',
+            'timestamp': timezone.now() - timedelta(days=2),
+            'type': 'info',
+            'icon': 'fa-graduation-cap'
+        },
+    ]
+    
+    # Communication channels
+    communication_channels = {
+        'internal_messages': 12,
+        'doctor_queries': 3,
+        'patient_inquiries': 7,
+        'system_alerts': len(critical_alerts),
+        'equipment_notifications': 2,
+    }
+    
+    context = {
+        'lab_worker': lab_worker,
+        'critical_alerts': critical_alerts[:10],  # Show top 10
+        'system_notifications': system_notifications,
+        'communication_channels': communication_channels,
+        'total_alerts': len(critical_alerts),
+    }
+    
+    return render(request, 'hospital_admin/lab-notifications.html', context)

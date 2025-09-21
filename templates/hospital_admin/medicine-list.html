@@ -294,8 +294,12 @@
 													<td>₹{{medicine.price}}</td>
 													<td>{{medicine.quantity}}</td>
 													<td class="text-center">
-														<a href="{% url 'edit-medicine' pk=medicine.serial_number %}" class="btn btn-sm btn-primary mr-1">Edit</a>
-														<a href="{% url 'delete-medicine' pk=medicine.serial_number %}" onclick="return confirm('Are you sure you want to Delete?');" class="btn btn-sm btn-danger">Delete</a>
+														<a href="{% url 'edit-medicine' pk=medicine.serial_number %}" class="btn btn-sm btn-primary mr-1">
+															<i class="fas fa-edit"></i> Edit
+														</a>
+														<a href="{% url 'delete-medicine' pk=medicine.serial_number %}" class="btn btn-sm btn-danger">
+															<i class="fas fa-trash"></i> Delete
+														</a>
 													</td>
 												</tr>
 											  {% endfor %}
@@ -368,10 +372,55 @@
 		
 		<script src="{% static 'HealthStack-System/plugins/admin/slimscroll/jquery.slimscroll.min.js' %}"></script>
 		
-
+		<!-- Datatables JS -->
+		<script src="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.js' %}"></script>
 		
-		<script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
+		<!-- Custom initialization to avoid script conflicts -->
+		<script>
+		// Avoid script.js conflicts by using our own namespace
+		var MedicineListManager = {
+			init: function() {
+				// Initialize DataTable only if not already initialized
+				if ($.fn.DataTable && !$.fn.DataTable.isDataTable('.datatable')) {
+					$('.datatable').DataTable({
+						"pageLength": 10,
+						"ordering": true,
+						"searching": false, // We have custom search
+						"lengthChange": false,
+						"info": false,
+						"paging": false, // We have custom pagination
+						"responsive": true
+					});
+				}
+				
+				// Ensure edit and delete buttons work properly
+				this.bindActionButtons();
+			},
+			
+			bindActionButtons: function() {
+				// Handle edit button clicks
+				$(document).on('click', 'a[href*="edit-medicine"]', function(e) {
+					// Allow default navigation behavior
+					return true;
+				});
+				
+				// Handle delete button clicks with confirmation
+				$(document).on('click', 'a[href*="delete-medicine"]', function(e) {
+					var confirmed = confirm('Are you sure you want to delete this medicine?');
+					if (!confirmed) {
+						e.preventDefault();
+						return false;
+					}
+					return true;
+				});
+			}
+		};
 		
+		$(document).ready(function() {
+			// Initialize our medicine list manager
+			MedicineListManager.init();
+		});
+		</script>
     </body>
 
 </html>

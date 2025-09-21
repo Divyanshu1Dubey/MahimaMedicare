@@ -329,7 +329,6 @@
                                             <h5 class="doc-hospital">{{doctor.hospital_name}}</h5>
                                             <p class="doc-department">{{doctor.specialization.specialization_name}}</p>
                                             <div class="clinic-details">
-                                                <p class="doc-location"><i class="fas fa-map-marker-alt"></i>Philippines</p>
                                                 <ul class="clinic-gallery">
                                                     <li>
                                                         <a href="{% static 'HealthStack-System/images/Normal/gyno1.jpg'%}" data-fancybox="gallery" aria-label="Clinic Image 1">
@@ -358,8 +357,7 @@
                                     <div class="doc-info-right">
                                         <div class="clini-infos">
                                             <ul>
-                                                <li><i class="fas fa-map-marker-alt"></i> Philippines</li>
-                                                <li><i class="far fa-money-bill-alt"></i> ₱ {{doctor.consultation_fee}} </li>
+                                                <li><i class="far fa-money-bill-alt"></i> ₹{{doctor.consultation_fee}} </li>
                                             </ul>
                                         </div>
                                         {% if user.is_authenticated and user.is_patient %}
@@ -458,14 +456,24 @@
                                                 {% csrf_token %}
                                                 <div class="form-group mb-3">
                                                     <label for="title" class="form-label">Review Title</label>
-                                                    <input type="text" class="form-control" name="title" id="title" placeholder="e.g., Great experience!">
+                                                    <input type="text" class="form-control" name="title" id="title" placeholder="e.g., Great experience!" required>
+                                                </div>
+                                                <div class="form-group mb-3">
+                                                    <label for="rating" class="form-label">Rating</label>
+                                                    <select class="form-control" name="rating" id="rating" required>
+                                                        <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                                                        <option value="4">⭐⭐⭐⭐ Very Good</option>
+                                                        <option value="3">⭐⭐⭐ Good</option>
+                                                        <option value="2">⭐⭐ Fair</option>
+                                                        <option value="1">⭐ Poor</option>
+                                                    </select>
                                                 </div>
                                                 <div class="form-group mb-3">
                                                     <label for="message" class="form-label">Message</label>
-                                                    <textarea class="form-control" name="message" id="message" rows="5" placeholder="Tell us about your experience..."></textarea>
+                                                    <textarea class="form-control" name="message" id="message" rows="5" placeholder="Tell us about your experience..." required></textarea>
                                                 </div>
                                                 <div class="text-end">
-                                                    <button type="submit" class="btn submit-btn">Save Review</button>
+                                                    <button type="submit" class="btn submit-btn">Submit Review</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -473,7 +481,8 @@
 
                                         {% if user.is_authenticated and user.is_doctor %}
                                         <div class="review-listing">
-                                            <h4 class="widget-title">Patient Reviews</h4>
+                                            <h4 class="widget-title">Patient Reviews (Verified)</h4>
+                                            {% if doctor_review %}
                                             <ul class="comments-list">
                                                 {% for review in doctor_review %}
                                                 <li>
@@ -482,14 +491,27 @@
                                                         <div class="comment-body">
                                                             <div class="meta-data">
                                                                 <span class="comment-author">{{review.patient.name}}</span>
+                                                                <span class="comment-date">{{ review.created_at|date:"M d, Y" }}</span>
                                                             </div>
-                                                            <p class="recommended"><i class="far fa-thumbs-up"></i> {{review.title}}</p>
+                                                            <div class="rating mb-2">
+                                                                {% for i in "12345" %}
+                                                                    {% if forloop.counter <= review.rating %}
+                                                                        <span class="text-warning">⭐</span>
+                                                                    {% else %}
+                                                                        <span class="text-muted">☆</span>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </div>
+                                                            <p class="recommended"><i class="fas fa-check-circle text-success"></i> {{review.title}}</p>
                                                             <p class="comment-content">{{review.message}}</p>
                                                         </div>
                                                     </div>
                                                 </li>
                                                 {% endfor %}
                                             </ul>
+                                            {% else %}
+                                            <p class="text-muted">No verified reviews yet.</p>
+                                            {% endif %}
                                         </div>
                                         {% endif %}
                                     </div>

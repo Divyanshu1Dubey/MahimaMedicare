@@ -233,6 +233,12 @@
           <span>Multiple Hospital</span>
         </a>
       </li>
+      <li class="{% if request.resolver_match.url_name == 'patient-lab-tests' %}active{% endif %}">
+        <a href="{% url 'patient-lab-tests' %}">
+          <i class="fas fa-vial"></i>
+          <span>My Lab Tests</span>
+        </a>
+      </li>
       <li class="{% if request.resolver_match.url_name == 'doctor-test-list' %}active{% endif %}">
         <a href="{% url 'doctor-test-list' %}" target="_blank">
           <i class="fas fa-hourglass-start"></i>

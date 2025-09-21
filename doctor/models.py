@@ -276,13 +276,44 @@ class Prescription_medicine(models.Model):
         return str(self.prescription.prescription_id)
 
 class Prescription_test(models.Model):
+    PAYMENT_STATUS_CHOICES = [
+        ('unpaid', 'Unpaid'),
+        ('paid', 'Paid'),
+        ('partial', 'Partial'),
+        ('refunded', 'Refunded'),
+    ]
+    
+    TEST_STATUS_CHOICES = [
+        ('prescribed', 'Prescribed'),
+        ('paid', 'Payment Completed'),
+        ('collected', 'Sample Collected'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('delivered', 'Report Delivered'),
+    ]
+    
     prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE, null=True, blank=True)
     test_id = models.AutoField(primary_key=True)
     test_name = models.CharField(max_length=200, null=True, blank=True)
     test_description = models.TextField(null=True, blank=True)
     test_info_id = models.CharField(max_length=200, null=True, blank=True)
     test_info_price = models.CharField(max_length=200, null=True, blank=True)
-    test_info_pay_status = models.CharField(max_length=200, null=True, blank=True)
+    test_info_pay_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='unpaid')
+    
+    # Enhanced tracking fields
+    test_status = models.CharField(max_length=20, choices=TEST_STATUS_CHOICES, default='prescribed')
+    payment_date = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # Lab assignment
+    assigned_technician = models.ForeignKey(
+        'hospital_admin.Clinical_Laboratory_Technician', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='assigned_tests'
+    )
     
     """
     (create prescription)
@@ -337,7 +368,14 @@ class Doctor_review(models.Model):
     doctor = models.ForeignKey(Doctor_Information, on_delete=models.CASCADE, null=True, blank=True)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=200, null=True, blank=True)
-    message = models.CharField(max_length=1000, null=True, blank=True)
+    message = models.TextField(max_length=1000, null=True, blank=True)
+    rating = models.IntegerField(default=5, choices=[(i, i) for i in range(1, 6)])
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False)  # Only show verified reviews
+
+    class Meta:
+        unique_together = ('doctor', 'patient')  # One review per patient per doctor
+        ordering = ['-created_at']
 
     def __str__(self):
-        return str(self.patient.username)
+        return f"Review by {self.patient.name} for Dr. {self.doctor.name}"

@@ -278,6 +278,63 @@ def payment_success(request):
             elif payment.payment_type == 'test' and payment.test_order:
                 payment.test_order.payment_status = 'paid'
                 payment.test_order.save()
+                
+                # Update individual Prescription_test payment status
+                from doctor.models import Prescription_test
+                from django.utils import timezone
+                
+                # Get all test cart items in this order and update their prescription tests
+                try:
+                    print(f"DEBUG: Processing test order: {payment.test_order}")
+                    cart_items = payment.test_order.orderitems.all()
+                    print(f"DEBUG: Found {cart_items.count()} cart items")
+                    
+                    if cart_items.count() == 0:
+                        print("DEBUG: No cart items found - checking alternative approach")
+                        # Alternative: try to find cart items directly
+                        from doctor.models import testCart
+                        alt_cart_items = testCart.objects.filter(user=payment.user, purchased=False)
+                        print(f"DEBUG: Found {alt_cart_items.count()} unpurchased cart items for user")
+                        
+                        # Use alternative cart items if main relationship is empty
+                        if alt_cart_items.exists():
+                            cart_items = alt_cart_items
+                            print("DEBUG: Using alternative cart items")
+                    
+                    for cart_item in cart_items:
+                        print(f"Processing cart item: {cart_item}")
+                        if hasattr(cart_item, 'item') and cart_item.item:
+                            prescription_test = cart_item.item
+                            print(f"Updating prescription test: {prescription_test}")
+                            
+                            # Update payment status (this field should exist)
+                            prescription_test.test_info_pay_status = 'paid'
+                            
+                            # Only update new fields if they exist
+                            if hasattr(prescription_test, 'payment_date'):
+                                prescription_test.payment_date = timezone.now()
+                            
+                            if hasattr(prescription_test, 'test_status'):
+                                if prescription_test.test_status == 'prescribed':
+                                    prescription_test.test_status = 'paid'
+                            
+                            prescription_test.save()
+                            print(f"Updated prescription test payment status to: {prescription_test.test_info_pay_status}")
+                            
+                            # Mark cart item as purchased
+                            cart_item.purchased = True
+                            cart_item.save()
+                            print(f"Marked cart item as purchased: {cart_item.purchased}")
+                except Exception as e:
+                    # Log the error but don't fail the payment
+                    print(f"Error updating prescription test status: {e}")
+                    # Still mark cart items as purchased for backward compatibility
+                    try:
+                        for cart_item in payment.test_order.orderitems.all():
+                            cart_item.purchased = True
+                            cart_item.save()
+                    except Exception as e2:
+                        print(f"Error in fallback cart update: {e2}")
             
             # Generate invoice automatically after successful payment
             try:

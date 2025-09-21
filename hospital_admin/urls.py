@@ -52,7 +52,7 @@ urlpatterns = [
     path('edit-department/<int:pk>',views.edit_department,name='edit-department'),
     path('delete-specialization/<int:pk>/<int:pk2>/',views.delete_specialization,name='delete-specialization'),
     path('delete-service/<int:pk>/<int:pk2>/',views.delete_service,name='delete-service'),
-    path('labworker-dashboard/', views.labworker_dashboard,name='labworker-dashboard'),
+    path('labworker-dashboard/', views.lab_dashboard, name='labworker-dashboard'),
     path('pharmacist-list/', views.view_pharmacist,name='pharmacist-list'),
     path('edit-pharmacist/<int:pk>/', views.edit_pharmacist,name='edit-pharmacist'),
     path('mypatient-list/', views.mypatient_list,name='mypatient-list'),
@@ -82,6 +82,31 @@ urlpatterns = [
     path('my-assigned-reports/', views.my_assigned_reports, name='my-assigned-reports'),
     path('report-detail-view/<int:report_id>/', views.report_detail_view, name='report-detail-view'),
     path('bulk-report-actions/', views.bulk_report_actions, name='bulk-report-actions'),
+    
+    # Lab Test Queue Management
+    path('lab-test-queue/', views.lab_test_queue, name='lab-test-queue'),
+    path('lab-update-test-status/', views.lab_update_test_status, name='lab-update-test-status'),
+    path('lab-complete-test/', views.lab_complete_test, name='lab-complete-test'),
+    path('update-test-payment-status/', views.update_test_payment_status, name='update-test-payment-status'),
+    
+    # Test Result Management
+    path('upload-test-result/<int:test_id>/', views.upload_test_result, name='upload-test-result'),
+    path('test-details/<int:test_id>/', views.test_details, name='test-details'),
+    
+    # Enhanced Lab Report Management
+    path('lab-report-details/<int:report_id>/', views.lab_report_details, name='lab-report-details'),
+    
+    # Lab Analytics and Reporting
+    path('lab-analytics/', views.lab_analytics_dashboard, name='lab-analytics'),
+    
+    # Lab Technician Management
+    path('lab-technician-management/', views.lab_technician_management, name='lab-technician-management'),
+    
+    # Lab Operations Management  
+    path('lab-operations/', views.lab_operations_management, name='lab-operations'),
+    
+    # Lab Communication System
+    path('lab-notifications/', views.lab_notifications_center, name='lab-notifications'),
     
 ]
   

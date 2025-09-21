@@ -295,7 +295,7 @@ def doctor_profile(request, pk):
     
     educations = Education.objects.filter(doctor=doctor).order_by('-year_of_completion')
     experiences = Experience.objects.filter(doctor=doctor).order_by('-from_year','-to_year')
-    doctor_review = Doctor_review.objects.filter(doctor=doctor)
+    doctor_review = Doctor_review.objects.filter(doctor=doctor, is_verified=True)
             
     context = {'doctor': doctor, 'patient': patient, 'educations': educations, 'experiences': experiences, 'doctor_review': doctor_review}
     return render(request, 'doctor-profile.html', context)
@@ -691,10 +691,9 @@ def got_offline(sender, user, request, **kwargs):
 @login_required(login_url="login")
 def doctor_review(request, pk):
     if request.user.is_doctor:
-        # doctor = Doctor_Information.objects.get(user_id=pk)
         doctor = Doctor_Information.objects.get(user=request.user)
-            
-        doctor_review = Doctor_review.objects.filter(doctor=doctor)
+        # Only show verified reviews
+        doctor_review = Doctor_review.objects.filter(doctor=doctor, is_verified=True)
         
         context = {'doctor': doctor, 'doctor_review': doctor_review}  
         return render(request, 'doctor-profile.html', context)
@@ -706,10 +705,33 @@ def doctor_review(request, pk):
         if request.method == 'POST':
             title = request.POST.get('title')
             message = request.POST.get('message')
+            rating = request.POST.get('rating', 5)
             
-            doctor_review = Doctor_review(doctor=doctor, patient=patient, title=title, message=message)
-            doctor_review.save()
+            # Check if patient already reviewed this doctor
+            existing_review = Doctor_review.objects.filter(doctor=doctor, patient=patient).first()
+            if existing_review:
+                # Update existing review
+                existing_review.title = title
+                existing_review.message = message
+                existing_review.rating = rating
+                existing_review.is_verified = False  # Reset verification
+                existing_review.save()
+                messages.success(request, 'Your review has been updated and is pending verification.')
+            else:
+                # Create new review
+                doctor_review = Doctor_review(
+                    doctor=doctor, 
+                    patient=patient, 
+                    title=title, 
+                    message=message,
+                    rating=rating,
+                    is_verified=False  # Needs admin verification
+                )
+                doctor_review.save()
+                messages.success(request, 'Your review has been submitted and is pending verification.')
 
+        # Get verified reviews for display
+        doctor_review = Doctor_review.objects.filter(doctor=doctor, is_verified=True)
         context = {'doctor': doctor, 'patient': patient, 'doctor_review': doctor_review}  
         return render(request, 'doctor-profile.html', context)
     else:

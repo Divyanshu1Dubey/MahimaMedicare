@@ -1,0 +1,359 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Lab Report Details - Mahima Medicare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+    
+    <style>
+        .report-header {
+            background: linear-gradient(135deg, #95C270 0%, #7ba05a 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        .report-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+        }
+        
+        .report-status {
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        
+        .status-completed {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-processing {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        
+        .status-collected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .test-result-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .test-result-table th {
+            background-color: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .test-result-table td {
+            border: none;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+        
+        .normal-range {
+            color: #28a745;
+            font-size: 12px;
+        }
+        
+        .abnormal-result {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .report-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .info-value {
+            color: #6c757d;
+        }
+        
+        .btn-download {
+            background: linear-gradient(135deg, #95C270 0%, #7ba05a 100%);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(149, 194, 112, 0.4);
+            color: white;
+        }
+        
+        .technician-info {
+            background: white;
+            border-left: 4px solid #95C270;
+            padding: 15px;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .specimen-info {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        
+        <!-- Header -->
+        {% include 'patient_navbar.html' %}
+        <!-- /Header -->
+        
+        <!-- Report Header -->
+        <div class="report-header">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-2">Lab Report Details</h2>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0" style="background: transparent;">
+                                <li class="breadcrumb-item"><a href="{% url 'patient-dashboard' %}" style="color: rgba(255,255,255,0.8);">Home</a></li>
+                                <li class="breadcrumb-item"><a href="{% url 'patient-lab-tests' %}" style="color: rgba(255,255,255,0.8);">My Lab Tests</a></li>
+                                <li class="breadcrumb-item active" style="color: white;">Report Details</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div class="col-md-4 text-right">
+                        <span class="report-status status-{{ report.status }}">
+                            {{ report.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Report Header -->
+        
+        <!-- Page Content -->
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-3">
+                        {% include 'patient-sidebar.html' %}
+                    </div>
+                    
+                    <div class="col-md-9">
+                        <!-- Report Information Card -->
+                        <div class="card report-card">
+                            <div class="card-header bg-primary text-white">
+                                <h4 class="mb-0">
+                                    <i class="fas fa-file-medical"></i> 
+                                    {{ report.test_name }} Report
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="report-info">
+                                            <h5 class="mb-3">Patient Information</h5>
+                                            <div class="info-item">
+                                                <span class="info-label">Patient Name:</span>
+                                                <span class="info-value">{{ report.patient.name }}</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="info-label">Age:</span>
+                                                <span class="info-value">{{ report.patient.age }} years</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="info-label">Gender:</span>
+                                                <span class="info-value">{{ report.patient.gender|default:"Not specified" }}</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="info-label">Report ID:</span>
+                                                <span class="info-value">#{{ report.report_id }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="report-info">
+                                            <h5 class="mb-3">Test Information</h5>
+                                            <div class="info-item">
+                                                <span class="info-label">Test Name:</span>
+                                                <span class="info-value">{{ report.test_name }}</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="info-label">Report Date:</span>
+                                                <span class="info-value">{{ report.uploaded_at|date:"M d, Y H:i" }}</span>
+                                            </div>
+                                            {% if report.collection_date %}
+                                            <div class="info-item">
+                                                <span class="info-label">Collection Date:</span>
+                                                <span class="info-value">{{ report.collection_date|date:"M d, Y H:i" }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% if report.receiving_date %}
+                                            <div class="info-item">
+                                                <span class="info-label">Received Date:</span>
+                                                <span class="info-value">{{ report.receiving_date|date:"M d, Y H:i" }}</span>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Test Results Card -->
+                        {% if report.result %}
+                        <div class="card report-card">
+                            <div class="card-header bg-success text-white">
+                                <h4 class="mb-0">
+                                    <i class="fas fa-chart-line"></i> 
+                                    Test Results
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="test-result-table">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Parameter</th>
+                                                <th>Result</th>
+                                                <th>Unit</th>
+                                                <th>Normal Range</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>{{ report.test_name }}</strong></td>
+                                                <td><strong>{{ report.result }}</strong></td>
+                                                <td>{{ report.unit|default:"-" }}</td>
+                                                <td class="normal-range">{{ report.normal_range|default:"Contact lab for reference" }}</td>
+                                                <td>
+                                                    {% if report.is_normal %}
+                                                        <span class="badge badge-success">Normal</span>
+                                                    {% else %}
+                                                        <span class="badge badge-warning">Abnormal</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                {% if report.comments %}
+                                <div class="mt-4">
+                                    <h6><i class="fas fa-comment-medical"></i> Lab Comments:</h6>
+                                    <div class="alert alert-info">
+                                        {{ report.comments }}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Technician Information -->
+                        {% if report.assigned_technician %}
+                        <div class="card report-card">
+                            <div class="card-body">
+                                <div class="technician-info">
+                                    <h6><i class="fas fa-user-md"></i> Processed By:</h6>
+                                    <p class="mb-1"><strong>{{ report.assigned_technician.name }}</strong></p>
+                                    <p class="mb-0 text-muted">Lab Technician</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Specimen Information -->
+                        {% if report.specimen %}
+                        <div class="card report-card">
+                            <div class="card-body">
+                                <div class="specimen-info">
+                                    <h6><i class="fas fa-vial"></i> Specimen Information:</h6>
+                                    <p class="mb-0">{{ report.specimen.specimen_name }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Action Buttons -->
+                        <div class="card report-card">
+                            <div class="card-body text-center">
+                                {% if report.report_pdf %}
+                                <a href="{{ report.report_pdf.url }}" class="btn btn-download mr-3" target="_blank">
+                                    <i class="fas fa-download"></i> Download PDF Report
+                                </a>
+                                {% endif %}
+                                
+                                <a href="{% url 'patient-lab-tests' %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-arrow-left"></i> Back to Lab Tests
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Content -->
+        
+    </div>
+    <!-- /Main Wrapper -->
+    
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/script.js' %}"></script>
+    
+</body>
+</html>

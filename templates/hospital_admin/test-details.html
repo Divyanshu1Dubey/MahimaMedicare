@@ -1,0 +1,590 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Test Details - Mahima Medicare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css' %}">
+    
+    <!-- Feathericon CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css' %}">
+    
+    <style>
+        .detail-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .card-header-custom {
+            background: linear-gradient(135deg, #95C270 0%, #7ea65d 100%);
+            color: white;
+            padding: 25px;
+            border: none;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #95C270;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        
+        .status-timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 20px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -15px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #95C270;
+        }
+        
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: -11px;
+            top: 15px;
+            width: 2px;
+            height: calc(100% - 10px);
+            background: #e9ecef;
+        }
+        
+        .timeline-item:last-child::after {
+            display: none;
+        }
+        
+        .timeline-item.active::before {
+            background: #28a745;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+        }
+        
+        .timeline-item.completed::before {
+            background: #17a2b8;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-action {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-collect {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-process {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-complete {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-upload {
+            background: #fd7e14;
+            color: white;
+        }
+        
+        .report-section {
+            background: #e8f5d8;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #95C270;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        
+        <!-- Header -->
+        {% include 'hospital_admin/labworker-navbar.html' %}
+        <!-- /Header -->
+        
+        <!-- Sidebar -->
+        {% include 'hospital_admin/labworker-sidebar.html' %}
+        <!-- /Sidebar -->
+        
+        <!-- Page Wrapper -->
+        <div class="page-wrapper">
+            <div class="content container-fluid">
+                
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h1 class="page-title">Test Details</h1>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{% url 'admin-dashboard' %}">Dashboard</a></li>
+                                <li class="breadcrumb-item"><a href="{% url 'mypatient-list' %}">Test Management</a></li>
+                                <li class="breadcrumb-item active">Test Details</li>
+                            </ul>
+                        </div>
+                        <div class="col-auto">
+                            <a href="{% url 'mypatient-list' %}" class="btn btn-outline-secondary">
+                                <i class="fe fe-arrow-left"></i> Back to Tests
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Page Header -->
+                
+                <!-- Test Information -->
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Test Details Card -->
+                        <div class="card detail-card">
+                            <div class="card-header-custom">
+                                <h3><i class="fe fe-vial"></i> {{ test.test_name }}</h3>
+                                <p class="mb-0">Test ID: #{{ test.test_id }} | Status: {{ test.get_test_status_display|title }}</p>
+                            </div>
+                            <div class="card-body">
+                                <!-- Patient Information -->
+                                <div class="info-section">
+                                    <h5><i class="fe fe-user"></i> Patient Information</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="info-item">
+                                                <div class="info-icon">
+                                                    <i class="fe fe-user"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Full Name</strong><br>
+                                                    <span class="text-muted">{{ test.prescription.patient.user.first_name }} {{ test.prescription.patient.user.last_name }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="info-item">
+                                                <div class="info-icon">
+                                                    <i class="fe fe-credit-card"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Patient ID</strong><br>
+                                                    <span class="text-muted">#{{ test.prescription.patient.patient_id }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="info-item">
+                                                <div class="info-icon">
+                                                    <i class="fe fe-phone"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Phone Number</strong><br>
+                                                    <span class="text-muted">{{ test.prescription.patient.phone_number|default:"N/A" }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="info-item">
+                                                <div class="info-icon">
+                                                    <i class="fe fe-mail"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Email Address</strong><br>
+                                                    <span class="text-muted">{{ test.prescription.patient.user.email|default:"N/A" }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Prescription Information -->
+                                <div class="info-section">
+                                    <h5><i class="fe fe-file-text"></i> Prescription Details</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="info-item">
+                                                <div class="info-icon">
+                                                    <i class="fe fe-user-md"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Prescribed by</strong><br>
+                                                    <span class="text-muted">Dr. {{ test.prescription.doctor.name }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="info-item">
+                                                <div class="info-icon">
+                                                    <i class="fe fe-calendar"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Prescription Date</strong><br>
+                                                    <span class="text-muted">{{ test.prescription.create_date }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% if test.test_description %}
+                                    <div class="mt-3">
+                                        <strong>Test Notes:</strong><br>
+                                        <div class="alert alert-info mt-2">
+                                            {{ test.test_description }}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Payment Information -->
+                                <div class="info-section">
+                                    <h5><i class="fe fe-credit-card"></i> Payment Status</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="info-item">
+                                                <div class="info-icon">
+                                                    <i class="fe fe-check-circle"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Payment Status</strong><br>
+                                                    <span class="badge badge-{% if test.test_info_pay_status == 'paid' %}success{% else %}warning{% endif %}">
+                                                        {{ test.get_test_info_pay_status_display|title }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            {% if test.payment_date %}
+                                            <div class="info-item">
+                                                <div class="info-icon">
+                                                    <i class="fe fe-calendar"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Payment Date</strong><br>
+                                                    <span class="text-muted">{{ test.payment_date|date:"M d, Y H:i" }}</span>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Test Actions -->
+                                <div class="info-section">
+                                    <h5><i class="fe fe-settings"></i> Available Actions</h5>
+                                    <div class="action-buttons">
+                                        {% if test.test_status == 'prescribed' or test.test_status == 'paid' %}
+                                            {% if test.test_info_pay_status == 'paid' %}
+                                                <button class="btn btn-action btn-collect" onclick="updateTestStatus({{ test.test_id }}, 'collected')">
+                                                    <i class="fe fe-check"></i> Collect Sample
+                                                </button>
+                                            {% else %}
+                                                <span class="text-warning">
+                                                    <i class="fe fe-alert-circle"></i> Waiting for payment completion
+                                                </span>
+                                            {% endif %}
+                                        {% elif test.test_status == 'collected' %}
+                                            <button class="btn btn-action btn-process" onclick="updateTestStatus({{ test.test_id }}, 'processing')">
+                                                <i class="fe fe-play"></i> Start Processing
+                                            </button>
+                                        {% elif test.test_status == 'processing' %}
+                                            <button class="btn btn-action btn-complete" onclick="showCompleteModal({{ test.test_id }}, '{{ test.test_name }}', '{{ test.prescription.patient.user.first_name }} {{ test.prescription.patient.user.last_name }}')">
+                                                <i class="fe fe-check-circle"></i> Complete Test
+                                            </button>
+                                        {% elif test.test_status == 'completed' %}
+                                            <a href="{% url 'upload-test-result' test.test_id %}" class="btn btn-action btn-upload">
+                                                <i class="fe fe-upload"></i> Upload Result PDF
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <!-- Status Timeline -->
+                        <div class="card detail-card">
+                            <div class="card-header">
+                                <h5><i class="fe fe-clock"></i> Test Progress</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="status-timeline">
+                                    <div class="timeline-item {% if test.test_status == 'prescribed' or test.test_status == 'paid' %}active{% else %}completed{% endif %}">
+                                        <h6>Prescribed</h6>
+                                        <small class="text-muted">Test ordered by doctor</small>
+                                        <div class="mt-1">
+                                            <small><i class="fe fe-calendar"></i> {{ test.prescription.create_date }}</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="timeline-item {% if test.test_status == 'paid' %}active{% elif test.test_status in 'collected,processing,completed' %}completed{% endif %}">
+                                        <h6>Payment</h6>
+                                        <small class="text-muted">Payment completed</small>
+                                        {% if test.payment_date %}
+                                        <div class="mt-1">
+                                            <small><i class="fe fe-calendar"></i> {{ test.payment_date|date:"M d, Y H:i" }}</small>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="timeline-item {% if test.test_status == 'collected' %}active{% elif test.test_status in 'processing,completed' %}completed{% endif %}">
+                                        <h6>Sample Collection</h6>
+                                        <small class="text-muted">Sample collected from patient</small>
+                                    </div>
+                                    
+                                    <div class="timeline-item {% if test.test_status == 'processing' %}active{% elif test.test_status == 'completed' %}completed{% endif %}">
+                                        <h6>Processing</h6>
+                                        <small class="text-muted">Test being processed in lab</small>
+                                    </div>
+                                    
+                                    <div class="timeline-item {% if test.test_status == 'completed' %}active{% endif %}">
+                                        <h6>Completed</h6>
+                                        <small class="text-muted">Results ready for patient</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Report Information -->
+                        {% if report %}
+                        <div class="card detail-card">
+                            <div class="card-header">
+                                <h5><i class="fe fe-file-text"></i> Report Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="report-section">
+                                    <h6>Report Status</h6>
+                                    <span class="badge badge-{{ report.get_status_display_color }}">
+                                        {{ report.get_status_display }}
+                                    </span>
+                                    
+                                    {% if report.result %}
+                                    <div class="mt-3">
+                                        <h6>Test Result</h6>
+                                        <p class="mb-1">{{ report.result }}</p>
+                                        {% if report.unit %}
+                                            <small class="text-muted">Unit: {{ report.unit }}</small>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if report.technician_comments %}
+                                    <div class="mt-3">
+                                        <h6>Comments</h6>
+                                        <p class="mb-0">{{ report.technician_comments }}</p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if report.report_pdf %}
+                                    <div class="mt-3">
+                                        <a href="{{ report.report_pdf.url }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                            <i class="fe fe-download"></i> Download PDF
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Wrapper -->
+    </div>
+    <!-- /Main Wrapper -->
+    
+    <!-- Complete Test Modal -->
+    <div class="modal fade" id="completeTestModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Complete Test & Add Results</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="completeTestForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="testId" name="test_id">
+                        
+                        <div class="alert alert-info">
+                            <strong>Test:</strong> <span id="testName"></span><br>
+                            <strong>Patient:</strong> <span id="patientName"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Test Results *</label>
+                            <textarea class="form-control" name="results" rows="4" 
+                                    placeholder="Enter detailed test results..." required></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Unit</label>
+                                    <input type="text" class="form-control" name="unit" 
+                                           placeholder="e.g., mg/dL, mmol/L">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Reference Range</label>
+                                    <input type="text" class="form-control" name="reference_range" 
+                                           placeholder="e.g., 70-100 mg/dL">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Additional Comments</label>
+                            <textarea class="form-control" name="comments" rows="2" 
+                                    placeholder="Any additional observations or comments..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> Complete Test
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
+    
+    <script>
+        // Update test status
+        function updateTestStatus(testId, status) {
+            let confirmMessage = '';
+            switch(status) {
+                case 'collected':
+                    confirmMessage = 'Mark this test as sample collected?';
+                    break;
+                case 'processing':
+                    confirmMessage = 'Start processing this test?';
+                    break;
+                default:
+                    confirmMessage = `Update test status to ${status}?`;
+            }
+            
+            if (confirm(confirmMessage)) {
+                $.ajax({
+                    url: '{% url "lab-update-test-status" %}',
+                    type: 'POST',
+                    data: {
+                        'test_id': testId,
+                        'status': status,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Error updating test status. Please try again.');
+                    }
+                });
+            }
+        }
+
+        // Show complete test modal
+        function showCompleteModal(testId, testName, patientName) {
+            $('#testId').val(testId);
+            $('#testName').text(testName);
+            $('#patientName').text(patientName);
+            $('#completeTestModal').modal('show');
+        }
+
+        // Handle complete test form submission
+        $('#completeTestForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            $.ajax({
+                url: '{% url "lab-complete-test" %}',
+                type: 'POST',
+                data: $(this).serialize() + '&csrfmiddlewaretoken={{ csrf_token }}',
+                success: function(response) {
+                    if (response.success) {
+                        $('#completeTestModal').modal('hide');
+                        alert('Test completed successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error completing test. Please try again.');
+                }
+            });
+        });
+    </script>
+    
+</body>
+</html>

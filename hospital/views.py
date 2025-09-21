@@ -33,7 +33,6 @@ from django.utils.encoding import force_bytes
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.views.decorators.csrf import csrf_exempt
-from .forms import DoctorRegistrationForm
 
 
 # Create your views here.
@@ -907,6 +906,77 @@ def delete_report(request,pk):
         return render(request, 'patient-login.html')
 
 @csrf_exempt
+@login_required(login_url="login")
+def patient_lab_tests(request):
+    """View for patients to see their lab tests"""
+    if request.user.is_patient:
+        patient = Patient.objects.get(user=request.user)
+        
+        # Get status filter
+        status_filter = request.GET.get('status', 'all')
+        
+        # Get all prescribed tests for this patient
+        lab_tests = Prescription_test.objects.filter(
+            prescription__patient=patient
+        ).select_related('prescription', 'prescription__doctor').order_by('-prescription__create_date')
+        
+        # Apply status filter using the test_status field directly (with fallback)
+        if status_filter != 'all':
+            if hasattr(Prescription_test, 'test_status'):
+                lab_tests = lab_tests.filter(test_status=status_filter)
+            else:
+                # Fallback: filter by report status if test_status doesn't exist
+                if status_filter == 'completed':
+                    # Get tests that have completed reports
+                    completed_test_names = Report.objects.filter(
+                        patient=patient, status='completed'
+                    ).values_list('test_name', flat=True)
+                    lab_tests = lab_tests.filter(test_name__in=completed_test_names)
+        
+        # Add report information for completed tests
+        for test in lab_tests:
+            try:
+                test.report = Report.objects.get(
+                    patient=patient,
+                    test_name=test.test_name
+                )
+            except Report.DoesNotExist:
+                test.report = None
+            
+            # Use the test_status from the model (with fallback)
+            test.status = getattr(test, 'test_status', 'prescribed')
+            test.payment_status = test.test_info_pay_status
+        
+        context = {
+            'patient': patient,
+            'lab_tests': lab_tests,
+            'status_filter': status_filter
+        }
+        return render(request, 'patient-lab-tests.html', context)
+    else:
+        logout(request)
+        messages.error(request, 'Not Authorized')
+        return render(request, 'patient-login.html')
+
+@csrf_exempt
+@login_required(login_url="login")
+def patient_view_report(request, report_id):
+    """View for patients to see their lab report details"""
+    if request.user.is_patient:
+        patient = Patient.objects.get(user=request.user)
+        report = get_object_or_404(Report, report_id=report_id, patient=patient)
+        
+        context = {
+            'patient': patient,
+            'report': report
+        }
+        return render(request, 'patient-report-detail.html', context)
+    else:
+        logout(request)
+        messages.error(request, 'Not Authorized')
+        return render(request, 'patient-login.html')
+
+@csrf_exempt
 @receiver(user_logged_in)
 def got_online(sender, user, request, **kwargs):    
     user.login_status = True
@@ -917,4 +987,3 @@ def got_online(sender, user, request, **kwargs):
 def got_offline(sender, user, request, **kwargs):   
     user.login_status = False
     user.save()
-    

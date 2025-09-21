@@ -86,19 +86,75 @@
                     <span>Menu</span>
                 </li>
             </ul>
+            <!-- Main Dashboard -->
             <ul>
                 <li class=""> 
-                    <a href="{%url 'admin-dashboard' %}"><i class="fe fe-home"></i> <span>Dashboard</span></a>
+                    <a href="{%url 'labworker-dashboard' %}"><i class="fe fe-home"></i> <span>Lab Dashboard</span></a>
+                </li>
+            </ul>
+            
+            <!-- Test Management -->
+            <li class="menu-title"> 
+                <span>Test Management</span>
+            </li>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'mypatient-list' %}"><i class="fe fe-users"></i> <span>Manage Tests</span></a>
                 </li>
             </ul>
             <ul>
                 <li class=""> 
-                    <a href="{%url 'mypatient-list' %}"><i class="fe fe-user"></i> <span>Patient List</span></a>
+                    <a href="{%url 'mypatient-list' %}?show=pending"><i class="fe fe-clock"></i> <span>Pending Tests</span></a>
                 </li>
             </ul>
             <ul>
                 <li class=""> 
-                    <a href="{%url 'test-list' %}"><i class="fe fe-document"></i> <span>Test List</span></a>
+                    <a href="{%url 'mypatient-list' %}?show=processing"><i class="fe fe-play"></i> <span>Processing Tests</span></a>
+                </li>
+            </ul>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'mypatient-list' %}?show=completed"><i class="fe fe-check-circle"></i> <span>Completed Tests</span></a>
+                </li>
+            </ul>
+            
+            <!-- Test Administration -->
+            <li class="menu-title"> 
+                <span>Test Administration</span>
+            </li>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'add-test' %}"><i class="fe fe-plus-circle"></i> <span>Add New Test</span></a>
+                </li>
+            </ul>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'test-list' %}"><i class="fe fe-list"></i> <span>Available Tests</span></a>
+                </li>
+            </ul>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'lab-test-queue' %}"><i class="fe fe-layers"></i> <span>Test Queue</span></a>
+                </li>
+            </ul>
+            
+            <!-- Reports -->
+            <li class="menu-title"> 
+                <span>Reports & Analytics</span>
+            </li>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'lab-report-queue' %}"><i class="fe fe-file-text"></i> <span>Report Queue</span></a>
+                </li>
+            </ul>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'report-history' %}"><i class="fe fe-archive"></i> <span>Report History</span></a>
+                </li>
+            </ul>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'lab-analytics' %}"><i class="fe fe-bar-chart-2"></i> <span>Lab Analytics</span></a>
                 </li>
             </ul>
         </div>
