@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 # from django.contrib.auth.models import User
 # from django.contrib.auth.forms import UserCreationForm
-from .forms import CustomUserCreationForm, PatientForm, PasswordResetForm
+from .forms import CustomUserCreationForm, PatientForm, PasswordResetForm, DoctorRegistrationForm
 from hospital.models import Hospital_Information, User, Patient 
 from doctor.models import Test, testCart, testOrder
 from hospital_admin.models import hospital_department, specialization, service, Test_Information
@@ -615,6 +615,10 @@ def hospital_doctor_register(request, pk):
             doctor.register_status = 'Pending'
             if certificate:
                 doctor.certificate_image = certificate
+            
+            # Ensure doctor has a name to prevent signal errors
+            if not doctor.name:
+                doctor.name = doctor.user.first_name or doctor.user.username or "Doctor"
             
             doctor.save()
             messages.success(request, 'Your registration request has been sent successfully!')
