@@ -146,6 +146,22 @@
 											</div>
 											<!-- /Paypal Payment -->
 											
+											<!-- Cash on Delivery -->
+											<div class="payment-list">
+												<label class="payment-radio cod-option">
+													<input type="radio" name="radio" id="cod_option">
+													<span class="checkmark"></span>
+													Cash on Delivery (COD)
+												</label>
+												<div class="cod-info" style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 5px; display: none;">
+													<p class="text-muted mb-0">
+														<i class="fas fa-info-circle"></i> 
+														Pay with cash when your medicines are delivered to your doorstep.
+													</p>
+												</div>
+											</div>
+											<!-- /Cash on Delivery -->
+											
 											<!-- Terms Accept -->
 											<div class="terms-accept">
 												<div class="custom-checkbox">
@@ -253,6 +269,32 @@
 		
 		<!-- Custom JS -->
 		<script src="{% static 'HealthStack-System/Outside_assets/js/script.js' %}"></script>
+		
+		<!-- COD Payment Script -->
+		<script>
+		$(document).ready(function() {
+			// Show/hide COD info when COD option is selected
+			$('input[name="radio"]').change(function() {
+				if ($('#cod_option').is(':checked')) {
+					$('.cod-info').slideDown();
+				} else {
+					$('.cod-info').slideUp();
+				}
+			});
+			
+			// Update button text and form action based on payment method
+			$('.submit-btn').click(function(e) {
+				if ($('#cod_option').is(':checked')) {
+					$(this).text('Place Order (COD)');
+					// You can redirect to COD pharmacy endpoint here
+					// e.preventDefault();
+					// window.location.href = "{% url 'cod-pharmacy-payment' %}";
+				} else {
+					$(this).text('Confirm and Pay');
+				}
+			});
+		});
+		</script>
 		
 	</body>
 

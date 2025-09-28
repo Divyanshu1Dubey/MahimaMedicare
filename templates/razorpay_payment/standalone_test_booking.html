@@ -1,0 +1,375 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Book Lab Tests - Mahima Medicare</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+    
+    <style>
+        .booking-container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .booking-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .booking-header h2 {
+            color: #95C270;
+            margin-bottom: 10px;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .test-card {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .test-card:hover {
+            border-color: #95C270;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(149, 194, 112, 0.2);
+        }
+        
+        .test-card.selected {
+            border-color: #95C270;
+            background: #f8fff4;
+        }
+        
+        .test-checkbox {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        
+        .test-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .test-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #95C270;
+            float: right;
+        }
+        
+        .test-description {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .payment-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        .total-amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: #95C270;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .payment-btn, .cod-btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .payment-btn {
+            background: #95C270;
+            color: white;
+        }
+        
+        .payment-btn:hover {
+            background: #7ea65d;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+        
+        .cod-btn {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .cod-btn:hover {
+            background: #138496;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .booking-info {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .booking-info h5 {
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+        
+        .info-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info-list li {
+            padding: 5px 0;
+            color: #555;
+        }
+        
+        .info-list i {
+            color: #1976d2;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .payment-methods {
+                grid-template-columns: 1fr;
+            }
+            
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <nav class="navbar navbar-expand-lg header-nav">
+                <div class="navbar-header">
+                    <a href="{% url 'hospital_home' %}" class="navbar-brand logo">
+                        <img src="{% static 'HealthStack-System/images/Normal/logo.png' %}" class="img-fluid" alt="Logo">
+                    </a>
+                </div>
+                <div class="navbar-nav ml-auto">
+                    <a href="{% url 'patient-dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </nav>
+        </header>
+        <!-- /Header -->
+        
+        <!-- Page Content -->
+        <div class="content">
+            <div class="container">
+                <div class="booking-container">
+                    <div class="booking-header">
+                        <h2><i class="fas fa-flask"></i> Book Lab Tests</h2>
+                        <p class="text-muted">Select lab tests and choose your preferred payment method</p>
+                    </div>
+                    
+                    <div class="booking-info">
+                        <h5><i class="fas fa-info-circle"></i> How it works</h5>
+                        <ul class="info-list">
+                            <li><i class="fas fa-check-circle"></i> Select the lab tests you need</li>
+                            <li><i class="fas fa-credit-card"></i> Choose online payment or Cash on Delivery</li>
+                            <li><i class="fas fa-calendar-alt"></i> Visit the lab at your convenience</li>
+                            <li><i class="fas fa-file-medical"></i> Get your reports digitally</li>
+                        </ul>
+                    </div>
+                    
+                    <form id="test-booking-form" method="post" action="{% url 'submit-standalone-test' %}">
+                        {% csrf_token %}
+                        
+                        <h4><i class="fas fa-list"></i> Available Lab Tests</h4>
+                        
+                        {% if available_tests %}
+                        <div class="test-grid">
+                            {% for test in available_tests %}
+                            <div class="test-card" onclick="toggleTest({{ test.id }})">
+                                <div class="d-flex align-items-start">
+                                    <input type="checkbox" 
+                                           name="selected_tests" 
+                                           value="{{ test.id }}" 
+                                           id="test_{{ test.id }}" 
+                                           class="test-checkbox"
+                                           onchange="updateTotal()">
+                                    <div class="flex-grow-1">
+                                        <div class="test-name">{{ test.name }}</div>
+                                        <div class="test-price">₹{{ test.price }}</div>
+                                        {% if test.description %}
+                                        <div class="test-description">{{ test.description }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No lab tests available at the moment. Please contact the admin.
+                        </div>
+                        {% endif %}
+                        
+                        <div class="payment-section" id="payment-section" style="display: none;">
+                            <div class="total-amount" id="total-amount">
+                                Total: ₹0
+                            </div>
+                            
+                            <h5><i class="fas fa-credit-card"></i> Choose Payment Method</h5>
+                            <div class="payment-methods">
+                                <button type="submit" name="payment_method" value="online" class="payment-btn" id="online-pay-btn" disabled>
+                                    <i class="fas fa-credit-card"></i> Pay Online
+                                </button>
+                                <button type="submit" name="payment_method" value="cod" class="cod-btn" id="cod-pay-btn" disabled>
+                                    <i class="fas fa-money-bill"></i> Cash on Delivery
+                                </button>
+                            </div>
+                            
+                            <div class="text-center mt-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-shield-alt"></i> Secure payments • <i class="fas fa-truck"></i> Pay at lab for COD
+                                </small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Content -->
+    </div>
+
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <script>
+        let selectedTests = new Set();
+        let testPrices = {};
+        
+        // Initialize test prices
+        {% for test in available_tests %}
+        testPrices[{{ test.id }}] = {{ test.price }};
+        {% endfor %}
+        
+        function toggleTest(testId) {
+            const checkbox = document.getElementById('test_' + testId);
+            checkbox.checked = !checkbox.checked;
+            updateTotal();
+        }
+        
+        function updateTotal() {
+            const checkboxes = document.querySelectorAll('input[name="selected_tests"]:checked');
+            selectedTests.clear();
+            let total = 0;
+            
+            // Update card styling and calculate total
+            document.querySelectorAll('.test-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            checkboxes.forEach(checkbox => {
+                const testId = parseInt(checkbox.value);
+                selectedTests.add(testId);
+                total += testPrices[testId] || 0;
+                
+                // Add selected styling to card
+                checkbox.closest('.test-card').classList.add('selected');
+            });
+            
+            // Update total display
+            document.getElementById('total-amount').textContent = `Total: ₹${total}`;
+            
+            // Show/hide payment section
+            const paymentSection = document.getElementById('payment-section');
+            const onlineBtn = document.getElementById('online-pay-btn');
+            const codBtn = document.getElementById('cod-pay-btn');
+            
+            if (selectedTests.size > 0) {
+                paymentSection.style.display = 'block';
+                onlineBtn.disabled = false;
+                codBtn.disabled = false;
+            } else {
+                paymentSection.style.display = 'none';
+                onlineBtn.disabled = true;
+                codBtn.disabled = true;
+            }
+        }
+        
+        // Prevent card click from interfering with checkbox
+        document.querySelectorAll('.test-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+        
+        // Form validation
+        document.getElementById('test-booking-form').addEventListener('submit', function(e) {
+            if (selectedTests.size === 0) {
+                e.preventDefault();
+                alert('Please select at least one test.');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

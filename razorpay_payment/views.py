@@ -92,26 +92,68 @@ def create_appointment_payment(request, appointment_id):
 
 @login_required
 def create_pharmacy_payment(request, order_id):
-    """Create Razorpay order for pharmacy payment"""
+    """Create Razorpay order for pharmacy payment with COD option"""
     try:
         order = get_object_or_404(Order, id=order_id)
         patient = order.user.patient
         
         # Calculate amount (convert to paise for Razorpay)
-        amount = int(float(order.final_bill()) * 100)
+        amount_in_rupees = float(order.final_bill())
         
-        # Create Razorpay order
+        # Check if payment method is provided
+        payment_method = request.GET.get('method', 'online')
+        
+        # Handle Cash on Delivery (COD) for pharmacy
+        if payment_method == 'cod':
+            # Mark as COD and proceed without Razorpay
+            order.payment_status = 'cod'
+            order.ordered = True
+            order.order_status = 'confirmed_cod'
+            order.save()
+            
+            # Mark cart items as purchased
+            for cart_item in order.orderitems.all():
+                cart_item.purchased = True
+                cart_item.save()
+            
+            messages.success(request, 'Order confirmed with Cash on Delivery. Please pay upon receiving your medicines.')
+            return redirect('patient-dashboard')
+            
+        amount = int(amount_in_rupees * 100)
+        
+        # Create Razorpay order with retry mechanism
         receipt_id = generate_receipt_id('pharmacy', order_id)
-        razorpay_order = razorpay_client.order.create({
-            'amount': amount,
-            'currency': 'INR',
-            'receipt': receipt_id,
-            'notes': {
-                'order_id': order_id,
-                'patient_id': patient.patient_id,
-                'total_items': order.orderitems.count()
-            }
-        })
+        
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                razorpay_order = razorpay_client.order.create({
+                    'amount': amount,
+                    'currency': 'INR',
+                    'receipt': receipt_id,
+                    'notes': {
+                        'order_id': order_id,
+                        'patient_id': patient.patient_id,
+                        'total_items': order.orderitems.count()
+                    }
+                })
+                break  # Success, exit retry loop
+            except Exception as conn_error:
+                if attempt < max_retries - 1:
+                    import time
+                    time.sleep(1)  # Wait 1 second before retry
+                    continue
+                else:
+                    # All retries failed, offer COD as fallback
+                    messages.error(request, f'Payment gateway temporarily unavailable. Would you like to proceed with Cash on Delivery?')
+                    context = {
+                        'order': order,
+                        'amount': amount_in_rupees,
+                        'payment_error': True,
+                        'error_message': 'Payment gateway connection failed. Please try again or choose Cash on Delivery.',
+                        'show_cod_option': True
+                    }
+                    return render(request, 'razorpay_payment/pharmacy_payment.html', context)
         
         # Save payment record
         payment = RazorpayPayment.objects.create(
@@ -139,18 +181,19 @@ def create_pharmacy_payment(request, order_id):
             'customer_email': patient.email,
             'customer_phone': patient.phone_number,
             'order': order,
-            'payment': payment
+            'payment': payment,
+            'show_cod_option': True  # Always show COD option for pharmacy
         }
         
         return render(request, 'razorpay_payment/pharmacy_payment.html', context)
         
     except Exception as e:
-        messages.error(request, f'Error creating payment: {str(e)}')
-        return redirect('pharmacy_shop')
+        messages.error(request, f'Error creating payment: {str(e)}. You can still proceed with Cash on Delivery.')
+        return redirect(f'/razorpay/pharmacy/{order_id}/?method=cod_fallback')
 
 @login_required
 def create_test_payment(request, test_order_id):
-    """Create Razorpay order for test payment"""
+    """Create Razorpay order for test payment with COD option"""
     try:
         test_order = get_object_or_404(testOrder, id=test_order_id)
         # Get patient from the user associated with the test order
@@ -172,20 +215,62 @@ def create_test_payment(request, test_order_id):
             messages.error(request, 'Invalid test order amount.')
             return redirect('patient-dashboard')
             
+        # Check if payment method is provided
+        payment_method = request.GET.get('method', 'online')
+        
+        # Handle Cash on Delivery (COD) for tests
+        if payment_method == 'cod':
+            # Mark as unpaid/COD and proceed without Razorpay
+            test_order.payment_status = 'cod_pending'
+            test_order.ordered = True
+            test_order.save()
+            
+            # Update cart items
+            for cart_item in test_order.orderitems.all():
+                cart_item.purchased = True
+                if hasattr(cart_item, 'item') and cart_item.item:
+                    prescription_test = cart_item.item
+                    prescription_test.test_info_pay_status = 'cod_pending'
+                    prescription_test.save()
+                cart_item.save()
+            
+            messages.success(request, 'Test order confirmed with Cash on Delivery. Please pay at the lab.')
+            return redirect('patient-dashboard')
+            
         amount = int(float(total_bill) * 100)
         
-        # Create Razorpay order
+        # Create Razorpay order with retry mechanism for connection errors
         receipt_id = generate_receipt_id('test', test_order_id)
-        razorpay_order = razorpay_client.order.create({
-            'amount': amount,
-            'currency': 'INR',
-            'receipt': receipt_id,
-            'notes': {
-                'test_order_id': test_order_id,
-                'patient_id': patient.patient_id,
-                'prescription_id': getattr(test_order.prescription, 'prescription_id', None) if hasattr(test_order, 'prescription') and test_order.prescription else None
-            }
-        })
+        
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                razorpay_order = razorpay_client.order.create({
+                    'amount': amount,
+                    'currency': 'INR',
+                    'receipt': receipt_id,
+                    'notes': {
+                        'test_order_id': test_order_id,
+                        'patient_id': patient.patient_id,
+                        'prescription_id': getattr(test_order.prescription, 'prescription_id', None) if hasattr(test_order, 'prescription') and test_order.prescription else None
+                    }
+                })
+                break  # Success, exit retry loop
+            except Exception as conn_error:
+                if attempt < max_retries - 1:
+                    import time
+                    time.sleep(1)  # Wait 1 second before retry
+                    continue
+                else:
+                    # All retries failed, offer COD as fallback
+                    messages.error(request, f'Payment gateway temporarily unavailable. Would you like to proceed with Cash on Delivery?')
+                    context = {
+                        'test_order': test_order,
+                        'amount': total_bill,
+                        'payment_error': True,
+                        'error_message': 'Payment gateway connection failed. Please try again or choose Cash on Delivery.'
+                    }
+                    return render(request, 'razorpay_payment/test_payment.html', context)
         
         # Save payment record
         payment = RazorpayPayment.objects.create(
@@ -214,14 +299,16 @@ def create_test_payment(request, test_order_id):
             'customer_email': patient.email,
             'customer_phone': patient.phone_number,
             'test_order': test_order,
-            'payment': payment
+            'payment': payment,
+            'show_cod_option': True  # Always show COD option for tests
         }
         
         return render(request, 'razorpay_payment/test_payment.html', context)
         
     except Exception as e:
-        messages.error(request, f'Error creating payment: {str(e)}')
-        return redirect('patient-dashboard')
+        messages.error(request, f'Error creating payment: {str(e)}. You can still proceed with Cash on Delivery.')
+        # Redirect with COD option
+        return redirect(f'/razorpay/test/{test_order_id}/?method=cod_fallback')
 
 @csrf_exempt
 def payment_success(request):
@@ -504,9 +591,9 @@ def regenerate_invoice(request, payment_id):
             return redirect('patient-dashboard')
         
         # Generate new invoice
-        invoice_path = generate_invoice(payment)
+        invoice = generate_invoice_for_payment(payment)
         
-        if invoice_path:
+        if invoice:
             messages.success(request, 'Invoice regenerated successfully!')
         else:
             messages.error(request, 'Failed to regenerate invoice.')
@@ -545,6 +632,259 @@ def download_pharmacy_invoice(request, order_id):
     except Exception as e:
         messages.error(request, f'Error downloading invoice: {str(e)}')
         return redirect('patient-dashboard')
+
+
+# COD (Cash on Delivery) Views
+@login_required
+def cod_test_payment(request, test_order_id):
+    """Handle Cash on Delivery for test orders"""
+    try:
+        test_order = get_object_or_404(testOrder, id=test_order_id)
+        
+        # Check if user has permission
+        if test_order.user != request.user:
+            messages.error(request, 'You do not have permission to access this order.')
+            return redirect('patient-dashboard')
+        
+        # Mark as COD and proceed
+        test_order.payment_status = 'cash_on_delivery'
+        test_order.ordered = True
+        test_order.save()
+        
+        # Update cart items
+        for cart_item in test_order.orderitems.all():
+            cart_item.purchased = True
+            if hasattr(cart_item, 'item') and cart_item.item:
+                prescription_test = cart_item.item
+                prescription_test.test_info_pay_status = 'cash_on_delivery'
+                prescription_test.save()
+            cart_item.save()
+        
+        # Send notification email to admin
+        send_cod_notification_email('test', test_order)
+        
+        messages.success(request, 'Test order confirmed with Cash on Delivery. Please pay at the lab.')
+        return redirect('patient-dashboard')
+        
+    except Exception as e:
+        messages.error(request, f'Error processing COD order: {str(e)}')
+        return redirect('patient-dashboard')
+
+
+@login_required
+def cod_pharmacy_payment(request, order_id):
+    """Handle Cash on Delivery for pharmacy orders"""
+    try:
+        order = get_object_or_404(Order, id=order_id)
+        
+        # Check if user has permission
+        if order.user != request.user:
+            messages.error(request, 'You do not have permission to access this order.')
+            return redirect('patient-dashboard')
+        
+        # Mark as COD and proceed
+        order.payment_status = 'cash_on_delivery'
+        order.ordered = True
+        order.order_status = 'confirmed'
+        order.save()
+        
+        # Mark cart items as purchased
+        for cart_item in order.orderitems.all():
+            cart_item.purchased = True
+            cart_item.save()
+        
+        # Send notification email to admin
+        send_cod_notification_email('pharmacy', order)
+        
+        messages.success(request, 'Order confirmed with Cash on Delivery. Please pay upon receiving your medicines.')
+        return redirect('patient-dashboard')
+        
+    except Exception as e:
+        messages.error(request, f'Error processing COD order: {str(e)}')
+        return redirect('patient-dashboard')
+
+
+# Standalone Test Booking for Patients
+def standalone_test_booking(request):
+    """Allow patients to book lab tests independently"""
+    try:
+        # Get all available tests from Test_Information model (managed by lab technicians)
+        from hospital_admin.models import Test_Information
+        available_tests = Test_Information.objects.all().order_by('test_name')
+        
+        # Convert to list of dictionaries for template compatibility
+        test_list = []
+        for test in available_tests:
+            test_list.append({
+                'id': test.test_id,
+                'name': test.test_name,
+                'price': int(test.test_price) if test.test_price and test.test_price.isdigit() else 0,
+                'description': f'Lab test: {test.test_name}'
+            })
+        
+        context = {
+            'available_tests': test_list,
+        }
+        
+        return render(request, 'razorpay_payment/standalone_test_booking.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Error loading test booking page: {str(e)}')
+        return redirect('patient-dashboard')
+
+
+@login_required
+def submit_standalone_test(request):
+    """Submit standalone test booking"""
+    if request.method == 'POST':
+        try:
+            selected_tests = request.POST.getlist('selected_tests')
+            payment_method = request.POST.get('payment_method', 'online')
+            
+            if not selected_tests:
+                messages.error(request, 'Please select at least one test.')
+                return redirect('standalone-test-booking')
+            
+            # Get patient
+            patient = request.user.patient
+            
+            # Create test cart items
+            from doctor.models import testCart, Prescription_test, testOrder
+            from hospital_admin.models import Test_Information
+            
+            # Create a dummy prescription for standalone tests
+            prescription = None
+            
+            cart_items = []
+            total_amount = 0
+            
+            for test_id in selected_tests:
+                test_id = int(test_id)
+                try:
+                    # Get the actual test from Test_Information model
+                    lab_test = Test_Information.objects.get(test_id=test_id)
+                    
+                    # Create prescription test entry
+                    prescription_test = Prescription_test.objects.create(
+                        test_name=lab_test.test_name,
+                        test_description=f'Standalone booking: {lab_test.test_name}',
+                        test_info_price=lab_test.test_price or '0',
+                        test_info_pay_status='unpaid',
+                        test_status='prescribed'
+                    )
+                    
+                    # Create cart item
+                    cart_item = testCart.objects.create(
+                        user=request.user,
+                        item=prescription_test,
+                        purchased=False
+                    )
+                    cart_items.append(cart_item)
+                    test_price = int(lab_test.test_price) if lab_test.test_price and lab_test.test_price.isdigit() else 0
+                    total_amount += test_price
+                    
+                except Test_Information.DoesNotExist:
+                    messages.error(request, f'Test with ID {test_id} not found.')
+                    continue
+            
+            # Create test order
+            test_order = testOrder.objects.create(
+                user=request.user,
+                ordered=False,
+                payment_status='pending'
+            )
+            test_order.orderitems.set(cart_items)
+            
+            # Handle payment method
+            if payment_method == 'cod':
+                # Direct COD processing
+                test_order.payment_status = 'cod_pending'
+                test_order.ordered = True
+                test_order.save()
+                
+                # Update cart items
+                for cart_item in cart_items:
+                    cart_item.purchased = True
+                    cart_item.item.test_info_pay_status = 'cod_pending'
+                    cart_item.item.save()
+                    cart_item.save()
+                
+                # Send notification
+                send_cod_notification_email('standalone_test', test_order)
+                
+                messages.success(request, 'Lab tests booked successfully with Cash on Delivery. Please pay at the lab.')
+                return redirect('patient-dashboard')
+            else:
+                # Redirect to payment
+                return redirect('razorpay-test-payment', test_order_id=test_order.id)
+            
+        except Exception as e:
+            messages.error(request, f'Error booking tests: {str(e)}')
+            return redirect('standalone-test-booking')
+    
+    return redirect('standalone-test-booking')
+
+
+def send_cod_notification_email(order_type, order):
+    """Send COD notification email to admin"""
+    try:
+        from django.core.mail import send_mail
+        from django.conf import settings
+        
+        # Admin email (you can add this to your .env file)
+        admin_email = getattr(settings, 'ADMIN_EMAIL', 'admin@mahimamedicare.com')
+        
+        if order_type == 'test':
+            subject = f'New COD Test Order #{order.id}'
+            message = f"""
+            New Cash on Delivery test order received:
+            
+            Order ID: {order.id}
+            Patient: {order.user.patient.name if hasattr(order.user, 'patient') else order.user.username}
+            Phone: {order.user.patient.phone_number if hasattr(order.user, 'patient') else 'N/A'}
+            Total Amount: ₹{order.final_bill if hasattr(order, 'final_bill') else order.total_amount}
+            Order Date: {order.created}
+            
+            Please ensure payment collection at the lab.
+            """
+        elif order_type == 'pharmacy':
+            subject = f'New COD Pharmacy Order #{order.id}'
+            message = f"""
+            New Cash on Delivery pharmacy order received:
+            
+            Order ID: {order.id}
+            Patient: {order.user.patient.name if hasattr(order.user, 'patient') else order.user.username}
+            Phone: {order.user.patient.phone_number if hasattr(order.user, 'patient') else 'N/A'}
+            Total Amount: ₹{order.final_bill()}
+            Order Date: {order.created_at if hasattr(order, 'created_at') else 'N/A'}
+            
+            Please ensure payment collection upon delivery.
+            """
+        elif order_type == 'standalone_test':
+            subject = f'New Standalone Test Booking (COD) #{order.id}'
+            message = f"""
+            New standalone test booking with Cash on Delivery:
+            
+            Order ID: {order.id}
+            Patient: {order.user.patient.name if hasattr(order.user, 'patient') else order.user.username}
+            Phone: {order.user.patient.phone_number if hasattr(order.user, 'patient') else 'N/A'}
+            Total Amount: ₹{order.final_bill if hasattr(order, 'final_bill') else order.total_amount}
+            Order Date: {order.created}
+            
+            This is a self-booked test by the patient.
+            Please ensure payment collection at the lab.
+            """
+        
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [admin_email],
+            fail_silently=True
+        )
+        
+    except Exception as e:
+        print(f"Error sending COD notification email: {e}")
 
 
 @csrf_exempt

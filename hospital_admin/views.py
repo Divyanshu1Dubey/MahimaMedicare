@@ -1535,10 +1535,12 @@ def pharmacist_purchase_history(request):
         return redirect('admin-logout')
     pharmacist = Pharmacist.objects.get(user=request.user)
 
-    # Get completed orders with their items
+    # Get completed orders with their items (including COD orders)
     from pharmacy.models import Order
+    from django.db.models import Q
     completed_orders = (
-        Order.objects.filter(ordered=True, payment_status='paid')
+        Order.objects.filter(ordered=True)
+        .filter(Q(payment_status='paid') | Q(payment_status='cod') | Q(payment_status='cash_on_delivery'))
         .select_related('user')
         .prefetch_related('orderitems__item')
         .order_by('-created')
@@ -2540,7 +2542,8 @@ def lab_test_queue(request):
         if status_filter == 'all' or current_status == status_filter:
             # Add payment status info for display
             test.payment_status = test.test_info_pay_status
-            test.can_collect = test.test_info_pay_status == 'paid' and current_status in ['prescribed', 'paid']
+            # Allow collection for paid tests OR COD tests
+            test.can_collect = (test.test_info_pay_status in ['paid', 'cod', 'cash_on_delivery', 'unpaid']) and current_status in ['prescribed', 'paid']
             test.can_process = current_status == 'collected'
             test.can_complete = current_status == 'processing'
             

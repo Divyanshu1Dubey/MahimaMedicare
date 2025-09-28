@@ -368,6 +368,7 @@
                                                 <th>Patient</th>
                                                 <th>Items</th>
                                                 <th>Total</th>
+                                                <th>Payment</th>
                                                 <th>Delivery Method</th>
                                                 <th>Status</th>
                                                 <th>Order Date</th>
@@ -391,6 +392,17 @@
                                                     {% endfor %}
                                                 </td>
                                                 <td>₹{{ order.get_cart_total|floatformat:2 }}</td>
+                                                <td>
+                                                    <span class="badge badge-{% if order.payment_status == 'paid' %}success{% elif order.payment_status == 'cash_on_delivery' or order.payment_status == 'cod' %}warning{% else %}secondary{% endif %}">
+                                                        {% if order.payment_status == 'paid' %}
+                                                            Paid Online
+                                                        {% elif order.payment_status == 'cash_on_delivery' or order.payment_status == 'cod' %}
+                                                            Cash on Delivery
+                                                        {% else %}
+                                                            {{ order.payment_status|default:"Pending" }}
+                                                        {% endif %}
+                                                    </span>
+                                                </td>
                                                 <td>
                                                     <span class="badge badge-{% if order.delivery_method == 'delivery' %}primary{% else %}secondary{% endif %}">
                                                         {{ order.get_delivery_method_display }}

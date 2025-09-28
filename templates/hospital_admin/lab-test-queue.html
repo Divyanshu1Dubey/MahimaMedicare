@@ -304,6 +304,8 @@
                                         <span class="badge badge-danger ml-1">Unpaid</span>
                                         {% elif test.payment_status == 'paid' %}
                                         <span class="badge badge-success ml-1">Paid</span>
+                                        {% elif test.payment_status == 'cash_on_delivery' or test.payment_status == 'cod' %}
+                                        <span class="badge badge-warning ml-1">Cash on Delivery</span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -355,10 +357,13 @@
                                     
                                     <div class="test-actions mt-3">
                                         {% if test.test_status == 'prescribed' %}
-                                            {% if test.payment_status == 'paid' %}
+                                            {% if test.payment_status == 'paid' or test.payment_status == 'cash_on_delivery' or test.payment_status == 'cod' %}
                                             <button class="btn-action btn-collect" 
                                                     onclick="updateTestStatus({{ test.test_id }}, 'collected')">
                                                 <i class="fe fe-check"></i> Collect Sample
+                                                {% if test.payment_status == 'cash_on_delivery' or test.payment_status == 'cod' %}
+                                                    (COD)
+                                                {% endif %}
                                             </button>
                                             {% else %}
                                             <span class="text-warning">

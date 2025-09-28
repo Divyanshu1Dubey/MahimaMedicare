@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
 
 from hospital.models import Patient
 from pharmacy.models import Medicine, Cart, Order
@@ -286,11 +287,12 @@ def my_orders(request):
     if request.user.is_authenticated and request.user.is_patient:
         patient = Patient.objects.get(user=request.user)
         
-        # Get all completed orders for this patient
+        # Get all completed orders for this patient (including COD orders)
         orders = Order.objects.filter(
             user=request.user, 
-            ordered=True, 
-            payment_status='paid'
+            ordered=True
+        ).filter(
+            Q(payment_status='paid') | Q(payment_status='cod') | Q(payment_status='cash_on_delivery')
         ).order_by('-created')
         
         context = {

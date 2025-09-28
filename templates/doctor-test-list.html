@@ -223,6 +223,7 @@
                               <tr>
                                 <th>Test Name</th>
                                 <th>Test ID</th>
+                                <th>Price (₹)</th>
                                 <th>Actions</th>
                               </tr>
                             </thead>
@@ -231,6 +232,7 @@
                               <tr>
                                 <td>{{t.test_name}}</td>
                                 <td>{{t.test_id}}</td>
+                                <td>₹{{t.test_price|default:"0"}}</td>
                                 <td>
                                   <button class="btn btn-sm btn-outline-primary">View Details</button>
                                 </td>

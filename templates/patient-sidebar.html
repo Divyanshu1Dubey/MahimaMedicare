@@ -227,6 +227,12 @@
           <span>Medical Shop</span>
         </a>
       </li>
+      <li class="{% if request.resolver_match.url_name == 'standalone-test-booking' %}active{% endif %}">
+        <a href="{% url 'standalone-test-booking' %}">
+          <i class="fas fa-flask"></i>
+          <span>Self Test Booking</span>
+        </a>
+      </li>
       <li class="{% if request.resolver_match.url_name == 'multiple-hospital' %}active{% endif %}">
         <a href="{% url 'multiple-hospital' %}">
           <i class="fas fa-hospital"></i>

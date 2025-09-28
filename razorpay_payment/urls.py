@@ -7,6 +7,14 @@ urlpatterns = [
     path('pharmacy/<int:order_id>/', views.create_pharmacy_payment, name='razorpay-pharmacy-payment'),
     path('test/<int:test_order_id>/', views.create_test_payment, name='razorpay-test-payment'),
     
+    # COD URLs
+    path('cod/test/<int:test_order_id>/', views.cod_test_payment, name='cod-test-payment'),
+    path('cod/pharmacy/<int:order_id>/', views.cod_pharmacy_payment, name='cod-pharmacy-payment'),
+    
+    # Patient standalone test booking
+    path('book-test/', views.standalone_test_booking, name='standalone-test-booking'),
+    path('book-test/submit/', views.submit_standalone_test, name='submit-standalone-test'),
+    
     # Payment callback URLs
     path('success/', views.payment_success, name='razorpay-payment-success'),
     path('failed/', views.payment_failed, name='razorpay-payment-failed'),
