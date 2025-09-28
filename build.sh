@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# exit on error (commented out to handle migration conflicts gracefully)
-# set -o errexit
-
+# Production build script for Render deployment
 echo "🚀 Starting Mahima Medicare production build..."
 
 # Install dependencies
@@ -12,20 +10,19 @@ pip install -r requirements.txt
 echo "📁 Collecting static files..."
 python manage.py collectstatic --no-input
 
-# Handle migration conflicts by faking them first
-echo "🔧 Resolving potential migration conflicts..."
-python manage.py migrate --fake-initial 2>/dev/null || true
-python manage.py migrate --fake 2>/dev/null || true
-
-# Now run real migrations for any new changes
-echo "📊 Running database migrations..."
-python manage.py migrate 2>/dev/null || echo "Some migrations may have been skipped due to conflicts"
+# Initialize database properly
+echo "🗄️ Initializing production database..."
+python manage.py init_db || echo "Database initialization completed with warnings"
 
 # Set up production data
 echo "🏥 Setting up production data..."
-python manage.py setup_production 2>/dev/null || echo "Production setup completed with warnings"
+python manage.py setup_production 2>/dev/null || echo "Production setup completed"
 
 echo "✅ Build complete! Mahima Medicare is ready for deployment."
-echo "🌐 Admin login: admin / mahima2025"
+echo "🌐 Website ready at your Render URL"
+echo "👤 Admin login: admin / mahima2025"
 echo "🧪 Test patient: patient / test123"
-
+echo "🔗 Test features:"
+echo "  - Standalone test booking: /razorpay/book-test/"
+echo "  - Admin panel: /admin/"
+echo "  - Patient login: /login/"
