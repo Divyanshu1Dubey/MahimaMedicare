@@ -1,0 +1,54 @@
+name: Deploy to Vultr Server
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        script: |
+          cd /var/www/mahima-medicare
+          
+          # Pull latest changes
+          git pull origin main
+          
+          # Activate virtual environment
+          source venv/bin/activate
+          
+          # Install any new dependencies
+          pip install -r requirements.txt
+          
+          # Run database migrations
+          python manage.py makemigrations
+          python manage.py migrate
+          
+          # Collect static files
+          python manage.py collectstatic --noinput
+          
+          # Restart Gunicorn
+          killall gunicorn 2>/dev/null || true
+          pkill -f gunicorn 2>/dev/null || true
+          sleep 3
+          
+          # Start Gunicorn fresh
+          gunicorn --config gunicorn.conf.py healthstack.wsgi:application &
+          
+          echo "Deployment completed successfully!"
+          
+          # Test the deployment
+          sleep 5
+          curl -I http://127.0.0.1:8000/ || echo "Server might still be starting..."
