@@ -4,6 +4,7 @@ Security and monitoring middleware for Mahima Medicare
 
 import logging
 import time
+import os
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 from django.contrib.auth import logout
@@ -15,6 +16,55 @@ from datetime import timedelta
 import re
 
 logger = logging.getLogger(__name__)
+
+class DatabaseInitializationMiddleware(MiddlewareMixin):
+    """
+    Emergency database initialization middleware
+    Ensures Django session table exists on first request
+    """
+    _initialized = False
+    
+    def process_request(self, request):
+        if not self._initialized and not settings.DEBUG:
+            try:
+                from django.db import connection
+                
+                print("🚨 EMERGENCY DATABASE CHECK ON FIRST REQUEST...")
+                
+                # Quick check if session table exists
+                with connection.cursor() as cursor:
+                    try:
+                        cursor.execute("SELECT 1 FROM django_session LIMIT 1;")
+                        print("✅ Session table exists!")
+                        self._initialized = True
+                    except Exception:
+                        print("❌ Session table missing! Creating now...")
+                        
+                        # Emergency table creation
+                        cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS django_session (
+                                session_key varchar(40) PRIMARY KEY,
+                                session_data text NOT NULL,
+                                expire_date datetime NOT NULL
+                            );
+                        """)
+                        
+                        cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS django_content_type (
+                                id integer PRIMARY KEY AUTOINCREMENT,
+                                app_label varchar(100) NOT NULL,
+                                model varchar(100) NOT NULL,
+                                UNIQUE(app_label, model)
+                            );
+                        """)
+                        
+                        print("✅ Emergency session table created!")
+                        self._initialized = True
+                        
+            except Exception as e:
+                print(f"Emergency DB init error: {e}")
+                
+        return None
 
 class SecurityMiddleware(MiddlewareMixin):
     """Enhanced security middleware"""
