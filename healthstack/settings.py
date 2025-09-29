@@ -39,7 +39,8 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['192.168.0.100', '127.0.0.1', 'localhost', '5749-103-109-53-5.in.ngrok.io','.trycloudflare.com', '.onrender.com']
+# Use environment variable for ALLOWED_HOSTS or fallback to default values
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
 # ALLOWED_HOSTS = ['mobile view', 'local host','ngrok -- keeps on changing']
 
 # Application definition
