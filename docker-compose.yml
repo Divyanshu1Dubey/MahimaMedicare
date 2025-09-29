@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "80:80"
+    volumes:
+      - ./media:/app/media
+      - ./db.sqlite3:/app/db.sqlite3
+    environment:
+      - DJANGO_SETTINGS_MODULE=healthstack.settings
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge

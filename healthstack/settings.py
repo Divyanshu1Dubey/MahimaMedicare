@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'rest_framework',
     'ChatApp.apps.ChatappConfig',
-    'debug_toolbar',
+    # 'debug_toolbar',  # Removed for production
  
 
 ]
@@ -73,16 +73,16 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',  # Removed for production
 ]
 
 # Add WhiteNoise middleware only in production
 if not DEBUG:
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
+# INTERNAL_IPS = [
+#     "127.0.0.1",
+# ]  # Debug toolbar removed
 
 ROOT_URLCONF = 'healthstack.urls'
 
@@ -249,3 +249,10 @@ if not DEBUG:
     
     # Additional security headers
     X_FRAME_OPTIONS = 'DENY'
+else:
+    # Development settings - explicitly disable HTTPS redirects
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_BROWSER_XSS_FILTER = False
+    SECURE_CONTENT_TYPE_NOSNIFF = False

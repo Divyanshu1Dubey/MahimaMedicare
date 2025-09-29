@@ -35,7 +35,7 @@ urlpatterns = [
     path('chat/', include('ChatApp.urls')),
     path('razorpay/', include('razorpay_payment.urls')),
     path('pharmacy/', include('pharmacy.urls')),
-    path('__debug__/', include('debug_toolbar.urls')),
+    # path('__debug__/', include('debug_toolbar.urls')),  # Removed for production
     
     # For forgot password views and reset password views
     path('reset_password/', auth_views.PasswordResetView.as_view(template_name="reset_password.html"),name="reset-password"),
