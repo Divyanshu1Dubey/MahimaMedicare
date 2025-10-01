@@ -341,7 +341,7 @@ class testCart(models.Model):
     def total(self):
         # Kung may string unit, tanggalin at gawing float
         price_str = str(self.item.test_info_price)
-        price_numeric = price_str.split()[0]  # "233.0 Tk" -> "233.0"
+        price_numeric = price_str.split()[0]  # "233.0 INR" -> "233.0"
         return float(price_numeric)
 
 

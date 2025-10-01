@@ -10,7 +10,9 @@
   <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
 
   <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'HealthStack-S                                  ₹{{ appointment.doctor.consultation_fee }} INR
+                                {% else %}
+                                  ₹{{ appointment.doctor.report_fee }} INRem/css/Normal/bootstrap.min.css' %}" />
 
   <!-- Fontawesome CSS -->
   <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}" />
@@ -442,9 +444,9 @@
                                 <td>{{ appointment.appointment_type }}</td>
                                 <td>
                                   {% if appointment.appointment_type == 'checkup' %}
-                                  {{ appointment.doctor.consultation_fee }} BDT
+                                  ₹{{ appointment.doctor.consultation_fee }} INR
                                   {% else %}
-                                  {{ appointment.doctor.report_fee }} BDT
+                                  ₹{{ appointment.doctor.report_fee }} INR
                                   {% endif %}
                                 </td>
                                 <td>
