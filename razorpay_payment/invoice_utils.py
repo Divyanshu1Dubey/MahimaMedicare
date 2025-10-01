@@ -62,33 +62,73 @@ class InvoicePDFGenerator:
         return pdf_content
     
     def _create_header(self):
-        """Create GST tax invoice header section"""
+        """Create GST tax invoice header section with logo"""
         styles = getSampleStyleSheet()
         
+        # Try to add company logo
+        logo = None
+        try:
+            logo_path = os.path.join(settings.STATIC_ROOT or settings.STATICFILES_DIRS[0], 'HealthStack-System', 'images', 'Normal', 'logo.png')
+            if os.path.exists(logo_path):
+                logo = Image(logo_path, width=1*inch, height=0.7*inch)
+            else:
+                # Fallback to other logo locations
+                alt_logo_path = os.path.join(settings.BASE_DIR, 'static', 'HealthStack-System', 'images', 'Normal', 'logo.png')
+                if os.path.exists(alt_logo_path):
+                    logo = Image(alt_logo_path, width=1*inch, height=0.7*inch)
+        except:
+            logo = None
+        
         # Create header table with company info and GST tax invoice title
-        header_data = [
-            # Row 1: Subject to jurisdiction and GST TAX INVOICE
-            [
-                Paragraph('<font size="8">Subject to Vadodara Jurisdiction</font>', styles['Normal']),
-                Paragraph('<font size="16"><b>GST TAX INVOICE</b></font>', 
-                         ParagraphStyle('Title', parent=styles['Normal'], alignment=TA_CENTER, fontSize=16))
-            ],
-            # Row 2: Company name and Original for Buyer
-            [
-                Paragraph(f'<font size="14"><b>{self.invoice.company_name}</b></font>', styles['Normal']),
-                Paragraph('<font size="8">Original for Buyer</font>', 
-                         ParagraphStyle('OriginalBuyer', parent=styles['Normal'], alignment=TA_RIGHT, fontSize=8))
-            ],
-            # Row 3: Company details
-            [
-                Paragraph(f'''<font size="9">
-                Sale of - I, Near Mani Residency Complex,<br/>
-                {self.invoice.company_address}<br/>
-                Ph.: {self.invoice.company_phone} | Email: info@mahimamedicare.com
-                </font>''', styles['Normal']),
-                ''
+        if logo:
+            header_data = [
+                # Row 1: Logo and GST TAX INVOICE
+                [
+                    logo,
+                    Paragraph('<font size="16"><b>GST TAX INVOICE</b></font>', 
+                             ParagraphStyle('Title', parent=styles['Normal'], alignment=TA_CENTER, fontSize=16))
+                ],
+                # Row 2: Company name and Original for Buyer
+                [
+                    Paragraph(f'<font size="14"><b>{self.invoice.company_name}</b></font>', styles['Normal']),
+                    Paragraph('<font size="8">Original for Buyer</font>', 
+                             ParagraphStyle('OriginalBuyer', parent=styles['Normal'], alignment=TA_RIGHT, fontSize=8))
+                ],
+                # Row 3: Company details and Subject to jurisdiction
+                [
+                    Paragraph(f'''<font size="9">
+                    Sale of - I, Near Mani Residency Complex,<br/>
+                    {self.invoice.company_address}<br/>
+                    Ph.: {self.invoice.company_phone} | Email: info@mahimamedicare.com
+                    </font>''', styles['Normal']),
+                    Paragraph('<font size="8">Subject to Vadodara Jurisdiction</font>', styles['Normal'])
+                ]
             ]
-        ]
+        else:
+            # Fallback without logo
+            header_data = [
+                # Row 1: Subject to jurisdiction and GST TAX INVOICE
+                [
+                    Paragraph('<font size="8">Subject to Vadodara Jurisdiction</font>', styles['Normal']),
+                    Paragraph('<font size="16"><b>GST TAX INVOICE</b></font>', 
+                             ParagraphStyle('Title', parent=styles['Normal'], alignment=TA_CENTER, fontSize=16))
+                ],
+                # Row 2: Company name and Original for Buyer
+                [
+                    Paragraph(f'<font size="14"><b>{self.invoice.company_name}</b></font>', styles['Normal']),
+                    Paragraph('<font size="8">Original for Buyer</font>', 
+                             ParagraphStyle('OriginalBuyer', parent=styles['Normal'], alignment=TA_RIGHT, fontSize=8))
+                ],
+                # Row 3: Company details
+                [
+                    Paragraph(f'''<font size="9">
+                    Sale of - I, Near Mani Residency Complex,<br/>
+                    {self.invoice.company_address}<br/>
+                    Ph.: {self.invoice.company_phone} | Email: info@mahimamedicare.com
+                    </font>''', styles['Normal']),
+                    ''
+                ]
+            ]
         
         header_table = Table(header_data, colWidths=[4*inch, 2.5*inch])
         header_table.setStyle(TableStyle([

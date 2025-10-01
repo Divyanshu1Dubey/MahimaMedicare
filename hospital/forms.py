@@ -41,8 +41,7 @@ class AdminUserCreationForm(UserCreationForm):
         email = self.cleaned_data.get('email')
         if not email:
             raise forms.ValidationError("Email is required.")
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("This email is already registered. Please use another email or login.")
+        # Allow multiple users with same email - removed uniqueness check
         return email
 
     def clean_username(self):
@@ -165,7 +164,8 @@ class AdminForm(ModelForm):
 class PatientForm(ModelForm):
     class Meta:
         model = Patient
-        fields = ['name', 'age', 'email', 'phone_number', 'address', 'blood_group', 'history', 'dob', 'nid', 'featured_image']
+        fields = ['name', 'age', 'email', 'phone_number', 'address', 'blood_group', 'history', 'dob', 'nid', 'featured_image', 
+                  'prescription_image', 'prescription_notes']
 
     def __init__(self, *args, **kwargs):
         super(PatientForm, self).__init__(*args, **kwargs)
@@ -220,8 +220,7 @@ class CustomUserCreationForm(UserCreationForm):
         email = self.cleaned_data.get('email')
         if not email:
             raise forms.ValidationError("Email is required.")
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("This email is already registered. Please use another email or login.")
+        # Allow multiple users with same email - removed uniqueness check
         return email
 
     def clean_username(self):

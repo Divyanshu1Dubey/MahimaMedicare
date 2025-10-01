@@ -71,6 +71,11 @@ class Patient(models.Model):
     nid = models.CharField(max_length=200, null=True, blank=True)
     serial_number = models.CharField(max_length=200, null=True, blank=True)
     
+    # Prescription upload for pharmacy
+    prescription_image = models.ImageField(upload_to='prescriptions/', null=True, blank=True, help_text='Upload prescription image for pharmacist')
+    prescription_notes = models.TextField(null=True, blank=True, help_text='Additional notes about prescription')
+    prescription_uploaded_at = models.DateTimeField(null=True, blank=True)
+    
     # Chat
     login_status = models.CharField(max_length=200, null=True, blank=True, default="offline")
 

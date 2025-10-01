@@ -45,8 +45,7 @@ class DoctorUserCreationForm(UserCreationForm):
         email = self.cleaned_data.get('email')
         if not email:
             raise forms.ValidationError("Email is required.")
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("This email is already registered. Please use another email or login.")
+        # Allow multiple users with same email - removed uniqueness check
         return email
 
     def clean_username(self):

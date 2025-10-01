@@ -192,6 +192,11 @@ EMAIL_SSL_KEYFILE = None
 DEFAULT_FROM_EMAIL = 'marklegend029@gmail.com'
 SERVER_EMAIL = 'marklegend029@gmail.com'
 
+# Admin notification settings - All important emails go to admin
+ADMIN_EMAIL = 'marklegend029@gmail.com'  # Main admin email for notifications
+ADMINS = [('Mahima Medicare Admin', 'marklegend029@gmail.com')]
+MANAGERS = ADMINS
+
 
 
 

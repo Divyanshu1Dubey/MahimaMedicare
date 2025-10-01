@@ -70,8 +70,16 @@ class Medicine(models.Model):
     def is_expiring_soon(self):
         from datetime import date, timedelta
         if self.expiry_date:
-            return self.expiry_date <= date.today() + timedelta(days=30)
+            # Notify 3 months (90 days) before expiry
+            return self.expiry_date <= date.today() + timedelta(days=90)
         return False
+
+    @property
+    def days_until_expiry(self):
+        from datetime import date
+        if self.expiry_date:
+            return (self.expiry_date - date.today()).days
+        return None
 
     def __str__(self):
         return str(self.name)
