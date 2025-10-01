@@ -12,9 +12,58 @@ class AdminUserCreationForm(UserCreationForm):
     # create a style for model form
     def __init__(self, *args, **kwargs):
         super(AdminUserCreationForm, self).__init__(*args, **kwargs)
+        
+        # Simple and clear help text
+        self.fields['username'].help_text = 'Required'
+        self.fields['email'].help_text = 'Required - Enter valid email'
+        self.fields['password1'].help_text = 'Minimum 6 characters'
+        self.fields['password2'].help_text = 'Enter same password'
+        
+        # Add placeholder text
+        self.fields['username'].widget.attrs.update({
+            'placeholder': 'Admin username',
+            'class': 'form-control'
+        })
+        self.fields['email'].widget.attrs.update({
+            'placeholder': 'admin@hospital.com',
+            'class': 'form-control'
+        })
+        self.fields['password1'].widget.attrs.update({
+            'placeholder': 'Password (min 6 characters)',
+            'class': 'form-control'
+        })
+        self.fields['password2'].widget.attrs.update({
+            'placeholder': 'Confirm password',
+            'class': 'form-control'
+        })
 
-        for name, field in self.fields.items():
-            field.widget.attrs.update({'class': 'form-control'})
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if not email:
+            raise forms.ValidationError("Email is required.")
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("This email is already registered. Please use another email or login.")
+        return email
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("This username is already taken. Please choose another one.")
+        return username
+
+    def clean_password1(self):
+        password1 = self.cleaned_data.get('password1')
+        # Minimum 6 characters - allows username=password
+        if password1 and len(password1) < 6:
+            raise forms.ValidationError("Password must be at least 6 characters long.")
+        return password1
+        
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("The two password fields must match.")
+        return password2
             
 
 class LabWorkerCreationForm(UserCreationForm):
@@ -139,12 +188,61 @@ class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2']
-
+        
     def __init__(self, *args, **kwargs):
         super(CustomUserCreationForm, self).__init__(*args, **kwargs)
+        
+        # Simple and clear help text
+        self.fields['username'].help_text = 'Required'
+        self.fields['email'].help_text = 'Required - Enter valid email'
+        self.fields['password1'].help_text = 'Minimum 6 characters'
+        self.fields['password2'].help_text = 'Enter same password'
+        
+        # Add placeholder text
+        self.fields['username'].widget.attrs.update({
+            'placeholder': 'Username',
+            'class': 'form-control'
+        })
+        self.fields['email'].widget.attrs.update({
+            'placeholder': 'email@example.com',
+            'class': 'form-control'
+        })
+        self.fields['password1'].widget.attrs.update({
+            'placeholder': 'Password (min 6 characters)',
+            'class': 'form-control'
+        })
+        self.fields['password2'].widget.attrs.update({
+            'placeholder': 'Confirm password',
+            'class': 'form-control'
+        })
 
-        for name, field in self.fields.items():
-            field.widget.attrs.update({'class': 'form-control'})
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if not email:
+            raise forms.ValidationError("Email is required.")
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("This email is already registered. Please use another email or login.")
+        return email
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("This username is already taken. Please choose another one.")
+        return username
+
+    def clean_password1(self):
+        password1 = self.cleaned_data.get('password1')
+        # Minimum 6 characters - allows username=password
+        if password1 and len(password1) < 6:
+            raise forms.ValidationError("Password must be at least 6 characters long.")
+        return password1
+        
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("The two password fields must match.")
+        return password2
 
 
 class DoctorRegistrationForm(forms.Form):

@@ -131,20 +131,10 @@ if 'DATABASE_URL' in os.environ:
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
+# Simplified password validation - allows username=password and simple passwords
+# Minimum length is enforced in forms (6 characters)
+# Email validation is still strict and required
+AUTH_PASSWORD_VALIDATORS = []
 
 
 # Internationalization
