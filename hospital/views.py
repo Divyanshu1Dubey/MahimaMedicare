@@ -45,6 +45,24 @@ def hospital_home(request):
     return render(request, 'index-2.html', context)
 
 @csrf_exempt
+def doctor_profile_redirect(request):
+    """Redirect legacy doctor-profile.html links to a specific doctor or search page"""
+    try:
+        # Try to find the first available doctor
+        from doctor.models import Doctor_Information
+        first_doctor = Doctor_Information.objects.filter(register_status='Accepted').first()
+        if first_doctor:
+            messages.info(request, f'Redirected to Dr. {first_doctor.name}\'s profile. Use search to find other doctors.')
+            return redirect('doctor-profile', pk=first_doctor.doctor_id)
+        else:
+            messages.info(request, 'Please search for a specific doctor to view their profile.')
+            return redirect('search')
+    except:
+        # Fallback to search page if there's any error
+        messages.info(request, 'Please search for a doctor to view their profile.')
+        return redirect('search')
+
+@csrf_exempt
 @login_required(login_url="login")
 def change_password(request,pk):
     patient = Patient.objects.get(user_id=pk)

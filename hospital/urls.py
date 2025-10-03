@@ -10,6 +10,8 @@ urlpatterns = [
     # General hospital pages
     path('', views.hospital_home, name='hospital_home'),
     path('search/', views.search, name='search'),
+    # Redirect for legacy doctor-profile.html links
+    path('doctor-profile.html', views.doctor_profile_redirect, name='doctor-profile-redirect'),
     path('change-password/<int:pk>/', views.change_password, name='change-password'),
     path('add-billing/', views.add_billing, name='add-billing'),
     path('appointments/', views.appointments, name='appointments'),

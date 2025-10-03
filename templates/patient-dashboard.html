@@ -513,22 +513,31 @@
                                 </td>
                                 <td>
                                   <div class="table-avatar">
-                                    <a href="doctor-profile.html" class="avatar avatar-sm">
+                                    {% if prescription.doctor %}
+                                    <a href="{% url 'doctor-profile' pk=prescription.doctor.doctor_id %}" class="avatar avatar-sm">
                                       <img
                                         class="avatar-img rounded-circle"
                                         src="{% if prescription.doctor and prescription.doctor.featured_image %}{{ prescription.doctor.featured_image.url }}{% else %}{% static 'HealthStack-System/images/Normal/user.jpg' %}{% endif %}"
                                         alt="Doctor Image"
                                       />
                                     </a>
-                                    <a href="doctor-profile.html">
-                                      {% if prescription.doctor %}
-                                        Dr. {{ prescription.doctor }}
-                                        <span>{{ prescription.doctor.department_name|default:"General" }}</span>
-                                      {% else %}
-                                        System - Standalone Booking
-                                        <span>Self-Service</span>
-                                      {% endif %}
+                                    <a href="{% url 'doctor-profile' pk=prescription.doctor.doctor_id %}">
+                                      Dr. {{ prescription.doctor }}
+                                      <span>{{ prescription.doctor.department_name|default:"General" }}</span>
                                     </a>
+                                    {% else %}
+                                    <span class="avatar avatar-sm">
+                                      <img
+                                        class="avatar-img rounded-circle"
+                                        src="{% static 'HealthStack-System/images/Normal/user.jpg' %}"
+                                        alt="System"
+                                      />
+                                    </span>
+                                    <span>
+                                      System - Standalone Booking
+                                      <span>Self-Service</span>
+                                    </span>
+                                    {% endif %}
                                   </div>
                                 </td>
                                 <td>
@@ -574,14 +583,14 @@
                                 <td>{{ report.delivery_date }}</td>
                                 <td>
                                   <div class="table-avatar">
-                                    <a href="doctor-profile.html" class="avatar avatar-sm">
+                                    <a href="{% url 'doctor-profile' pk=report.doctor.doctor_id %}" class="avatar avatar-sm">
                                       <img
                                         class="avatar-img rounded-circle"
                                         src="{{ report.doctor.featured_image.url }}"
                                         alt="Doctor Image"
                                       />
                                     </a>
-                                    <a href="doctor-profile.html">
+                                    <a href="{% url 'doctor-profile' pk=report.doctor.doctor_id %}">
                                       Dr. {{ report.doctor }}
                                       <span>{{ report.doctor.department_name }}</span>
                                     </a>
