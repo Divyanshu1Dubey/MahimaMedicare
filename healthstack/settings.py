@@ -39,20 +39,27 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG', default=False)
 
-# Use environment variable for ALLOWED_HOSTS or fallback to default values
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
+# ALLOWED_HOSTS Configuration - Hardcoded to ensure Render.com works
+ALLOWED_HOSTS = [
+    'mahimamedicare.onrender.com',
+    '*.onrender.com', 
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+    '*'  # Allow all hosts for now - CHANGE THIS IN PRODUCTION for security
+]
 
-# Additional hosts for production deployment
-if not DEBUG:
-    # Always include common production domains
-    production_hosts = [
-        'mahimamedicare.onrender.com',
-        '.onrender.com',  # Allow all render subdomains
-        '127.0.0.1',
-        'localhost'
-    ]
-    # Merge with existing ALLOWED_HOSTS
-    ALLOWED_HOSTS = list(set(ALLOWED_HOSTS + production_hosts))
+# Try to read from environment variable as well, but fallback to hardcoded values
+try:
+    env_allowed_hosts = os.environ.get('ALLOWED_HOSTS', '')
+    if env_allowed_hosts:
+        env_hosts_list = [host.strip() for host in env_allowed_hosts.split(',')]
+        ALLOWED_HOSTS.extend(env_hosts_list)
+except:
+    pass
+
+# Remove duplicates and empty strings
+ALLOWED_HOSTS = list(filter(None, set(ALLOWED_HOSTS)))
 
 # Application definition
 

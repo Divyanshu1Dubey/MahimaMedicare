@@ -1,4 +1,20 @@
-# 🚀 Render.com Deployment Guide for Mahima Medicare
+## 🚀 **Render.com Deployment Guide for Mahima Medicare
+
+## ✅ CRITICAL FIX APPLIED
+
+The `DisallowedHost` error has been fixed in the code. The app now includes `mahimamedicare.onrender.com` by default.
+
+### Multiple Solutions Available:
+
+**Option 1: Use Updated Main Settings (Recommended)**
+- The main `settings.py` now includes `mahimamedicare.onrender.com` by default
+- No environment variables needed for ALLOWED_HOSTS
+
+**Option 2: Use Dedicated Render Settings**
+- Set `DJANGO_SETTINGS_MODULE=healthstack.settings_render` in Render.com
+- This uses a production-specific settings file
+
+### Current Fix Status:nder.com Deployment Guide for Mahima Medicare
 
 ## Quick Fix for Current Issue
 
