@@ -1,42 +1,22 @@
-{%load static%}
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
-	<title>Mahima Medicare</title>
-    <!-- Favicons -->
-    <link
-    type="image/x-icon"
-    href="{% static 'HealthStack-System/images/Normal/favicon.png' %}"
-    rel="icon"
-    />
-
-	<!-- Bootstrap CSS -->
-	<link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css'%}">
-
-	<!-- Fontawesome CSS -->
-	<link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css'%}">
-	<link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
-
-
-	<!-- Feathericon CSS -->
-	<link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css'%}">
-
-	<!-- Datatables CSS -->
-	<link rel="stylesheet" href="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.css'%}">
-
-	<!-- Main CSS -->
-	<link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}">
-	<link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/add-medicine.css'%}">
-
-
-	<!--[if lt IE 9]>
-			<script src="assets/js/html5shiv.min.js"></script>
-			<script src="assets/js/respond.min.js"></script>
-		<![endif]-->
-	    <!-- Modern Design Enhancements -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Mahima Medicare - Edit Medicine</title>
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/add-medicine.css'%}">
+    
+    <!-- Modern Design Enhancements -->
     <style>
         :root {
             --accent-color: #95C270;
@@ -45,7 +25,6 @@
             --accent-extra-light: #e9f3e2;
         }
         
-        /* Modern card styling */
         .card {
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -59,7 +38,6 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
         }
         
-        /* Breadcrumb styling */
         .breadcrumb-bar {
             background: #f8f9fa;
             padding: 20px 0;
@@ -84,7 +62,6 @@
             margin-bottom: 0;
         }
         
-        /* Form styling */
         .form-control {
             border-radius: 8px;
             border: 1px solid #e2e8f0;
@@ -102,13 +79,6 @@
             padding: 12px 15px;
         }
         
-        /* Table styling */
-        .table {
-            border-collapse: separate;
-            border-spacing: 0;
-            width: 100%;
-        }
-        
         .table thead th {
             background-color: #fff;
             color: #2c3e50;
@@ -123,15 +93,10 @@
             border-bottom: 1px solid #edf2f9;
         }
         
-        .table tbody tr {
-            transition: background-color 0.2s ease;
-        }
-        
         .table tbody tr:hover {
             background-color: #f8fbf8;
         }
         
-        /* Button styling */
         .btn-primary {
             background-color: var(--accent-color);
             border-color: var(--accent-color);
@@ -153,7 +118,6 @@
             text-align: center;
         }
         
-        /* Image upload styling */
         .change-avatar {
             display: flex;
             flex-direction: column;
@@ -205,23 +169,6 @@
             cursor: pointer;
         }
         
-        /* Select dropdown styling */
-        select {
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            padding: 12px 15px;
-            width: 100%;
-            background: white;
-            transition: all 0.3s ease;
-        }
-        
-        select:focus {
-            border-color: var(--accent-color);
-            outline: none;
-            box-shadow: 0 0 0 0.2rem rgba(149, 194, 112, 0.25);
-        }
-        
-        /* Label styling */
         label {
             font-weight: 600;
             color: #2c3e50;
@@ -229,7 +176,6 @@
             display: block;
         }
         
-        /* Error message styling */
         .text-danger {
             color: #dc3545 !important;
             font-size: 14px;
@@ -237,351 +183,498 @@
             display: block;
         }
         
-        /* Textarea styling */
         textarea.form-control {
             min-height: 120px;
             resize: vertical;
         }
         
-        /* Header and sidebar accent updates */
-        .header {
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        .edit-header {
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-dark));
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            margin-bottom: 0;
         }
         
-        .sidebar {
-            background: #2c3e50;
-        }
-        
-        .sidebar-menu li a.active,
-        .sidebar-menu li a:hover {
-            color: var(--accent-color);
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .card-table {
-                margin-bottom: 20px;
-            }
-            
-            .table thead {
-                display: none;
-            }
-            
-            .table tbody tr {
-                display: block;
-                margin-bottom: 20px;
-                border-radius: 10px;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            }
-            
-            .table tbody td {
-                display: block;
-                text-align: right;
-                padding: 10px 15px;
-                position: relative;
-                border-bottom: 1px solid #f1f1f1;
-            }
-            
-            .table tbody td::before {
-                content: attr(data-label);
-                position: absolute;
-                left: 15px;
-                font-weight: 600;
-                color: #2c3e50;
-            }
+        .edit-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
         }
     </style>
 </head>
 
 <body>
+    <div class="main-wrapper">
+        <header class="header">{% include 'hospital_admin/pharmacist-navbar.html' %}</header>
+        <aside class="sidebar" id="sidebar">{% include 'hospital_admin/pharmacist-sidebar.html' %}</aside>
 
-	<!-- Main Wrapper -->
-	<div class="main-wrapper">
-		<header class="header">{% include 'hospital_admin/pharmacist-navbar.html' %}</header>
-		<!-- /Header -->
+        <div class="page-wrapper">
+            <div class="content container-fluid">
+                <div class="breadcrumb-bar">
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <div class="col-md-12 col-12">
+                                <nav aria-label="breadcrumb" class="page-breadcrumb">
+                                    <ol class="breadcrumb">
+                                        <li class="breadcrumb-item"><a href="{% url 'medicine-list' %}">Medicine List</a></li>
+                                        <li class="breadcrumb-item active" aria-current="page">Edit Medicine</li>
+                                    </ol>
+                                </nav>
+                                <h2 class="breadcrumb-title">
+                                    Edit Medicine Information
+                                    <span class="edit-badge">Editing: {{ medicine.name }}</span>
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-		<!-- Sidebar -->
-		<aside class="sidebar" id="sidebar">
-			{% include 'hospital_admin/pharmacist-sidebar.html' %} </aside>
-		<!-- /Sidebar -->
+                <div class="content">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-7 col-lg-8 col-xl-12">
+                                <div class="card">
+                                    <div class="edit-header">
+                                        <h4 class="mb-0">
+                                            <i class="fa fa-edit mr-2"></i>
+                                            Medicine Details - Editing {{ medicine.name }}
+                                        </h4>
+                                        {% if medicine.hsn_code %}
+                                            <small class="mt-2 d-block">Current HSN Code: {{ medicine.hsn_code }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Medicine edit form -->
+                                        <form action="{% url 'edit-medicine' medicine.serial_number %}" method="POST" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <div class="row form-row">
+                                                <!-- Featured Image -->
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <div class="change-avatar">
+                                                            <div class="profile-img">
+                                                                {% if medicine.featured_image %}
+                                                                    <img src="{{ medicine.featured_image.url }}" alt="Medicine Image">
+                                                                {% else %}
+                                                                    <img src="{% static 'images/medicines/default.png' %}" alt="Medicine Image">
+                                                                {% endif %}
+                                                            </div>
+                                                            <div class="upload-img">
+                                                                <div class="change-photo-btn">
+                                                                    <span><i class="fa fa-upload"></i> Change Photo</span>
+                                                                    <input type="file" class="upload" name="featured_image">
+                                                                </div>
+                                                                <small class="form-text text-muted">Allowed JPG, GIF or PNG. Max size of 2MB</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
-		<div class="page-wrapper">
+                                                <!-- Medicine Name & Weight -->
+                                                <div class="col-12 col-md-12">
+                                                    <div class="card card-table">
+                                                        <div class="card-body">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-hover table-center">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="min-width: 300px">Medicine Name</th>
+                                                                            <th style="min-width: 300px">Weight (mg)</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td data-label="Medicine Name">
+                                                                                <input class="form-control" type="text" name="name" id="medicine_name" value="{{ form_data.name }}" placeholder="Enter medicine name (e.g., Paracetamol 500mg)">
+                                                                                {% for message in messages %}
+                                                                                    {% if 'name' in message.message %}
+                                                                                        <small class="text-danger">{{ message }}</small>
+                                                                                    {% endif %}
+                                                                                {% endfor %}
+                                                                            </td>
+                                                                            <td data-label="Weight">
+                                                                                <input class="form-control" type="text" name="weight" value="{{ form_data.weight }}" placeholder="Enter weight (e.g., 500mg, 10ml)">
+                                                                                {% for message in messages %}
+                                                                                    {% if 'weight' in message.message %}
+                                                                                        <small class="text-danger">{{ message }}</small>
+                                                                                    {% endif %}
+                                                                                {% endfor %}
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-			<div class="content container-fluid">
+                                                    <!-- Composition & HSN Code -->
+                                                    <div class="card card-table">
+                                                        <div class="card-body">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-hover table-center">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="min-width: 400px">Composition (Active Ingredients)</th>
+                                                                            <th style="min-width: 250px">HSN Code 
+                                                                                <button type="button" class="btn btn-sm btn-outline-primary ml-2" id="fetch_hsn_btn" title="Auto-fetch HSN code">
+                                                                                    <i class="fa fa-search"></i> Refresh HSN
+                                                                                </button>
+                                                                            </th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td data-label="Composition">
+                                                                                <textarea class="form-control" name="composition" id="medicine_composition" rows="3" placeholder="Enter active ingredients and quantities (e.g., Paracetamol 500mg per tablet)">{{ form_data.composition }}</textarea>
+                                                                                <small class="text-muted">This helps in HSN code identification and patient safety</small>
+                                                                                <div id="composition_suggestions" class="mt-2" style="display: none;">
+                                                                                    <small class="text-primary">Suggestions:</small>
+                                                                                    <div id="composition_list"></div>
+                                                                                </div>
+                                                                            </td>
+                                                                            <td data-label="HSN Code">
+                                                                                <input class="form-control" type="text" name="hsn_code" id="hsn_code_field" value="{{ form_data.hsn_code }}" placeholder="HSN Code (auto-filled)" maxlength="20">
+                                                                                <small class="text-muted">For tax classification</small>
+                                                                                <div id="hsn_info" class="mt-2" style="display: none;">
+                                                                                    <small id="hsn_source" class="text-info"></small>
+                                                                                </div>
+                                                                                <div class="form-check mt-2">
+                                                                                    <input class="form-check-input" type="checkbox" name="fetch_hsn" id="fetch_hsn_checkbox" checked>
+                                                                                    <label class="form-check-label" for="fetch_hsn_checkbox">
+                                                                                        Auto-fetch HSN Code on Save
+                                                                                    </label>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-				<!-- Breadcrumb -->
-				<div class="breadcrumb-bar">
-					<div class="container-fluid">
-						<div class="row align-items-center">
-							<div class="col-md-12 col-12">
-								<nav aria-label="breadcrumb" class="page-breadcrumb">
-									<ol class="breadcrumb">
-										<li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-										<li class="breadcrumb-item active" aria-current="page">Edit medicine information
-										</li>
-									</ol>
-								</nav>
-								<h2 class="breadcrumb-title">Edit Medicine Information</h2>
-							</div>
-						</div>
-					</div>
-				</div>
-				<!-- /Breadcrumb -->
+                                                    <!-- Stock, Price & Expiry Date -->
+                                                    <div class="card card-table">
+                                                        <div class="card-body">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-hover table-center">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="min-width: 150px">Available Stock</th>
+                                                                            <th style="min-width: 150px">Total Stock</th>
+                                                                            <th style="min-width: 150px">Price (₹)</th>
+                                                                            <th style="min-width: 200px">Expiry Date</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td data-label="Available Stock">
+                                                                                <input class="form-control" type="number" name="quantity" min="0" value="{{ form_data.quantity }}" placeholder="Available units">
+                                                                                <small class="text-muted">Units available for sale</small>
+                                                                                {% for message in messages %}
+                                                                                    {% if 'Quantity' in message.message %}
+                                                                                        <small class="text-danger">{{ message }}</small>
+                                                                                    {% endif %}
+                                                                                {% endfor %}
+                                                                            </td>
+                                                                            <td data-label="Total Stock">
+                                                                                <input class="form-control" type="number" name="stock_quantity" min="0" value="{{ form_data.stock_quantity }}" placeholder="Total inventory">
+                                                                                <small class="text-muted">Total units in inventory</small>
+                                                                                {% for message in messages %}
+                                                                                    {% if 'stock' in message.message|lower %}
+                                                                                        <small class="text-danger">{{ message }}</small>
+                                                                                    {% endif %}
+                                                                                {% endfor %}
+                                                                            </td>
+                                                                            <td data-label="Price">
+                                                                                <input class="form-control" type="number" step="0.01" min="0" name="price" value="{{ form_data.price }}" placeholder="Price per unit">
+                                                                                {% for message in messages %}
+                                                                                    {% if 'Price' in message.message %}
+                                                                                        <small class="text-danger">{{ message }}</small>
+                                                                                    {% endif %}
+                                                                                {% endfor %}
+                                                                            </td>
+                                                                            <td data-label="Expiry Date">
+                                                                                <input class="form-control" type="date" name="expiry_date" value="{{ form_data.expiry_date }}" placeholder="Select expiry date">
+                                                                                {% for message in messages %}
+                                                                                    {% if 'expiry' in message.message|lower %}
+                                                                                        <small class="text-danger">{{ message }}</small>
+                                                                                    {% endif %}
+                                                                                {% endfor %}
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-				<!-- Page Content -->
-				<div class="call-content-full">
-					<div class="container-lg">
-						<div class="row-cols-6">
-							<div class="col-md-7 col-lg-8 col-xl-12">
-								<div class="card">
-									<div class="card-body">
+                                                    <!-- Prescription, Category, Type -->
+                                                    <div class="card card-table">
+                                                        <div class="card-body">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-hover table-center">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="min-width: 300px">Prescription Requirement</th>
+                                                                            <th style="min-width: 300px">Medicine Category</th>    
+                                                                            <th style="min-width: 300px">Medicine Type </th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td data-label="Prescription Requirement">
+                                                                                <label>Prescriptions</label>
+                                                                                <select name="requirement_type" class="form-control" id="medicine_category">
+                                                                                    <option value="yes" {% if form_data.requirement_type == 'yes' %}selected{% endif %}>Yes</option>
+                                                                                    <option value="no" {% if form_data.requirement_type == 'no' %}selected{% endif %}>No</option>
+                                                                                </select>
+                                                                            </td>
+                                                                            <td data-label="Medicine Category">
+                                                                                <label>Category:</label>
+                                                                                <select name="category_type" class="form-control">
+                                                                                    <option value="fever" {% if form_data.category_type == 'fever' %}selected{% endif %}>Fever</option>
+                                                                                    <option value="pain" {% if form_data.category_type == 'pain' %}selected{% endif %}>Pain</option>
+                                                                                    <option value="cough" {% if form_data.category_type == 'cough' %}selected{% endif %}>Cough</option>
+                                                                                    <option value="cold" {% if form_data.category_type == 'cold' %}selected{% endif %}>Cold</option>
+                                                                                    <option value="flu" {% if form_data.category_type == 'flu' %}selected{% endif %}>Flu</option>
+                                                                                    <option value="allergy" {% if form_data.category_type == 'allergy' %}selected{% endif %}>Allergy</option>
+                                                                                    <option value="infection" {% if form_data.category_type == 'infection' %}selected{% endif %}>Infection (Antibiotics)</option>
+                                                                                    <option value="digestivehealth" {% if form_data.category_type == 'digestivehealth' %}selected{% endif %}>Stomach / Digestion</option>
+                                                                                    <option value="bloodpressure" {% if form_data.category_type == 'bloodpressure' %}selected{% endif %}>Hypertension / Heart</option>
+                                                                                    <option value="diabetes" {% if form_data.category_type == 'diabetes' %}selected{% endif %}>Diabetes</option>
+                                                                                    <option value="skin" {% if form_data.category_type == 'skin' %}selected{% endif %}>Skin</option>
+                                                                                    <option value="vitamins" {% if form_data.category_type == 'vitamins' %}selected{% endif %}>Vitamins & Supplements</option>
+                                                                                    <option value="eye" {% if form_data.category_type == 'eye' %}selected{% endif %}>Eye / Ear / Nose</option>
+                                                                                    <option value="asthma" {% if form_data.category_type == 'asthma' %}selected{% endif %}>Respiratory (Asthma, Bronchitis)</option>
+                                                                                    <option value="nurological" {% if form_data.category_type == 'nurological' %}selected{% endif %}>Urinary</option>
+                                                                                </select>
+                                                                            </td>
+                                                                            <td data-label="Medicine Type">
+                                                                                <label>Type:</label>
+                                                                                <select name="medicine_type" class="form-control">
+                                                                                    <option value="tablets" {% if form_data.medicine_type == 'tablets' %}selected{% endif %}>Tablets</option>
+                                                                                    <option value="syrup" {% if form_data.medicine_type == 'syrup' %}selected{% endif %}>Syrup</option>
+                                                                                    <option value="capsule" {% if form_data.medicine_type == 'capsule' %}selected{% endif %}>Capsule</option>
+                                                                                    <option value="general" {% if form_data.medicine_type == 'general' %}selected{% endif %}>General</option>
+                                                                                </select>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-										<!-- Medicine data entry Form -->
-										<form action="#" method="POST" enctype="multipart/form-data">
-											{% csrf_token %}
-											<div class="row form-row">
-												<div class="col-md-6">
-													<div class="form-group">
-														<div class="change-avatar">
-															<div class="profile-img">
-																<img src="{{medicine.featured_image.url}}"
-																	alt="Medicine Image">
-															</div>
-															<div class="upload-img">
-																<div class="change-photo-btn">
-																	<span><i class="fa fa-upload"></i> Upload Photo</span>
-																	<input type="file" class="upload"
-                                                                           name="featured_image"
-                                                                           value="{{featured_image}}">
-																</div>
-																<small class="form-text text-muted">Allowed JPG, GIF or PNG. Max size of 2MB</small>
-															</div>
-														</div>
-													</div>
-												</div>
-												
-												<div class="col-12 col-md-12">
-													<div class="form-group">
-														<div class="change-avatar"></div>
-													</div>
-													<div class="card card-table">
-														<div class="card-body">
-															<div class="table-responsive">
-																<table class="table table-hover table-center">
-																	<thead>
-																		<tr>
-																			<th style="min-width: 300px">Medicine Name</th>
-																			<th style="min-width: 300px">Weight</th></th>
-																		</tr>
-																	</thead>
-																	<tbody>
-																		<tr>
-																			<td>
-																				<input class="form-control" type="text" name="name" value="{{medicine.name}}">
-																			</td>
-																			<td>
-																				<input class="form-control" type="text"
-																					name="weight" value="{{medicine.weight}}">
-																			</td>
-																			
-																		</tr>
-																	</tbody>
-																</table>
-															</div>
-														</div>
-													</div>
-													<div class="card card-table">
-														<div class="card-body">
-															<div class="table-responsive">
-																<table class="table table-hover table-center">
-																	<thead>
-																		<tr>
-																			<th style="min-width: 200px">Quantity</th>
-																			<th style="min-width: 200px">Price</th>
-																			<th style="min-width: 200px">Stock Qty</th>
-																		</tr>
-																	</thead>
-																	<tbody>
-																		<tr>
-																			<td>
-																				<input class="form-control" type="text"
-																					name="quantity" value="{{medicine.quantity}}">
-																			</td>
-																			<td>
-																				<input class="form-control" type="text"
-																					name="price" value="{{medicine.price}}" >
-																			</td>
-																			<td>
-																				<input class="form-control" type="text"
-																					name="stock_quantity" value="{{medicine.stock_quantity}}" >
-																			</td>
-																		</tr>
-																	</tbody>
-																</table>
-															</div>
-														</div>
-													</div>
-													<div class="card card-table">
-														<div class="card-body">
-															<div class="table-responsive">
-																<table class="table table-hover table-center">
-																	<thead>
-																		<tr>
-																			<th style="min-width: 300px">Prescription Requirement
-																			<th style="min-width: 300px">Medicine Category</th>	
-																			<th style="min-width: 300px">Medicine Type </th>
-																		</tr>
-																	</thead>
-																	<tbody>
-																		<tr>
-																			<td>
-																				<label for="cars">Prescriptions:
-																				</label>
-																				<select id="type" name="Prescription_reqiuired" value="{{medicine.Prescription_reqiuired}}">
-																					<option value="yes" {% if medicine.Prescription_reqiuired == 'yes' %}selected{% endif %}>yes
-																					</option>
-																					<option value="no" {% if medicine.Prescription_reqiuired == 'no' %}selected{% endif %}>no
-																					</option>									
-																				</select>
-																			</td>
-																			<td>
-																				<label for="cars">Category:
-																				</label>
-																				<select id="type" name="medicine_category" value="{{medicine.medicine_category}}">
-																					<option value="fever" {% if medicine.medicine_category == 'fever' %}selected{% endif %}>fever
-																					</option>
-																					<option value="pain" {% if medicine.medicine_category == 'pain' %}selected{% endif %}>pain
-																					</option>
-																					<option value="cough" {% if medicine.medicine_category == 'cough' %}selected{% endif %}>cough
-																					</option>
-																					<option value="cold" {% if medicine.medicine_category == 'cold' %}selected{% endif %}>cold
-																					</option>
-																					<option value="flu" {% if medicine.medicine_category == 'flu' %}selected{% endif %}>flu
-																					</option>
-																					<option value="allergy" {% if medicine.medicine_category == 'allergy' %}selected{% endif %}>Allergy
-																					</option>
-																					<option value="infection" {% if medicine.medicine_category == 'infection' %}selected{% endif %}>Infection (Antibiotics)
-																					</option>
-																					<option value="digestivehealth" {% if medicine.medicine_category == 'digestivehealth' %}selected{% endif %}>Stomach / Digestion
-																					</option>
-																					<option value="bloodpressure" {% if medicine.medicine_category == 'bloodpressure' %}selected{% endif %}>Hypertension / Heart
-																					</option>
-																					<option value="diabetes" {% if medicine.medicine_category == 'diabetes' %}selected{% endif %}>Diabetes
-																					</option>
-																					<option value="skin" {% if medicine.medicine_category == 'skin' %}selected{% endif %}>Skin
-																					</option>
-																					<option value="vitamins" {% if medicine.medicine_category == 'vitamins' %}selected{% endif %}>Vitamins & Supplements
-																					</option>
-																					<option value="eye" {% if medicine.medicine_category == 'eye' %}selected{% endif %}>Eye / Ear / Nose
-																					</option>
-																					<option value="asthma" {% if medicine.medicine_category == 'asthma' %}selected{% endif %}>Respiratory (Asthma, Bronchitis)
-																					</option>
-																					<option value="urinary" {% if medicine.medicine_category == 'urinary' %}selected{% endif %}>Urinary
-																					</option>
-																					<option value="firstaid" {% if medicine.medicine_category == 'firstaid' %}selected{% endif %}>First Aid
-																					</option>
-																				</select>
-																			</td>
+                                                    <!-- Description -->
+                                                    <div class="card card-table">
+                                                        <div class="card-body">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-hover table-center">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="min-width: 300px">Description</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td data-label="Description">
+                                                                                <textarea class="form-control" name="description" rows="4" placeholder="Enter medicine description">{{ form_data.description }}</textarea>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-																			<td>
-																				<label for="cars">Type:
-																				</label>
-																				<select id="type" name="medicine_type" value="{{medicine.medicine_type}}">
-																					<option value="tablets">tablets
-																					</option>
-																					<option value="syrup">syrup
-																					</option>
-																					<option value="capsule">capsule
-																					</option>
-																					<option value="general">general
-																					</option>
-																				</select>
-																			</td>
+                                                    <div class="submit-section">
+                                                        <button type="submit" class="btn btn-primary submit-btn">
+                                                            <i class="fa fa-save mr-2"></i>Update Medicine
+                                                        </button>
+                                                        <a href="{% url 'medicine-list' %}" class="btn btn-secondary ml-2">
+                                                            <i class="fa fa-times mr-2"></i>Cancel
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                        <!-- / Medicine edit form -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-																		</tr>
-																	</tbody>
-																</table>
-															</div>
-														</div>
-													</div>
-													<div class="card card-table">
-														<div class="card-body">
-															<div class="table-responsive">
-																<table class="table table-hover table-center">
-																	<thead>
-																		<tr>
-																			<th style="min-width: 300px">Description
-																			</th>
-																		</tr>
-																	</thead>
-																	<tbody>
-																		<tr>
-																			<td>
-																				<input class="form-control" rows="4"
-																					cols="50" type="text"
-																					name="description" 
-																					value="{{medicine.description}}">
-																			</td>
-																		</tr>
-																	</tbody>
-																</table>
-															</div>
-														</div>
-													</div>
-												
-												<div class="submit-section">
-													<button type="submit" class="btn btn-primary submit-btn">
-														Save Changes
-													</button>
-												</div>
-											</div>
-										</form>
-
-										<!-- / Medicine data entry Form -->
-
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-
-				</div>
-				<!-- /Page Content -->
-
-
-
-
-
-
-			</div>
-		</div>
-		<!-- /Page Wrapper -->
-
-	</div>
-	<!-- /Main Wrapper -->
-
-	<!-- jQuery -->
-	<script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js' %}"></script>
-
-	<!-- Bootstrap Core JS -->
-	<script src="{% static 'HealthStack-System/js/admin/popper.min.js' %}"></script>
-	<script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js' %}"></script>
-
-	<!-- Slimscroll JS -->
-	<script src="{% static 'HealthStack-System/plugins/admin/slimscroll/jquery.slimscroll.min.js' %}"></script>
-
-	<!-- Datatables JS -->
-	<script src="{% static 'HealthStack-System/plugins/admin/datatables/jquery.dataTables.min.js'%}"></script>
-	<script src="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.js'%}"></script>
-
-	<!-- Custom JS -->
-	<script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
-	<script src="{% static 'HealthStack-System/js/Normal/profile_Settings.js' %}"></script>
-
-
+    <!-- JS -->
+    <script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/plugins/admin/slimscroll/jquery.slimscroll.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/plugins/admin/datatables/jquery.dataTables.min.js'%}"></script>
+    <script src="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.js'%}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/profile_Settings.js' %}"></script>
+    
+    <!-- Medicine HSN & Composition Auto-fetch for Edit -->
+    <script>
+        $(document).ready(function() {
+            // Auto-sync stock quantity with available quantity
+            $('input[name="quantity"]').on('input', function() {
+                var quantity = $(this).val();
+                var stockField = $('input[name="stock_quantity"]');
+                if (!stockField.val() || stockField.val() == '0') {
+                    stockField.val(quantity);
+                }
+            });
+            
+            // Auto-fetch HSN code when medicine name or composition changes
+            function autoFetchHSN() {
+                var name = $('#medicine_name').val().trim();
+                var composition = $('#medicine_composition').val().trim();
+                var category = $('select[name="category_type"]').val();
+                var fetchCheckbox = $('#fetch_hsn_checkbox');
+                
+                if (!name) {
+                    showNotification('Medicine name is required for HSN fetch', 'error');
+                    return;
+                }
+                
+                // Show loading
+                $('#fetch_hsn_btn').html('<i class="fa fa-spinner fa-spin"></i> Fetching...');
+                $('#hsn_info').hide();
+                
+                $.ajax({
+                    url: '/pharmacy/api/fetch-hsn/',
+                    method: 'POST',
+                    data: JSON.stringify({
+                        name: name,
+                        composition: composition,
+                        category: category
+                    }),
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                    },
+                    success: function(response) {
+                        if (response.success && response.hsn_code) {
+                            $('#hsn_code_field').val(response.hsn_code);
+                            
+                            // Show HSN info
+                            var sourceText = '';
+                            switch(response.source) {
+                                case 'database':
+                                    sourceText = '<i class="fa fa-check-circle text-success"></i> HSN code found in database';
+                                    break;
+                                case 'api':
+                                    sourceText = '<i class="fa fa-globe text-info"></i> HSN code fetched from external API';
+                                    break;
+                                case 'default':
+                                    sourceText = '<i class="fa fa-exclamation-triangle text-warning"></i> Default HSN code assigned - please verify';
+                                    break;
+                            }
+                            $('#hsn_source').html(sourceText);
+                            $('#hsn_info').show();
+                            
+                            // Show success message
+                            showNotification('HSN code refreshed: ' + response.hsn_code, 'success');
+                        }
+                    },
+                    error: function() {
+                        showNotification('Failed to fetch HSN code', 'error');
+                    },
+                    complete: function() {
+                        $('#fetch_hsn_btn').html('<i class="fa fa-search"></i> Refresh HSN');
+                    }
+                });
+            }
+            
+            // Get composition suggestions
+            function getCompositionSuggestions() {
+                var name = $('#medicine_name').val().trim();
+                
+                if (name.length < 3) {
+                    $('#composition_suggestions').hide();
+                    return;
+                }
+                
+                $.ajax({
+                    url: '/pharmacy/api/composition-suggestions/',
+                    method: 'POST',
+                    data: JSON.stringify({
+                        name: name
+                    }),
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                    },
+                    success: function(response) {
+                        if (response.success && response.suggestions.length > 0) {
+                            var html = '';
+                            response.suggestions.forEach(function(suggestion) {
+                                html += '<button type="button" class="btn btn-sm btn-outline-secondary mr-1 mb-1 composition-suggestion">' + suggestion + '</button>';
+                            });
+                            $('#composition_list').html(html);
+                            $('#composition_suggestions').show();
+                        } else {
+                            $('#composition_suggestions').hide();
+                        }
+                    }
+                });
+            }
+            
+            // Event handlers
+            $('#medicine_name').on('blur', function() {
+                setTimeout(function() {
+                    getCompositionSuggestions();
+                }, 300);
+            });
+            
+            $('#medicine_composition, select[name="category_type"]').on('change', function() {
+                // Don't auto-fetch on every change in edit mode, only when button is clicked
+            });
+            
+            $('#fetch_hsn_btn').on('click', function(e) {
+                e.preventDefault();
+                autoFetchHSN();
+            });
+            
+            // Composition suggestion click handler
+            $(document).on('click', '.composition-suggestion', function() {
+                $('#medicine_composition').val($(this).text());
+                $('#composition_suggestions').hide();
+            });
+            
+            // Utility function for notifications
+            function showNotification(message, type) {
+                var alertClass = type === 'success' ? 'alert-success' : 'alert-warning';
+                var icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+                
+                var notification = $('<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                    '<i class="fa ' + icon + '"></i> ' + message +
+                    '<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>' +
+                    '</div>');
+                
+                $('.card-body').prepend(notification);
+                
+                setTimeout(function() {
+                    notification.fadeOut();
+                }, 5000);
+            }
+            
+            // Show current HSN source info if available
+            {% if medicine.hsn_code %}
+                $('#hsn_info').show();
+                $('#hsn_source').html('<i class="fa fa-info-circle text-info"></i> Current HSN code: {{ medicine.hsn_code }}');
+            {% endif %}
+        });
+    </script>
 </body>
-
-<!-- Mirrored from dreamguys.co.in/demo/doccure/admin/doctor-list.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 30 Nov 2019 04:12:51 GMT -->
 
 </html>

@@ -197,6 +197,9 @@ ADMIN_EMAIL = 'marklegend029@gmail.com'  # Main admin email for notifications
 ADMINS = [('Mahima Medicare Admin', 'marklegend029@gmail.com')]
 MANAGERS = ADMINS
 
+# Lab Test VAT Configuration
+LAB_TEST_VAT_AMOUNT = 20.00  # Fixed VAT amount per test in INR
+
 
 
 

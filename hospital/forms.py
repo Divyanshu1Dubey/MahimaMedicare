@@ -185,6 +185,15 @@ class PasswordResetForm(forms.Form):
 
 
 class CustomUserCreationForm(UserCreationForm):
+    username = forms.CharField(
+        max_length=150,
+        help_text='Username can contain spaces (e.g., "John Doe")',
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Username (spaces allowed, e.g., "Div Dubey")',
+            'class': 'form-control'
+        })
+    )
+    
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2']
@@ -193,16 +202,11 @@ class CustomUserCreationForm(UserCreationForm):
         super(CustomUserCreationForm, self).__init__(*args, **kwargs)
         
         # Simple and clear help text
-        self.fields['username'].help_text = 'Required'
         self.fields['email'].help_text = 'Required - Enter valid email'
         self.fields['password1'].help_text = 'Minimum 6 characters'
         self.fields['password2'].help_text = 'Enter same password'
         
-        # Add placeholder text
-        self.fields['username'].widget.attrs.update({
-            'placeholder': 'Username',
-            'class': 'form-control'
-        })
+        # Add styling to other fields
         self.fields['email'].widget.attrs.update({
             'placeholder': 'email@example.com',
             'class': 'form-control'
@@ -225,9 +229,24 @@ class CustomUserCreationForm(UserCreationForm):
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
-        if User.objects.filter(username=username).exists():
-            raise forms.ValidationError("This username is already taken. Please choose another one.")
-        return username
+        
+        # Allow spaces and validate
+        if not username:
+            raise forms.ValidationError("Username is required.")
+        
+        # Allow spaces and most characters, but check length
+        username_clean = username.strip()
+        if len(username_clean) < 3:
+            raise forms.ValidationError("Username must be at least 3 characters long.")
+        
+        if len(username) > 150:
+            raise forms.ValidationError("Username cannot exceed 150 characters.")
+        
+        # Check for uniqueness (case-insensitive)
+        if User.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError(f"Username '{username}' is already taken. Please choose another one.")
+        
+        return username_clean  # Remove leading/trailing spaces but keep internal spaces
 
     def clean_password1(self):
         password1 = self.cleaned_data.get('password1')

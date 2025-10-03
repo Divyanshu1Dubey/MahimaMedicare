@@ -52,7 +52,7 @@
       </li>
       {% if user.is_authenticated and user.is_patient %}
       <li>
-        <a href="{% url 'chat-home' pk=user.id %}">Chat with Doctor</a>
+        {% if user.is_authenticated and user.id %}<a href="{% url 'chat-home' pk=user.id %}">Chat with Doctor</a>{% endif %}
       </li>
       {% endif %}
       <li>

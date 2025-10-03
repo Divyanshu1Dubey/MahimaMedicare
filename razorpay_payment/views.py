@@ -14,6 +14,10 @@ from .models import RazorpayPayment, Invoice
 from .invoice_utils import generate_invoice_for_payment, InvoicePDFGenerator
 from doctor.models import Appointment, testOrder, Prescription
 from hospital.models import Patient
+
+def get_lab_test_vat():
+    """Get lab test VAT amount from settings"""
+    return getattr(settings, 'LAB_TEST_VAT_AMOUNT', 20.00)
 from pharmacy.models import Order
 
 # Initialize Razorpay client
@@ -55,20 +59,27 @@ def create_appointment_payment(request, appointment_id):
             }
         })
         
-        # Save payment record
-        payment = RazorpayPayment.objects.create(
-            razorpay_order_id=razorpay_order['id'],
-            patient=patient,
+        # Check if payment already exists for this appointment to prevent duplicates
+        payment, created = RazorpayPayment.objects.get_or_create(
             appointment=appointment,
             payment_type='appointment',
-            amount=Decimal(amount) / 100,
-            name=patient.name,
-            email=patient.email,
-            phone=patient.phone_number,
-            address=patient.address,
-            receipt=receipt_id,
-            notes=razorpay_order['notes']
+            defaults={
+                'razorpay_order_id': razorpay_order['id'],
+                'patient': patient,
+                'amount': Decimal(amount) / 100,
+                'name': patient.name,
+                'email': patient.email,
+                'phone': patient.phone_number,
+                'address': patient.address,
+                'receipt': receipt_id,
+                'notes': razorpay_order['notes']
+            }
         )
+        
+        # If payment already exists, update the razorpay_order_id for the new session
+        if not created:
+            payment.razorpay_order_id = razorpay_order['id']
+            payment.save()
         
         context = {
             'razorpay_order_id': razorpay_order['id'],
@@ -155,20 +166,27 @@ def create_pharmacy_payment(request, order_id):
                     }
                     return render(request, 'razorpay_payment/pharmacy_payment.html', context)
         
-        # Save payment record
-        payment = RazorpayPayment.objects.create(
-            razorpay_order_id=razorpay_order['id'],
-            patient=patient,
+        # Check if payment already exists for this order to prevent duplicates
+        payment, created = RazorpayPayment.objects.get_or_create(
             order=order,
             payment_type='pharmacy',
-            amount=Decimal(amount) / 100,
-            name=patient.name,
-            email=patient.email,
-            phone=patient.phone_number,
-            address=patient.address,
-            receipt=receipt_id,
-            notes=razorpay_order['notes']
+            defaults={
+                'razorpay_order_id': razorpay_order['id'],
+                'patient': patient,
+                'amount': Decimal(amount) / 100,
+                'name': patient.name,
+                'email': patient.email,
+                'phone': patient.phone_number,
+                'address': patient.address,
+                'receipt': receipt_id,
+                'notes': razorpay_order['notes']
+            }
         )
+        
+        # If payment already exists, update the razorpay_order_id for the new session
+        if not created:
+            payment.razorpay_order_id = razorpay_order['id']
+            payment.save()
         
         context = {
             'razorpay_order_id': razorpay_order['id'],
@@ -272,21 +290,28 @@ def create_test_payment(request, test_order_id):
                     }
                     return render(request, 'razorpay_payment/test_payment.html', context)
         
-        # Save payment record
-        payment = RazorpayPayment.objects.create(
-            razorpay_order_id=razorpay_order['id'],
-            patient=patient,
+        # Check if payment already exists for this test order to prevent duplicates
+        payment, created = RazorpayPayment.objects.get_or_create(
             test_order=test_order,
-            prescription=getattr(test_order, 'prescription', None),
             payment_type='test',
-            amount=Decimal(amount) / 100,
-            name=patient.name,
-            email=patient.email,
-            phone=patient.phone_number,
-            address=patient.address,
-            receipt=receipt_id,
-            notes=razorpay_order['notes']
+            defaults={
+                'razorpay_order_id': razorpay_order['id'],
+                'patient': patient,
+                'prescription': getattr(test_order, 'prescription', None),
+                'amount': Decimal(amount) / 100,
+                'name': patient.name,
+                'email': patient.email,
+                'phone': patient.phone_number,
+                'address': patient.address,
+                'receipt': receipt_id,
+                'notes': razorpay_order['notes']
+            }
         )
+        
+        # If payment already exists, update the razorpay_order_id for the new session
+        if not created:
+            payment.razorpay_order_id = razorpay_order['id']
+            payment.save()
         
         context = {
             'razorpay_order_id': razorpay_order['id'],
@@ -423,17 +448,33 @@ def payment_success(request):
                     except Exception as e2:
                         print(f"Error in fallback cart update: {e2}")
             
-            # Generate invoice automatically after successful payment
-            try:
-                invoice = generate_invoice_for_payment(payment)
-                messages.success(request, 'Payment successful! Invoice generated.')
-                return render(request, 'razorpay_payment/payment_success.html', {
-                    'payment': payment,
-                    'invoice': invoice
-                })
-            except Exception as e:
-                messages.success(request, 'Payment successful!')
-                messages.warning(request, f'Invoice generation failed: {str(e)}')
+            # Generate invoice for non-pharmacy payments (appointments, tests)
+            # Pharmacy orders use the original pharmacy invoice system
+            if payment.payment_type != 'pharmacy':
+                try:
+                    invoice = generate_invoice_for_payment(payment)
+                    if payment.payment_type == 'appointment':
+                        messages.success(request, 'Appointment payment successful! Doctor consultation invoice generated.')
+                    elif payment.payment_type == 'test':
+                        messages.success(request, 'Lab test payment successful! Test invoice generated.')
+                    else:
+                        messages.success(request, 'Payment successful! Invoice generated.')
+                    return render(request, 'razorpay_payment/payment_success.html', {
+                        'payment': payment,
+                        'invoice': invoice
+                    })
+                except Exception as e:
+                    if payment.payment_type == 'appointment':
+                        messages.success(request, 'Appointment payment successful!')
+                    elif payment.payment_type == 'test':
+                        messages.success(request, 'Lab test payment successful!')
+                    else:
+                        messages.success(request, 'Payment successful!')
+                    messages.warning(request, f'Invoice generation failed: {str(e)}')
+                    return render(request, 'razorpay_payment/payment_success.html', {'payment': payment})
+            else:
+                # For pharmacy payments, just show success (they use pharmacy invoice system)
+                messages.success(request, 'Payment successful! Your medicine order is confirmed.')
                 return render(request, 'razorpay_payment/payment_success.html', {'payment': payment})
             
         except razorpay.errors.SignatureVerificationError:
@@ -722,8 +763,12 @@ def standalone_test_booking(request):
                 'description': f'Lab test: {test.test_name}'
             })
         
+        # Get VAT amount from settings
+        vat_amount = get_lab_test_vat()
+        
         context = {
             'available_tests': test_list,
+            'vat_amount': vat_amount,
         }
         
         return render(request, 'razorpay_payment/standalone_test_booking.html', context)
@@ -750,10 +795,41 @@ def submit_standalone_test(request):
             
             # Create test cart items
             from doctor.models import testCart, Prescription_test, testOrder
-            from hospital_admin.models import Test_Information
+            from hospital_admin.models import Test_Information, Clinical_Laboratory_Technician
+            
+            # Get available lab worker for assignment
+            try:
+                available_lab_worker = Clinical_Laboratory_Technician.objects.first()
+                if not available_lab_worker:
+                    messages.warning(request, 'No lab workers available. Tests will be assigned manually.')
+            except Clinical_Laboratory_Technician.DoesNotExist:
+                available_lab_worker = None
+                messages.warning(request, 'No lab workers configured. Tests will be assigned manually.')
             
             # Create a dummy prescription for standalone tests
-            prescription = None
+            from doctor.models import Prescription, Doctor_Information
+            
+            # Create a dummy prescription entry for standalone tests
+            try:
+                # Try to get a default doctor or create one for standalone tests
+                dummy_doctor = Doctor_Information.objects.filter(name__icontains='Standalone').first()
+                if not dummy_doctor:
+                    # Create a system doctor for standalone bookings
+                    dummy_doctor = Doctor_Information.objects.create(
+                        name='System - Standalone Booking',
+                        department='Cardiologists',  # Use one of the valid choices
+                        email='system@mahimamedicare.co.in'
+                    )
+                
+                prescription = Prescription.objects.create(
+                    doctor=dummy_doctor,
+                    patient=patient,
+                    test_description=f'Standalone lab test booking - {len(selected_tests)} tests',
+                    extra_information='Self-requested lab tests'
+                )
+            except Exception as e:
+                messages.error(request, f'Error creating prescription: {str(e)}')
+                return redirect('standalone-test-booking')
             
             cart_items = []
             total_amount = 0
@@ -764,13 +840,15 @@ def submit_standalone_test(request):
                     # Get the actual test from Test_Information model
                     lab_test = Test_Information.objects.get(test_id=test_id)
                     
-                    # Create prescription test entry
+                    # Create prescription test entry with lab worker assignment and prescription link
                     prescription_test = Prescription_test.objects.create(
+                        prescription=prescription,  # Link to the dummy prescription
                         test_name=lab_test.test_name,
                         test_description=f'Standalone booking: {lab_test.test_name}',
                         test_info_price=lab_test.test_price or '0',
                         test_info_pay_status='unpaid',
-                        test_status='prescribed'
+                        test_status='prescribed',
+                        assigned_technician=available_lab_worker
                     )
                     
                     # Create cart item
@@ -802,10 +880,11 @@ def submit_standalone_test(request):
                 test_order.ordered = True
                 test_order.save()
                 
-                # Update cart items
+                # Update cart items and prescription tests
                 for cart_item in cart_items:
                     cart_item.purchased = True
-                    cart_item.item.test_info_pay_status = 'cod_pending'
+                    cart_item.item.test_info_pay_status = 'paid'  # Set as 'paid' so it shows in lab queue
+                    cart_item.item.test_status = 'prescribed'  # Keep as prescribed, lab worker will change to collected
                     cart_item.item.save()
                     cart_item.save()
                 

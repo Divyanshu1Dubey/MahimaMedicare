@@ -50,9 +50,11 @@
         <a href="{% url 'about-us'%}">About Us</a>
       </li>
       
+      {% if user.is_authenticated and user.id %}
       <li>
         <a href="{% url 'chat-home' pk=user.id %}">Chat with Patients</a>
       </li>
+      {% endif %}
     
       <li class="login-link">
         <a href="{% url 'login' %}">Login / Signup</a>

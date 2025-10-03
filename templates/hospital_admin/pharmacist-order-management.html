@@ -1,646 +1,536 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 
-<!-- doccure/pharmacist-order-management.html -->
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
-    <title>Order Management - Mahima Medicare</title>
-
-    <!-- Favicon -->
-    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
-
-    <!-- Fontawesome CSS -->
-    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}">
+    <title>Mahima Medicare - Order Management</title>
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css'%}">
     <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
-
-    <!-- Main CSS -->
-    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.css'%}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css'%}">
     
-    <!-- Enhanced CSS for modal and button fixes -->
     <style>
-        /* Button styling and positioning */
-        .update-order-btn {
-            position: relative !important;
-            z-index: 1000 !important;
-            pointer-events: auto !important;
-            cursor: pointer !important;
-            display: inline-block !important;
-            background-color: #007bff !important;
-            border-color: #007bff !important;
-            color: white !important;
+        :root {
+            --accent-color: #95C270;
+            --accent-dark: #7ea75d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
         }
         
-        .update-order-btn:hover {
-            background-color: #0056b3 !important;
-            border-color: #0056b3 !important;
-            color: white !important;
+        .order-card {
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
         }
         
-        .update-order-btn:focus {
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
-            outline: none !important;
+        .order-card:hover {
+            transform: translateY(-2px);
         }
         
-        /* Table and DataTable fixes */
-        .datatable tbody td {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .table-responsive {
-            overflow: visible !important;
-        }
-        
-        .table td {
-            overflow: visible !important;
-        }
-        
-        .dataTables_wrapper {
-            overflow: visible !important;
-        }
-        
-        /* Modal styling with higher z-index */
-        .modal {
-            z-index: 1060 !important;
-            display: none;
-        }
-        
-        .modal.show {
-            display: block !important;
-        }
-        
-        .modal-backdrop {
-            z-index: 1055 !important;
-            background-color: rgba(0, 0, 0, 0.5) !important;
-        }
-        
-        .modal-dialog {
-            z-index: 1070 !important;
-            position: relative;
-            margin: 1.75rem auto;
-        }
-        
-        .modal-content {
-            position: relative;
-            background-color: #fff;
-            border: 1px solid rgba(0, 0, 0, 0.2);
-            border-radius: 0.3rem;
-            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5);
-        }
-        
-        /* Ensure modal buttons are clickable */
-        .modal-footer .btn {
-            z-index: 1080 !important;
-            position: relative;
-            pointer-events: auto !important;
-        }
-        
-        .modal-header .close {
-            z-index: 1080 !important;
-            position: relative;
-            pointer-events: auto !important;
-        }
-        
-        /* Body scroll fixes */
-        body.modal-open {
-            overflow: hidden !important;
-            padding-right: 0 !important;
-        }
-        
-        /* Force visibility for modal elements */
-        .modal.show .modal-dialog {
-            transform: none !important;
-            opacity: 1 !important;
-        }
-        
-        /* Additional button safety */
-        .btn-primary {
-            background-color: #007bff !important;
-            border-color: #007bff !important;
-            color: white !important;
-        }
-        
-        .btn-secondary {
-            background-color: #6c757d !important;
-            border-color: #6c757d !important;
-            color: white !important;
-        }
-        
-        /* Custom Modal Styles */
-        .custom-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .custom-modal-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 2001;
-        }
-        
-        .custom-modal-content {
-            position: relative;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            z-index: 2002;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .custom-modal-header {
-            padding: 20px;
-            border-bottom: 1px solid #dee2e6;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .custom-modal-header h5 {
-            margin: 0;
-            font-size: 1.25rem;
+        .order-status-badge {
             font-weight: 600;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
         }
         
-        .custom-close-btn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #999;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .payment-status-badge {
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 11px;
         }
         
-        .custom-close-btn:hover {
-            color: #333;
-        }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-preparing { background: #cce7ff; color: #004085; }
+        .status-ready { background: #d1ecf1; color: #0c5460; }
+        .status-delivery { background: #e2e3e5; color: #383d41; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
         
-        .custom-modal-body {
+        .payment-paid { background: #d4edda; color: #155724; }
+        .payment-cod { background: #fff3cd; color: #856404; }
+        .payment-failed { background: #f8d7da; color: #721c24; }
+        .payment-pending { background: #e2e3e5; color: #383d41; }
+        
+        .stats-card {
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-dark));
+            color: white;
+            border-radius: 12px;
             padding: 20px;
-        }
-        
-        .custom-modal-footer {
-            padding: 20px;
-            border-top: 1px solid #dee2e6;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        
-        .form-group {
             margin-bottom: 20px;
         }
         
-        .form-group label {
-            display: block;
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
             margin-bottom: 5px;
-            font-weight: 500;
         }
         
-        .order-details {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 15px;
+        .order-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         
-        .order-details h6 {
-            margin-bottom: 10px;
-            color: #495057;
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
         }
         
-        #orderItems {
-            margin-bottom: 10px;
+        .order-items {
+            max-height: 200px;
+            overflow-y: auto;
         }
         
-        .order-item {
-            padding: 5px 0;
-            border-bottom: 1px solid #e9ecef;
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
         }
         
-        .order-item:last-child {
+        .item-row:last-child {
             border-bottom: none;
         }
+        
+        .low-stock-alert {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .tab-content {
+            margin-top: 20px;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--accent-color);
+            border-color: transparent;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            border-color: var(--accent-color);
+        }
+        
+        .modal-header {
+            background: var(--accent-color);
+            color: white;
+        }
+        
+        .table-responsive {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .alert-custom {
+            border-left: 4px solid;
+            border-radius: 0 8px 8px 0;
+        }
     </style>
-
 </head>
+
 <body>
-
-    <!-- Main Wrapper -->
     <div class="main-wrapper">
+        <header class="header">{% include 'hospital_admin/pharmacist-navbar.html' %}</header>
+        <aside class="sidebar" id="sidebar">{% include 'hospital_admin/pharmacist-sidebar.html' %}</aside>
 
-        <!-- Header -->
-        {% include 'hospital_admin/pharmacist-navbar.html' %}
-        <!-- /Header -->
-
-        <!-- Sidebar -->
-        {% include 'hospital_admin/pharmacist-sidebar.html' %}
-        <!-- /Sidebar -->
-
-        <!-- Page Wrapper -->
         <div class="page-wrapper">
-
             <div class="content container-fluid">
-
                 <!-- Page Header -->
                 <div class="page-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3 class="page-title">
+                                <i class="fas fa-shopping-cart mr-2"></i>
+                                Order Management Dashboard
+                            </h3>
+                            <p class="text-muted mb-0">Manage all pharmacy orders - Online, COD, and Failed Payments</p>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <div class="btn-group">
+                                <button class="btn btn-primary" onclick="refreshOrders()">
+                                    <i class="fas fa-sync"></i> Refresh
+                                </button>
+                                <a href="{% url 'pharmacist-sales' %}" class="btn btn-success">
+                                    <i class="fas fa-chart-line"></i> Sales Report
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ total_pending }}</div>
+                            <div>Pending Orders</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ cod_orders.count }}</div>
+                            <div>COD Orders</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-number">₹{{ total_revenue_today }}</div>
+                            <div>Today's Revenue</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ failed_orders.count }}</div>
+                            <div>Failed Payments</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Low Stock Alert -->
+                {% if low_stock_medicines %}
+                <div class="low-stock-alert alert-custom" style="border-color: #dc3545;">
+                    <h5><i class="fas fa-exclamation-triangle text-danger"></i> Low Stock Alert</h5>
+                    <p><strong>{{ low_stock_medicines.count }}</strong> medicines are running low on stock:</p>
                     <div class="row">
-                        <div class="col-sm-12">
-                            <h3 class="page-title">Order Management</h3>
-                            <ul class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="{% url 'pharmacist-dashboard' %}">Dashboard</a></li>
-                                <li class="breadcrumb-item active">Order Management</li>
-                            </ul>
+                        {% for medicine in low_stock_medicines %}
+                        <div class="col-md-4">
+                            <small>{{ medicine.name }} ({{ medicine.quantity }} left)</small>
                         </div>
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'medicine-list' %}" class="btn btn-sm btn-outline-danger mt-2">
+                        <i class="fas fa-plus"></i> Restock Medicines
+                    </a>
+                </div>
+                {% endif %}
+
+                <!-- Order Management Tabs -->
+                <ul class="nav nav-tabs" id="orderTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="online-orders-tab" data-toggle="tab" href="#online-orders" role="tab">
+                            <i class="fas fa-credit-card"></i> Online Paid ({{ online_orders.count }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="cod-orders-tab" data-toggle="tab" href="#cod-orders" role="tab">
+                            <i class="fas fa-money-bill-wave"></i> Cash on Delivery ({{ cod_orders.count }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="failed-orders-tab" data-toggle="tab" href="#failed-orders" role="tab">
+                            <i class="fas fa-exclamation-circle"></i> Failed Payments ({{ failed_orders.count }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="ready-orders-tab" data-toggle="tab" href="#ready-orders" role="tab">
+                            <i class="fas fa-check-circle"></i> Ready for Pickup ({{ ready_orders.count }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="delivery-orders-tab" data-toggle="tab" href="#delivery-orders" role="tab">
+                            <i class="fas fa-truck"></i> Out for Delivery ({{ delivery_orders.count }})
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="orderTabsContent">
+                    <!-- Online Paid Orders -->
+                    <div class="tab-pane fade show active" id="online-orders" role="tabpanel">
+                        {% for order in online_orders %}
+                            {% include 'hospital_admin/partials/order_card.html' with order=order payment_type="online" %}
+                        {% empty %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No online paid orders at the moment.
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- COD Orders -->
+                    <div class="tab-pane fade" id="cod-orders" role="tabpanel">
+                        {% for order in cod_orders %}
+                            {% include 'hospital_admin/partials/order_card.html' with order=order payment_type="cod" %}
+                        {% empty %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No COD orders at the moment.
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Failed Payment Orders -->
+                    <div class="tab-pane fade" id="failed-orders" role="tabpanel">
+                        {% for order in failed_orders %}
+                            {% include 'hospital_admin/partials/order_card.html' with order=order payment_type="failed" %}
+                        {% empty %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> No failed payment orders - Great job!
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Ready for Pickup Orders -->
+                    <div class="tab-pane fade" id="ready-orders" role="tabpanel">
+                        {% for order in ready_orders %}
+                            {% include 'hospital_admin/partials/order_card.html' with order=order payment_type="pickup" %}
+                        {% empty %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No orders ready for pickup.
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Delivery Orders -->
+                    <div class="tab-pane fade" id="delivery-orders" role="tabpanel">
+                        {% for order in delivery_orders %}
+                            {% include 'hospital_admin/partials/order_card.html' with order=order payment_type="delivery" %}
+                        {% empty %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No orders out for delivery.
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
-                <!-- /Page Header -->
-
-                <!-- Order Statistics -->
-                <div class="row">
-                    <div class="col-xl-3 col-sm-6 col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="dash-widget-header">
-                                    <span class="dash-widget-icon text-primary border-primary">
-                                        <i class="fe fe-clock"></i>
-                                    </span>
-                                    <div class="dash-count">
-                                        <h3>{{ pending_orders|length }}</h3>
-                                    </div>
-                                </div>
-                                <div class="dash-widget-info">
-                                    <h6 class="text-muted">Pending Orders</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-sm-6 col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="dash-widget-header">
-                                    <span class="dash-widget-icon text-success border-success">
-                                        <i class="fe fe-package"></i>
-                                    </span>
-                                    <div class="dash-count">
-                                        <h3>{% for order in pending_orders %}{% if order.order_status == 'preparing' %}1{% endif %}{% endfor %}</h3>
-                                    </div>
-                                </div>
-                                <div class="dash-widget-info">
-                                    <h6 class="text-muted">Preparing</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-sm-6 col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="dash-widget-header">
-                                    <span class="dash-widget-icon text-warning border-warning">
-                                        <i class="fe fe-check-circle"></i>
-                                    </span>
-                                    <div class="dash-count">
-                                        <h3>{% for order in pending_orders %}{% if order.order_status == 'ready' %}1{% endif %}{% endfor %}</h3>
-                                    </div>
-                                </div>
-                                <div class="dash-widget-info">
-                                    <h6 class="text-muted">Ready for Pickup</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-sm-6 col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="dash-widget-header">
-                                    <span class="dash-widget-icon text-info border-info">
-                                        <i class="fe fe-truck"></i>
-                                    </span>
-                                    <div class="dash-count">
-                                        <h3>{% for order in pending_orders %}{% if order.order_status == 'out_for_delivery' %}1{% endif %}{% endfor %}</h3>
-                                    </div>
-                                </div>
-                                <div class="dash-widget-info">
-                                    <h6 class="text-muted">Out for Delivery</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- /Order Statistics -->
-
-                <!-- Orders Table -->
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">Pending Orders</h4>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="datatable table table-hover table-center mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>Order ID</th>
-                                                <th>Patient</th>
-                                                <th>Items</th>
-                                                <th>Total</th>
-                                                <th>Payment</th>
-                                                <th>Delivery Method</th>
-                                                <th>Status</th>
-                                                <th>Order Date</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for order in pending_orders %}
-                                            <tr>
-                                                <td>#{{ order.id }}</td>
-                                                <td>
-                                                    <h2 class="table-avatar">
-                                                        <span>{{ order.user.patient.name }}</span>
-                                                    </h2>
-                                                </td>
-                                                <td>
-                                                    {% for item in order.orderitems.all %}
-                                                        <div class="medicine-item">
-                                                            <strong>{{ item.item.name }}</strong> x{{ item.quantity }}
-                                                        </div>
-                                                    {% endfor %}
-                                                </td>
-                                                <td>₹{{ order.get_cart_total|floatformat:2 }}</td>
-                                                <td>
-                                                    <span class="badge badge-{% if order.payment_status == 'paid' %}success{% elif order.payment_status == 'cash_on_delivery' or order.payment_status == 'cod' %}warning{% else %}secondary{% endif %}">
-                                                        {% if order.payment_status == 'paid' %}
-                                                            Paid Online
-                                                        {% elif order.payment_status == 'cash_on_delivery' or order.payment_status == 'cod' %}
-                                                            Cash on Delivery
-                                                        {% else %}
-                                                            {{ order.payment_status|default:"Pending" }}
-                                                        {% endif %}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-{% if order.delivery_method == 'delivery' %}primary{% else %}secondary{% endif %}">
-                                                        {{ order.get_delivery_method_display }}
-                                                    </span>
-                                                    {% if order.delivery_method == 'delivery' %}
-                                                        <br><small class="text-muted">{{ order.delivery_address|truncatechars:50 }}</small>
-                                                        <br><small class="text-muted">{{ order.delivery_phone }}</small>
-                                                    {% endif %}
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-{% if order.order_status == 'pending' %}warning{% elif order.order_status == 'confirmed' %}info{% elif order.order_status == 'preparing' %}primary{% elif order.order_status == 'ready' %}success{% elif order.order_status == 'out_for_delivery' %}info{% else %}secondary{% endif %}">
-                                                        {{ order.get_order_status_display }}
-                                                    </span>
-                                                </td>
-                                                <td>{{ order.created|date:"M d, Y H:i" }}</td>
-                                                <td>
-                                                    <button type="button" class="btn btn-sm btn-primary update-order-btn" 
-                                                            data-order-id="{{ order.id }}"
-                                                            data-order-status="{{ order.order_status }}"
-                                                            data-order-notes="{{ order.pharmacist_notes|default:'None' }}"
-                                                            data-order-items="{% for item in order.orderitems.all %}{{ item.item.name }} - Qty: {{ item.quantity }} - ₹{{ item.get_total }}{% if not forloop.last %}|{% endif %}{% endfor %}"
-                                                            data-order-total="{{ order.get_cart_total|floatformat:2 }}"
-                                                            style="cursor: pointer; z-index: 1000;">
-                                                        <i class="fe fe-edit"></i> Update
-                                                    </button>
-                                                </td>
-                                            </tr>
-
-
-                                            {% empty %}
-                                            <tr>
-                                                <td colspan="8" class="text-center">No pending orders found.</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- /Orders Table -->
-
             </div>
-        </div>
-        <!-- /Page Wrapper -->
-
-    </div>
-    <!-- /Main Wrapper -->
-
-    <!-- Custom Update Order Modal -->
-    <div id="customUpdateModal" class="custom-modal" style="display: none;">
-        <div class="custom-modal-overlay"></div>
-        <div class="custom-modal-content">
-            <div class="custom-modal-header">
-                <h5 id="modalTitle">Update Order</h5>
-                <button type="button" class="custom-close-btn" onclick="closeCustomModal()">&times;</button>
-            </div>
-            <form id="updateOrderForm" method="post">
-                {% csrf_token %}
-                <div class="custom-modal-body">
-                    <div class="form-group">
-                        <label>Order Status</label>
-                        <select id="orderStatus" name="order_status" class="form-control" required>
-                            <option value="pending">Pending</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="preparing">Preparing</option>
-                            <option value="ready">Ready for Pickup</option>
-                            <option value="out_for_delivery">Out for Delivery</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Pharmacist Notes</label>
-                        <textarea id="pharmacistNotes" name="pharmacist_notes" class="form-control" rows="3" placeholder="Add any notes about this order..."></textarea>
-                    </div>
-                    <div class="order-details">
-                        <h6>Order Details:</h6>
-                        <div id="orderItems"></div>
-                        <strong id="orderTotal"></strong>
-                    </div>
-                </div>
-                <div class="custom-modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeCustomModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Order</button>
-                </div>
-            </form>
         </div>
     </div>
 
-    <!-- jQuery -->
-    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    <!-- Order Status Update Modal -->
+    <div class="modal fade" id="statusUpdateModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Order Status</h5>
+                    <button type="button" class="close" data-dismiss="modal" style="color: white;">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="statusUpdateForm" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Order Status</label>
+                            <select class="form-control" name="order_status" id="orderStatusSelect">
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="preparing">Preparing</option>
+                                <option value="ready">Ready for Pickup</option>
+                                <option value="out_for_delivery">Out for Delivery</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="codPaymentGroup" style="display: none;">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="payment_collected" value="yes" id="paymentCollected">
+                                <label class="form-check-label" for="paymentCollected">
+                                    Payment Collected (for COD orders)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Pharmacist Notes</label>
+                            <textarea class="form-control" name="pharmacist_notes" rows="3" placeholder="Add any notes about this order..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-    <!-- Bootstrap Core JS -->
-    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
-    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    <!-- COD Payment Collection Modal -->
+    <div class="modal fade" id="codPaymentModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Collect COD Payment</h5>
+                    <button type="button" class="close" data-dismiss="modal" style="color: white;">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="codPaymentForm" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <strong>Expected Amount:</strong> ₹<span id="expectedAmount">0</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount Received (₹)</label>
+                            <input type="number" class="form-control" name="amount_received" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Notes</label>
+                            <textarea class="form-control" name="payment_notes" rows="2" placeholder="Any notes about the payment collection..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Collect Payment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-    <!-- Slimscroll JS -->
+    <!-- Payment Failure Handling Modal -->
+    <div class="modal fade" id="paymentFailureModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Handle Payment Failure</h5>
+                    <button type="button" class="close" data-dismiss="modal" style="color: white;">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="paymentFailureForm" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="alert alert-warning">
+                            <strong>Payment Failed:</strong> Choose how to handle this order.
+                        </div>
+                        <div class="form-group">
+                            <label>Action</label>
+                            <select class="form-control" name="action" required>
+                                <option value="">Choose action...</option>
+                                <option value="retry_payment">Allow Customer to Retry Payment</option>
+                                <option value="convert_to_cod">Convert to Cash on Delivery</option>
+                                <option value="cancel_order">Cancel Order & Restore Stock</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning">Process Action</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js' %}"></script>
     <script src="{% static 'HealthStack-System/plugins/admin/slimscroll/jquery.slimscroll.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
 
-    <!-- Datatables JS -->
-    <script src="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.js' %}"></script>
+    <script>
+        // Order management JavaScript
+        function updateOrderStatus(orderId, currentStatus, paymentStatus) {
+            $('#statusUpdateModal').modal('show');
+            $('#statusUpdateForm').attr('action', `/hospital_admin/update-order-status/${orderId}/`);
+            $('#orderStatusSelect').val(currentStatus);
+            
+            // Show COD payment option for COD orders
+            if (paymentStatus === 'cod' || paymentStatus === 'cash_on_delivery') {
+                $('#codPaymentGroup').show();
+            } else {
+                $('#codPaymentGroup').hide();
+            }
+        }
 
-    <!-- Custom JS - Load after other scripts to avoid conflicts -->
-    <script>
-        // Avoid script.js conflicts by defining our own initialization
-        var PharmacistOrderManagement = {
-            initDataTable: function() {
-                if ($.fn.DataTable && !$.fn.DataTable.isDataTable('.datatable')) {
-                    $('.datatable').DataTable({
-                        "pageLength": 10,
-                        "ordering": true,
-                        "searching": true,
-                        "lengthChange": true,
-                        "info": true,
-                        "paging": true,
-                        "responsive": true
-                    });
-                }
-            }
-        };
-    </script>
-    
-    <!-- Simple Custom Modal Script -->
-    <script>
-        $(document).ready(function() {
-            // Initialize DataTable using our custom method
-            PharmacistOrderManagement.initDataTable();
-        });
-        
-        // Global variables
-        let currentOrderId = null;
-        
-        // Open custom modal function
-        function openCustomModal(button) {
-            console.log('Opening custom modal...');
-            
-            // Get data from button
-            const orderId = button.getAttribute('data-order-id');
-            const orderStatus = button.getAttribute('data-order-status');
-            const orderNotes = button.getAttribute('data-order-notes');
-            const orderItems = button.getAttribute('data-order-items');
-            const orderTotal = button.getAttribute('data-order-total');
-            
-            console.log('Order ID:', orderId);
-            console.log('Order Status:', orderStatus);
-            
-            // Set current order ID
-            currentOrderId = orderId;
-            
-            // Update modal content
-            document.getElementById('modalTitle').textContent = 'Update Order #' + orderId;
-            document.getElementById('orderStatus').value = orderStatus;
-            document.getElementById('pharmacistNotes').value = orderNotes === 'None' ? '' : orderNotes;
-            
-            // Update order items
-            const itemsContainer = document.getElementById('orderItems');
-            if (orderItems) {
-                const items = orderItems.split('|');
-                itemsContainer.innerHTML = items.map(item => 
-                    '<div class="order-item">' + item + '</div>'
-                ).join('');
-            }
-            
-            // Update total
-            document.getElementById('orderTotal').textContent = 'Total: ₹' + orderTotal;
-            
-            // Set form action
-            const form = document.getElementById('updateOrderForm');
-            form.action = '/hospital_admin/update-order-status/' + orderId + '/';
-            
-            // Show modal
-            document.getElementById('customUpdateModal').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            
-            console.log('Modal opened successfully!');
+        function collectCODPayment(orderId, expectedAmount) {
+            $('#codPaymentModal').modal('show');
+            $('#codPaymentForm').attr('action', `/hospital_admin/process-cod-payment/${orderId}/`);
+            $('#expectedAmount').text(expectedAmount);
         }
-        
-        // Close custom modal function
-        function closeCustomModal() {
-            console.log('Closing custom modal...');
-            document.getElementById('customUpdateModal').style.display = 'none';
-            document.body.style.overflow = '';
-            currentOrderId = null;
+
+        function handlePaymentFailure(orderId) {
+            $('#paymentFailureModal').modal('show');
+            $('#paymentFailureForm').attr('action', `/hospital_admin/handle-payment-failure/${orderId}/`);
         }
-        
-        // Handle button clicks
-        $(document).on('click', '.update-order-btn', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            console.log('Update button clicked!');
-            openCustomModal(this);
-        });
-        
-        // Handle form submission
-        $(document).on('submit', '#updateOrderForm', function(e) {
+
+        function refreshOrders() {
+            location.reload();
+        }
+
+        // Auto-refresh every 2 minutes
+        setInterval(function() {
+            // Only refresh if no modals are open
+            if (!$('.modal').hasClass('show')) {
+                location.reload();
+            }
+        }, 120000);
+
+        // Form submissions with AJAX
+        $('#statusUpdateForm').on('submit', function(e) {
             e.preventDefault();
             
-            console.log('Form submitted!');
-            
-            const form = $(this);
-            const submitBtn = form.find('button[type="submit"]');
-            
-            // Disable submit button
-            submitBtn.prop('disabled', true).text('Updating...');
-            
-            $.ajax({
-                url: form.attr('action'),
-                type: 'POST',
-                data: form.serialize(),
-                success: function(response) {
-                    console.log('Order updated successfully!');
-                    closeCustomModal();
-                    alert('Order status updated successfully!');
-                    window.location.reload();
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error updating order:', error);
-                    submitBtn.prop('disabled', false).text('Update Order');
-                    alert('Error updating order status. Please try again.');
+            $.post($(this).attr('action'), $(this).serialize(), function(response) {
+                if (response.success) {
+                    $('#statusUpdateModal').modal('hide');
+                    location.reload();
+                } else {
+                    alert('Error: ' + response.message);
                 }
+            }).fail(function() {
+                // Fallback to regular form submission
+                $('#statusUpdateForm')[0].submit();
             });
         });
-        
-        // Handle overlay click to close modal
-        $(document).on('click', '.custom-modal-overlay', function() {
-            closeCustomModal();
+
+        $('#codPaymentForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            $.post($(this).attr('action'), $(this).serialize(), function(response) {
+                $('#codPaymentModal').modal('hide');
+                location.reload();
+            }).fail(function() {
+                // Fallback to regular form submission
+                $('#codPaymentForm')[0].submit();
+            });
         });
-        
-        // Handle escape key
-        $(document).on('keydown', function(e) {
-            if (e.keyCode === 27 && document.getElementById('customUpdateModal').style.display === 'flex') {
-                closeCustomModal();
+
+        $('#paymentFailureForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            $.post($(this).attr('action'), $(this).serialize(), function(response) {
+                $('#paymentFailureModal').modal('hide');
+                location.reload();
+            }).fail(function() {
+                // Fallback to regular form submission
+                $('#paymentFailureForm')[0].submit();
+            });
+        });
+
+        // Tab persistence
+        $(document).ready(function() {
+            // Remember active tab
+            var activeTab = localStorage.getItem('activeOrderTab');
+            if (activeTab) {
+                $('#orderTabs a[href="' + activeTab + '"]').tab('show');
             }
+            
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+                localStorage.setItem('activeOrderTab', $(e.target).attr('href'));
+            });
         });
     </script>
-
 </body>
+
 </html>

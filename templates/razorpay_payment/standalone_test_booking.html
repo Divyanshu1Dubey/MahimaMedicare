@@ -252,7 +252,10 @@
                                            onchange="updateTotal()">
                                     <div class="flex-grow-1">
                                         <div class="test-name">{{ test.name }}</div>
-                                        <div class="test-price">₹{{ test.price }}</div>
+                                        <div class="test-price">
+                                            <span class="base-price">₹{{ test.price }}</span>
+                                            <br><small class="text-muted">+ ₹{{ vat_amount }} VAT = ₹{% widthratio test.price 1 1 as base %}{{ test.price|add:vat_amount }}</small>
+                                        </div>
                                         {% if test.description %}
                                         <div class="test-description">{{ test.description }}</div>
                                         {% endif %}
@@ -306,9 +309,10 @@
         let selectedTests = new Set();
         let testPrices = {};
         
-        // Initialize test prices
+        // Initialize test prices (including VAT)
+        const vatAmount = {{ vat_amount }};
         {% for test in available_tests %}
-        testPrices[{{ test.id }}] = {{ test.price }};
+        testPrices[{{ test.id }}] = {{ test.price }} + vatAmount; // Include VAT in calculation
         {% endfor %}
         
         function toggleTest(testId) {
@@ -337,7 +341,10 @@
             });
             
             // Update total display
-            document.getElementById('total-amount').textContent = `Total: ₹${total}`;
+            document.getElementById('total-amount').innerHTML = `
+                <div>Total (including VAT): ₹${total}</div>
+                <small class="text-muted">Includes ₹${vatAmount} VAT per test</small>
+            `;
             
             // Show/hide payment section
             const paymentSection = document.getElementById('payment-section');

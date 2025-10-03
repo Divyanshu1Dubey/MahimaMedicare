@@ -1,0 +1,28 @@
+[tool.pyright]
+include = ["**/*.py"]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    ".git",
+    "env",
+    "build"
+]
+
+reportMissingImports = "none"
+reportMissingModuleSource = "none" 
+reportImportCycles = "none"
+pythonVersion = "3.13"
+pythonPlatform = "Windows"
+
+[tool.pylint]
+load-plugins = ["pylint_django"]
+
+[tool.pylint.MASTER]
+django-settings-module = "healthstack.settings"
+
+[tool.pylint.MESSAGES_CONTROL]
+disable = [
+    "import-error",
+    "no-member",
+    "missing-docstring"
+]

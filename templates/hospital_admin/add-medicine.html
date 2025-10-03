@@ -343,7 +343,7 @@
                                                                     <tbody>
                                                                         <tr>
                                                                             <td data-label="Medicine Name">
-                                                                                <input class="form-control" type="text" name="name" value="{{ request.POST.name }}" placeholder="Enter medicine name">
+                                                                                <input class="form-control" type="text" name="name" id="medicine_name" value="{% if form_data %}{{ form_data.name }}{% else %}{{ request.POST.name }}{% endif %}" placeholder="Enter medicine name (e.g., Paracetamol 500mg)">
                                                                                 {% for message in messages %}
                                                                                     {% if 'name' in message.message %}
                                                                                         <small class="text-danger">{{ message }}</small>
@@ -351,12 +351,57 @@
                                                                                 {% endfor %}
                                                                             </td>
                                                                             <td data-label="Weight">
-                                                                                <input class="form-control" type="text" name="weight" value="{{ request.POST.weight }}" placeholder="Enter weight">
+                                                                                <input class="form-control" type="text" name="weight" value="{% if form_data %}{{ form_data.weight }}{% else %}{{ request.POST.weight }}{% endif %}" placeholder="Enter weight (e.g., 500mg, 10ml)">
                                                                                 {% for message in messages %}
                                                                                     {% if 'weight' in message.message %}
                                                                                         <small class="text-danger">{{ message }}</small>
                                                                                     {% endif %}
                                                                                 {% endfor %}
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Composition & HSN Code -->
+                                                    <div class="card card-table">
+                                                        <div class="card-body">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-hover table-center">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="min-width: 400px">Composition (Active Ingredients)</th>
+                                                                            <th style="min-width: 250px">HSN Code 
+                                                                                <button type="button" class="btn btn-sm btn-outline-primary ml-2" id="fetch_hsn_btn" title="Auto-fetch HSN code">
+                                                                                    <i class="fa fa-search"></i> Auto-fetch
+                                                                                </button>
+                                                                            </th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td data-label="Composition">
+                                                                                <textarea class="form-control" name="composition" id="medicine_composition" rows="3" placeholder="Enter active ingredients and quantities (e.g., Paracetamol 500mg per tablet)">{% if form_data %}{{ form_data.composition }}{% else %}{{ request.POST.composition }}{% endif %}</textarea>
+                                                                                <small class="text-muted">This helps in HSN code identification and patient safety</small>
+                                                                                <div id="composition_suggestions" class="mt-2" style="display: none;">
+                                                                                    <small class="text-primary">Suggestions:</small>
+                                                                                    <div id="composition_list"></div>
+                                                                                </div>
+                                                                            </td>
+                                                                            <td data-label="HSN Code">
+                                                                                <input class="form-control" type="text" name="hsn_code" id="hsn_code_field" value="{% if form_data %}{{ form_data.hsn_code }}{% else %}{{ request.POST.hsn_code }}{% endif %}" placeholder="HSN Code (auto-filled)" maxlength="20">
+                                                                                <small class="text-muted">For tax classification</small>
+                                                                                <div id="hsn_info" class="mt-2" style="display: none;">
+                                                                                    <small id="hsn_source" class="text-info"></small>
+                                                                                </div>
+                                                                                <div class="form-check mt-2">
+                                                                                    <input class="form-check-input" type="checkbox" name="fetch_hsn" id="fetch_hsn_checkbox" checked>
+                                                                                    <label class="form-check-label" for="fetch_hsn_checkbox">
+                                                                                        Auto-fetch HSN Code
+                                                                                    </label>
+                                                                                </div>
                                                                             </td>
                                                                         </tr>
                                                                     </tbody>
@@ -372,23 +417,29 @@
                                                                 <table class="table table-hover table-center">
                                                                     <thead>
                                                                         <tr>
-                                                                            <th style="min-width: 200px">Quantity</th>
-                                                                            <th style="min-width: 200px">Price</th>
+                                                                            <th style="min-width: 150px">Available Stock</th>
+                                                                            <th style="min-width: 150px">Total Stock</th>
+                                                                            <th style="min-width: 150px">Price (₹)</th>
                                                                             <th style="min-width: 200px">Expiry Date</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
                                                                         <tr>
-                                                                            <td data-label="Quantity">
-                                                                                <input class="form-control" type="text" name="quantity" value="{{ request.POST.quantity }}" placeholder="Enter quantity">
+                                                                            <td data-label="Available Stock">
+                                                                                <input class="form-control" type="number" name="quantity" min="0" value="{% if form_data %}{{ form_data.quantity }}{% else %}{{ request.POST.quantity }}{% endif %}" placeholder="Available units">
+                                                                                <small class="text-muted">Units available for sale</small>
                                                                                 {% for message in messages %}
                                                                                     {% if 'Quantity' in message.message %}
                                                                                         <small class="text-danger">{{ message }}</small>
                                                                                     {% endif %}
                                                                                 {% endfor %}
                                                                             </td>
+                                                                            <td data-label="Total Stock">
+                                                                                <input class="form-control" type="number" name="stock_quantity" min="0" value="{% if form_data %}{{ form_data.stock_quantity }}{% else %}{{ request.POST.stock_quantity }}{% endif %}" placeholder="Total inventory">
+                                                                                <small class="text-muted">Total units in inventory</small>
+                                                                            </td>
                                                                             <td data-label="Price">
-                                                                                <input class="form-control" type="text" name="price" value="{{ request.POST.price }}" placeholder="Enter price">
+                                                                                <input class="form-control" type="number" step="0.01" min="0" name="price" value="{% if form_data %}{{ form_data.price }}{% else %}{{ request.POST.price }}{% endif %}" placeholder="Price per unit">
                                                                                 {% for message in messages %}
                                                                                     {% if 'Price' in message.message %}
                                                                                         <small class="text-danger">{{ message }}</small>
@@ -396,7 +447,7 @@
                                                                                 {% endfor %}
                                                                             </td>
                                                                             <td data-label="Expiry Date">
-                                                                                <input class="form-control" type="date" name="expiry_date" value="{{ request.POST.expiry_date }}" placeholder="Select expiry date">
+                                                                                <input class="form-control" type="date" name="expiry_date" value="{% if form_data %}{{ form_data.expiry_date }}{% else %}{{ request.POST.expiry_date }}{% endif %}" placeholder="Select expiry date">
                                                                                 {% for message in messages %}
                                                                                     {% if 'expiry' in message.message|lower %}
                                                                                         <small class="text-danger">{{ message }}</small>
@@ -516,6 +567,177 @@
     <script src="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.js'%}"></script>
     <script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
     <script src="{% static 'HealthStack-System/js/Normal/profile_Settings.js' %}"></script>
+    
+    <!-- Medicine HSN & Composition Auto-fetch -->
+    <script>
+        $(document).ready(function() {
+            // Auto-sync stock quantity with available quantity
+            $('input[name="quantity"]').on('input', function() {
+                var quantity = $(this).val();
+                var stockField = $('input[name="stock_quantity"]');
+                if (!stockField.val() || stockField.val() == '0') {
+                    stockField.val(quantity);
+                }
+            });
+            
+            // Auto-fetch HSN code when medicine name or composition changes
+            function autoFetchHSN() {
+                var name = $('#medicine_name').val().trim();
+                var composition = $('#medicine_composition').val().trim();
+                var category = $('select[name="category_type"]').val();
+                var fetchCheckbox = $('#fetch_hsn_checkbox');
+                
+                if (!fetchCheckbox.is(':checked') || !name) {
+                    return;
+                }
+                
+                // Show loading
+                $('#fetch_hsn_btn').html('<i class="fa fa-spinner fa-spin"></i> Fetching...');
+                $('#hsn_info').hide();
+                
+                $.ajax({
+                    url: '/pharmacy/api/fetch-hsn/',
+                    method: 'POST',
+                    data: JSON.stringify({
+                        name: name,
+                        composition: composition,
+                        category: category
+                    }),
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                    },
+                    success: function(response) {
+                        if (response.success && response.hsn_code) {
+                            $('#hsn_code_field').val(response.hsn_code);
+                            
+                            // Show HSN info
+                            var sourceText = '';
+                            switch(response.source) {
+                                case 'database':
+                                    sourceText = '<i class="fa fa-check-circle text-success"></i> HSN code found in database';
+                                    break;
+                                case 'api':
+                                    sourceText = '<i class="fa fa-globe text-info"></i> HSN code fetched from external API';
+                                    break;
+                                case 'default':
+                                    sourceText = '<i class="fa fa-exclamation-triangle text-warning"></i> Default HSN code assigned - please verify';
+                                    break;
+                            }
+                            $('#hsn_source').html(sourceText);
+                            $('#hsn_info').show();
+                            
+                            // Show success message
+                            showNotification('HSN code auto-filled: ' + response.hsn_code, 'success');
+                        }
+                    },
+                    error: function() {
+                        showNotification('Failed to fetch HSN code', 'error');
+                    },
+                    complete: function() {
+                        $('#fetch_hsn_btn').html('<i class="fa fa-search"></i> Auto-fetch');
+                    }
+                });
+            }
+            
+            // Get composition suggestions
+            function getCompositionSuggestions() {
+                var name = $('#medicine_name').val().trim();
+                
+                if (name.length < 3) {
+                    $('#composition_suggestions').hide();
+                    return;
+                }
+                
+                $.ajax({
+                    url: '/pharmacy/api/composition-suggestions/',
+                    method: 'POST',
+                    data: JSON.stringify({
+                        name: name
+                    }),
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                    },
+                    success: function(response) {
+                        if (response.success && response.suggestions.length > 0) {
+                            var html = '';
+                            response.suggestions.forEach(function(suggestion) {
+                                html += '<button type="button" class="btn btn-sm btn-outline-secondary mr-1 mb-1 composition-suggestion">' + suggestion + '</button>';
+                            });
+                            $('#composition_list').html(html);
+                            $('#composition_suggestions').show();
+                        } else {
+                            $('#composition_suggestions').hide();
+                        }
+                    }
+                });
+            }
+            
+            // Event handlers
+            $('#medicine_name').on('blur', function() {
+                setTimeout(function() {
+                    autoFetchHSN();
+                    getCompositionSuggestions();
+                }, 300);
+            });
+            
+            $('#medicine_composition, select[name="category_type"]').on('change', function() {
+                if ($('#fetch_hsn_checkbox').is(':checked')) {
+                    setTimeout(autoFetchHSN, 300);
+                }
+            });
+            
+            $('#fetch_hsn_btn').on('click', function(e) {
+                e.preventDefault();
+                autoFetchHSN();
+            });
+            
+            // Composition suggestion click handler
+            $(document).on('click', '.composition-suggestion', function() {
+                $('#medicine_composition').val($(this).text());
+                $('#composition_suggestions').hide();
+                if ($('#fetch_hsn_checkbox').is(':checked')) {
+                    setTimeout(autoFetchHSN, 300);
+                }
+            });
+            
+            // Search existing medicines for reference
+            $('#medicine_name').on('input', function() {
+                var query = $(this).val().trim();
+                
+                if (query.length >= 2) {
+                    $.ajax({
+                        url: '/pharmacy/api/search-medicines/',
+                        method: 'GET',
+                        data: { q: query },
+                        success: function(response) {
+                            if (response.success && response.results.length > 0) {
+                                // Could add autocomplete dropdown here
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Utility function for notifications
+            function showNotification(message, type) {
+                var alertClass = type === 'success' ? 'alert-success' : 'alert-warning';
+                var icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+                
+                var notification = $('<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                    '<i class="fa ' + icon + '"></i> ' + message +
+                    '<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>' +
+                    '</div>');
+                
+                $('.card-body').prepend(notification);
+                
+                setTimeout(function() {
+                    notification.fadeOut();
+                }, 5000);
+            }
+        });
+    </script>
 </body>
 
 </html>

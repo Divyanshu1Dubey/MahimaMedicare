@@ -271,6 +271,8 @@
 											 <thead>
 												<tr>
 													<th>Medicine Name</th>
+													<th>Composition</th>
+													<th>HSN Code</th>
 													<th>Stock Qty</th>
 													<th>Type</th>
 													<th>Category</th>
@@ -285,19 +287,42 @@
 													<td>
 														<h2 class="table-avatar">
 															<a href="#" class="avatar avatar-sm mr-2"><img class="avatar-img rounded-circle" src="{{medicine.featured_image.url}}" alt="Medicine Image"></a>															
-															<a href="#">{{medicine.name}}</a>
+															<a href="#" title="{{medicine.name}}{% if medicine.composition %} - {{medicine.composition|truncatechars:50}}{% endif %}">
+																{{medicine.name}}
+																{% if medicine.composition %}
+																	<small class="text-muted d-block">{{medicine.composition|truncatechars:40}}</small>
+																{% endif %}
+															</a>
 														</h2>
 													</td>
-													<td>{{medicine.stock_quantity}}</td>
+													<td>
+														{% if medicine.composition %}
+															<span title="{{medicine.composition}}">{{medicine.composition|truncatechars:30}}</span>
+														{% else %}
+															<span class="text-muted">Not specified</span>
+														{% endif %}
+													</td>
+													<td>
+														{% if medicine.hsn_code %}
+															<span class="badge badge-info">{{medicine.hsn_code}}</span>
+														{% else %}
+															<span class="text-muted">No HSN</span>
+														{% endif %}
+													</td>
+													<td>
+														<span class="{% if medicine.stock_quantity < 10 %}text-danger{% elif medicine.stock_quantity < 50 %}text-warning{% else %}text-success{% endif %}">
+															{{medicine.stock_quantity}}
+														</span>
+													</td>
 													<td>{{medicine.medicine_type}}</td>
 													<td>{{medicine.medicine_category}}</td>
 													<td>₹{{medicine.price}}</td>
 													<td>{{medicine.quantity}}</td>
 													<td class="text-center">
-														<a href="{% url 'edit-medicine' pk=medicine.serial_number %}" class="btn btn-sm btn-primary mr-1">
+														<a href="{% url 'edit-medicine' pk=medicine.serial_number %}" class="btn btn-sm btn-primary mr-1" title="Edit Medicine">
 															<i class="fas fa-edit"></i> Edit
 														</a>
-														<a href="{% url 'delete-medicine' pk=medicine.serial_number %}" class="btn btn-sm btn-danger">
+														<a href="{% url 'delete-medicine' pk=medicine.serial_number %}" class="btn btn-sm btn-danger" title="Delete Medicine">
 															<i class="fas fa-trash"></i> Delete
 														</a>
 													</td>

@@ -68,7 +68,38 @@ def add_billing(request):
     return render(request, 'add-billing.html')
 
 def appointments(request):
-    return render(request, 'appointments.html')
+    # Check if user is authenticated and get appointments
+    appointments = []
+    doctor = None
+    patient = None
+    
+    if request.user.is_authenticated:
+        if hasattr(request.user, 'patient'):
+            # Patient viewing their appointments
+            try:
+                patient = Patient.objects.get(user=request.user)
+                appointments = Appointment.objects.filter(patient=patient).order_by('-id')
+            except Patient.DoesNotExist:
+                appointments = []
+        elif hasattr(request.user, 'doctor_info'):
+            # Doctor viewing their appointments
+            try:
+                from doctor.models import Doctor_Information
+                doctor = Doctor_Information.objects.get(user=request.user)
+                appointments = Appointment.objects.filter(doctor=doctor).order_by('-id')
+            except:
+                appointments = []
+        else:
+            appointments = []
+    
+    context = {
+        'appointments': appointments,
+        'user': request.user,
+        'doctor': doctor,
+        'patient': patient
+    }
+    
+    return render(request, 'appointments.html', context)
 
 def edit_billing(request):
     return render(request, 'edit-billing.html')
@@ -150,26 +181,45 @@ def login_user(request):
     if request.method == 'GET':
         return render(request, 'patient-login.html')
     elif request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
 
+        # Check if fields are empty
+        if not username:
+            messages.error(request, 'Please enter your username.')
+            return render(request, 'patient-login.html')
+        
+        if not password:
+            messages.error(request, 'Please enter your password.')
+            return render(request, 'patient-login.html')
+
+        # Check if user exists (case-insensitive for better UX)
         try:
-            user = User.objects.get(username=username)
-        except:
-            messages.error(request, 'Username does not exist')
+            # First try exact match
+            existing_user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            # Try case-insensitive match
+            try:
+                existing_user = User.objects.get(username__iexact=username)
+                username = existing_user.username  # Use the correct case
+            except User.DoesNotExist:
+                messages.error(request, f'Username "{username}" does not exist. Please check your spelling or register a new account.')
+                return render(request, 'patient-login.html')
 
+        # Try to authenticate
         user = authenticate(username=username, password=password)
 
         if user is not None:
-            login(request, user)
-            if request.user.is_patient:   
-                messages.success(request, 'User Logged in Successfully')    
+            if user.is_patient:
+                login(request, user)
+                messages.success(request, f'Welcome back, {user.username}!')    
                 return redirect('patient-dashboard')
             else:
-                messages.error(request, 'Invalid credentials. Not a Patient')
-                return redirect('logout')
+                messages.error(request, f'This account is not registered as a patient. Please use the correct login page for your account type.')
+                return render(request, 'patient-login.html')
         else:
-            messages.error(request, 'Invalid username or password')
+            messages.error(request, f'Incorrect password for username "{username}". Please check your password and try again.')
+            return render(request, 'patient-login.html')
 
     return render(request, 'patient-login.html')
 
@@ -188,18 +238,27 @@ def patient_register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            # form.save()
-            user = form.save(commit=False) # commit=False --> don't save to database yet (we have a chance to modify object)
-            user.is_patient = True
-            # user.username = user.username.lower()  # lowercase username
-            user.save()
-            messages.success(request, 'Patient account was created!')
+            try:
+                # form.save()
+                user = form.save(commit=False) # commit=False --> don't save to database yet (we have a chance to modify object)
+                user.is_patient = True
+                # user.username = user.username.lower()  # lowercase username
+                user.save()
+                messages.success(request, f'Patient account created successfully for "{user.username}"! You can now log in.')
 
-            # After user is created, we can log them in --> login(request, user)
-            return redirect('login')
-
+                # After user is created, we can log them in --> login(request, user)
+                return redirect('login')
+            except Exception as e:
+                messages.error(request, f'Account creation failed: {str(e)}')
         else:
-            messages.error(request, 'An error has occurred during registration')
+            # Show specific form errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    if field == '__all__':
+                        messages.error(request, f'Registration error: {error}')
+                    else:
+                        field_name = form.fields[field].label or field.replace('_', ' ').title()
+                        messages.error(request, f'{field_name}: {error}')
 
     context = {'page': page, 'form': form}
     return render(request, 'patient-register.html', context)
@@ -243,25 +302,28 @@ def patient_dashboard(request):
             appointment_status='completed'
         ).count()
         
-        # Get Razorpay payments with better filtering
+        # Get Razorpay payments with better filtering (exclude pharmacy to prevent duplicates)
         from razorpay_payment.models import RazorpayPayment
-        payments = RazorpayPayment.objects.filter(
+        all_payments = RazorpayPayment.objects.filter(
             patient=patient,
             status='captured'
         ).order_by('-created_at')
         
-        # Get pharmacy orders for this patient
+        # Separate pharmacy and non-pharmacy payments
+        non_pharmacy_payments = all_payments.exclude(payment_type='pharmacy')
+        
+        # Get pharmacy orders for this patient (with related payment info)
         from pharmacy.models import Order
         pharmacy_orders = Order.objects.filter(
             user=request.user,
             ordered=True,
             payment_status='paid'
-        ).order_by('-created')
+        ).select_related().prefetch_related('razorpaypayment_set__invoice').order_by('-created')
         
-        # Payment statistics
-        total_payments = payments.count()
-        total_amount_paid = sum([payment.amount for payment in payments])
-        recent_payments = payments[:5]  # Last 5 payments
+        # Payment statistics (include all payments)
+        total_payments = all_payments.count()
+        total_amount_paid = sum([payment.amount for payment in all_payments])
+        recent_non_pharmacy_payments = non_pharmacy_payments[:5]  # Last 5 non-pharmacy payments
         
         # Health summary
         health_summary = {
@@ -313,10 +375,10 @@ def patient_dashboard(request):
         context = {
             'patient': patient,
             'appointments': upcoming_appointments,
-            'payments': recent_payments,
+            'payments': recent_non_pharmacy_payments,  # Only non-pharmacy payments
             'report': reports,
             'prescription': recent_prescriptions,
-            'pharmacy_orders': pharmacy_orders,
+            'pharmacy_orders': pharmacy_orders,  # Pharmacy orders with transaction info
             'health_summary': health_summary,
             'reports_stats': {
                 'pending': reports_pending,
@@ -989,5 +1051,6 @@ def got_online(sender, user, request, **kwargs):
 @csrf_exempt
 @receiver(user_logged_out)
 def got_offline(sender, user, request, **kwargs):   
-    user.login_status = False
-    user.save()
+    if user is not None:
+        user.login_status = False
+        user.save()

@@ -160,17 +160,26 @@
 <div class="profile-sidebar">
   <div class="widget-profile pro-widget-content">
     <div class="profile-info-widget">
+      {% if doctor and doctor.featured_image %}
       <a href="#" class="booking-doc-img">
         <img
           src="{{ doctor.featured_image.url }}"
           alt="User Image"
         />
       </a>
+      {% else %}
+      <a href="#" class="booking-doc-img">
+        <img
+          src="/static/images/default-doctor.png"
+          alt="Default Image"
+        />
+      </a>
+      {% endif %}
       <div class="profile-det-info">
-        <h3>{{ doctor.name }}</h3>
+        <h3>{{ doctor.name|default:"Doctor Profile" }}</h3>
 
         <div class="patient-details">
-          <h5 class="mb-0">{{doctor.specialization.specialization_name}}</h5>
+          <h5 class="mb-0">{% if doctor and doctor.specialization %}{{ doctor.specialization.specialization_name }}{% else %}General Practice{% endif %}</h5>
         </div>
       </div>
     </div>
@@ -186,10 +195,17 @@
         </li>
 
         <li>
+        {% if doctor and doctor.doctor_id %}
         <a href="{% url 'doctor-profile' pk=doctor.doctor_id %}">
           <i class="fas fa-user"></i>
           <span>Profile</span>
         </a>
+        {% else %}
+        <a href="#" onclick="return false;" style="opacity: 0.5;">
+          <i class="fas fa-user"></i>
+          <span>Profile</span>
+        </a>
+        {% endif %}
       </li>
 
 
@@ -204,9 +220,15 @@
             <a href="#" class="nav-link"><i class="fas fa-search"></i><span>Patient ID</span></a>
               <ul class="submenu collapse" style="padding:19px">
                   <!-- <li><a class="nav-link" href="#">Search</a></li> -->
+                  {% if doctor and doctor.doctor_id %}
                   <form action="{% url 'patient-search' pk=doctor.doctor_id%}"   method="GET"> 
                   <input type="text" class="form-control" placeholder="search" name="search_query" value="{{search_query}}">
                   </form>
+                  {% else %}
+                  <form action="#" method="GET" onsubmit="return false;"> 
+                  <input type="text" class="form-control" placeholder="search not available" name="search_query" disabled>
+                  </form>
+                  {% endif %}
                 </ul>
           
         </li>
@@ -262,11 +284,14 @@
             <span>Social Media</span>
           </a>
         </li> -->
+        {% if user.is_authenticated and user.id %}
         <li>
           <a href="{% url 'doctor-change-password' pk=user.id%}">
             <i class="fas fa-lock"></i>
             <span>Change Password</span>
           </a>
+        </li>
+        {% endif %}
         </li>
         <li>
           <a href="{% url 'doctor-logout'%}">

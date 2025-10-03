@@ -396,6 +396,8 @@
                           <thead>
                             <tr>
                               <th>Medicine Name</th>
+                              <th>Composition</th>
+                              <th>HSN Code</th>
                               <th>Available Qty</th>
                               <th>Medicine Type</th>
                               <th>Medicine Category</th>
@@ -410,15 +412,34 @@
                                 <a href="" class="avatar avatar-sm mr-2">
                                   <img class="avatar-img rounded-circle" src="{{medicine.featured_image.url}}" alt="Medicine Image">
                                 </a>
-                                <a href="">{{medicine.name}}</a>
+                                <a href="" title="{{medicine.name}}{% if medicine.composition %} - {{medicine.composition|truncatechars:50}}{% endif %}">
+                                  {{medicine.name}}
+                                  {% if medicine.composition %}
+                                    <small class="text-muted d-block">{{medicine.composition|truncatechars:30}}</small>
+                                  {% endif %}
+                                </a>
                               </h2>
                             </td>
                             <td>
-                              <span class="stock-quantity">{{medicine.quantity}}</span>
+                              {% if medicine.composition %}
+                                <span title="{{medicine.composition}}">{{medicine.composition|truncatechars:25}}</span>
+                              {% else %}
+                                <span class="text-muted">Not specified</span>
+                              {% endif %}
+                            </td>
+                            <td>
+                              {% if medicine.hsn_code %}
+                                <span class="badge badge-info">{{medicine.hsn_code}}</span>
+                              {% else %}
+                                <span class="text-muted">No HSN</span>
+                              {% endif %}
+                            </td>
+                            <td>
+                              <span class="stock-quantity {% if medicine.quantity <= 15 %}text-danger{% elif medicine.quantity <= 50 %}text-warning{% else %}text-success{% endif %}">{{medicine.quantity}}</span>
                             </td>
                             <td>{{medicine.medicine_type}}</td>
                             <td>{{medicine.medicine_category}}</td>
-                            <td>{{medicine.price}}</td>
+                            <td>₹{{medicine.price}}</td>
                             <td>
                               <form method="post" action="{% url 'decrease-medicine-stock' medicine.serial_number %}" class="inline-form d-inline">
                                 {% csrf_token %}

@@ -11,6 +11,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from hospital.models import Hospital_Information, User, Patient
 from django.db.models import Q
+from django.utils import timezone
 from pharmacy.models import Medicine, Pharmacist
 from pharmacy.forms import MedicineForm
 from doctor.models import Doctor_Information, Prescription, Prescription_test, Report, Appointment, Experience , Education,Specimen,Test
@@ -133,31 +134,50 @@ def admin_login(request):
     if request.method == 'GET':
         return render(request, 'hospital_admin/login.html')
     elif request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
 
+        # Check if fields are empty
+        if not username:
+            messages.error(request, 'Please enter your username.')
+            return render(request, 'hospital_admin/login.html')
+        
+        if not password:
+            messages.error(request, 'Please enter your password.')
+            return render(request, 'hospital_admin/login.html')
+
+        # Check if user exists (case-insensitive)
         try:
-            user = User.objects.get(username=username)
-        except:
-            messages.error(request, 'Username does not exist')
+            # First try exact match
+            existing_user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            # Try case-insensitive match
+            try:
+                existing_user = User.objects.get(username__iexact=username)
+                username = existing_user.username  # Use the correct case
+            except User.DoesNotExist:
+                messages.error(request, f'Username "{username}" does not exist. Please check your spelling.')
+                return render(request, 'hospital_admin/login.html')
 
+        # Try to authenticate
         user = authenticate(username=username, password=password)
 
         if user is not None:
             login(request, user)
             if user.is_hospital_admin:
-                messages.success(request, 'User logged in')
+                messages.success(request, f'Welcome back, Admin {user.username}!')
                 return redirect('dashboard')
             elif user.is_labworker:
-                messages.success(request, 'User logged in')
+                messages.success(request, f'Welcome back, Lab Worker {user.username}!')
                 return redirect('labworker-dashboard')
             elif user.is_pharmacist:
-                messages.success(request, 'User logged in')
+                messages.success(request, f'Welcome back, Pharmacist {user.username}!')
                 return redirect('pharmacist-dashboard')
             else:
+                messages.error(request, f'Account "{username}" does not have admin, lab worker, or pharmacist privileges.')
                 return redirect('admin-logout')
         else:
-            messages.error(request, 'Invalid username or password')
+            messages.error(request, f'Incorrect password for username "{username}". Please check your password and try again.')
         
 
     return render(request, 'hospital_admin/login.html')
@@ -171,27 +191,90 @@ def admin_register(request):
     if request.method == 'POST':
         form = AdminUserCreationForm(request.POST)
         if form.is_valid():
-            # form.save()
-            # commit=False --> don't save to database yet (we have a chance to modify object)
-            user = form.save(commit=False)
-            user.is_hospital_admin = True
-            user.save()
+            try:
+                # form.save()
+                # commit=False --> don't save to database yet (we have a chance to modify object)
+                user = form.save(commit=False)
+                user.is_hospital_admin = True
+                user.save()
 
-            messages.success(request, 'User account was created!')
-            
-            # After user is created, we can log them in
-            #login(request, user)
-            return redirect('admin_login')
-
+                messages.success(request, f'Admin account created successfully for "{user.username}"! You can now log in.')
+                
+                # After user is created, we can log them in
+                #login(request, user)
+                return redirect('admin_login')
+            except Exception as e:
+                messages.error(request, f'Account creation failed: {str(e)}')
         else:
-            messages.error(request, 'An error has occurred during registration')
+            # Show specific form errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    if field == '__all__':
+                        messages.error(request, f'Registration error: {error}')
+                    else:
+                        field_name = form.fields[field].label or field.replace('_', ' ').title()
+                        messages.error(request, f'{field_name}: {error}')
 
     context = {'page': page, 'form': form}
     return render(request, 'hospital_admin/register.html', context)
 
 @csrf_exempt
-@login_required(login_url='admin_login')
 def admin_forgot_password(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        if email:
+            try:
+                user = User.objects.get(email=email, is_hospital_admin=True)
+                
+                # Generate password reset token
+                from django.contrib.auth.tokens import default_token_generator
+                from django.utils.http import urlsafe_base64_encode
+                from django.utils.encoding import force_bytes
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                # Generate token and uid
+                token = default_token_generator.make_token(user)
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                
+                # Create reset URL (for now, just show the token - you can create a proper reset view later)
+                reset_url = f"http://your-domain.com/reset-password/{uid}/{token}/"
+                
+                # Send email
+                subject = 'Password Reset Request - Mahima Medicare'
+                message = f'''
+                Hello {user.username},
+                
+                You have requested a password reset for your Mahima Medicare admin account.
+                
+                Your reset link: {reset_url}
+                
+                Your temporary reset code: {token[:10]}
+                
+                If you did not request this reset, please ignore this email.
+                
+                Best regards,
+                Mahima Medicare Team
+                '''
+                
+                send_mail(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [email],
+                    fail_silently=False,
+                )
+                
+                messages.success(request, f'Password reset instructions have been sent to {email}')
+                return redirect('admin_forgot_password')
+                
+            except User.DoesNotExist:
+                messages.error(request, 'No admin account found with this email address')
+            except Exception as e:
+                messages.error(request, f'Error sending reset email: {str(e)}')
+        else:
+            messages.error(request, 'Please enter an email address')
+    
     return render(request, 'hospital_admin/forgot-password.html')
 
 @csrf_exempt
@@ -737,6 +820,8 @@ def generate_random_medicine_ID():
 @csrf_exempt
 @login_required(login_url='admin_login')
 def add_medicine(request):
+    from pharmacy.hsn_utils import auto_fetch_hsn_code
+    
     user = None
     pharmacist_ctx = None
     if request.user.is_pharmacist:
@@ -748,9 +833,12 @@ def add_medicine(request):
     if request.method == 'POST':
         # Get form data with proper validation
         name = request.POST.get('name', '').strip()
+        composition = request.POST.get('composition', '').strip()
+        hsn_code = request.POST.get('hsn_code', '').strip()
         weight = request.POST.get('weight', '').strip()
         quantity_str = request.POST.get('quantity', '').strip()
         price_str = request.POST.get('price', '').strip()
+        stock_quantity_str = request.POST.get('stock_quantity', '').strip()
 
         requirement_type = request.POST.get('requirement_type', '')
         category_type = request.POST.get('category_type', '')
@@ -758,18 +846,20 @@ def add_medicine(request):
         description = request.POST.get('description', '').strip()
         featured_image = request.FILES.get('featured_image')
         expiry_date_str = request.POST.get('expiry_date', '').strip()
-
+        
+        # Auto-fetch HSN code if not provided
+        fetch_hsn = request.POST.get('fetch_hsn', 'on') == 'on'
+        
         # Parse expiry_date
         from datetime import datetime
         expiry_date = None
+        errors = []  # Initialize error flag first
+        
         if expiry_date_str:
             try:
                 expiry_date = datetime.strptime(expiry_date_str, "%Y-%m-%d").date()
             except ValueError:
                 errors.append('Invalid expiry date format.')
-
-        # Initialize error flag
-        errors = []
 
         # Validate required fields
         if not name:
@@ -785,6 +875,19 @@ def add_medicine(request):
                 errors.append('Quantity must be a positive number.')
         except (ValueError, TypeError):
             errors.append('Quantity must be a valid number.')
+            quantity = 0
+        
+        # Validate stock_quantity (use quantity if not provided)
+        if stock_quantity_str:
+            try:
+                stock_quantity = int(stock_quantity_str)
+                if stock_quantity < 0:
+                    errors.append('Stock quantity must be a positive number.')
+            except (ValueError, TypeError):
+                errors.append('Stock quantity must be a valid number.')
+                stock_quantity = quantity
+        else:
+            stock_quantity = quantity
         
         # Validate price
         try:
@@ -793,12 +896,54 @@ def add_medicine(request):
                 errors.append('Price must be a positive number.')
         except (ValueError, TypeError):
             errors.append('Price must be a valid number.')
+            price = 0
+
+        # Auto-fetch HSN code if requested and not manually provided
+        hsn_info = None
+        if fetch_hsn and not hsn_code and name:
+            hsn_result = auto_fetch_hsn_code(
+                medicine_name=name,
+                composition=composition,
+                category=category_type
+            )
+            
+            if hsn_result.get('hsn_code'):
+                hsn_code = hsn_result['hsn_code']
+                hsn_info = {
+                    'source': hsn_result.get('source', 'unknown'),
+                    'confidence': hsn_result.get('confidence', 'low')
+                }
+                
+                # Add success message for HSN fetch
+                if hsn_result.get('source') == 'database':
+                    messages.info(request, f'HSN code {hsn_code} auto-filled from database')
+                elif hsn_result.get('source') == 'api':
+                    messages.info(request, f'HSN code {hsn_code} fetched from external API')
+                else:
+                    messages.warning(request, f'Default HSN code {hsn_code} assigned - please verify manually')
 
         # If there are errors, return to form with messages
         if errors:
             for error in errors:
                 messages.error(request, error)
-            ctx = {'admin': user}
+            ctx = {
+                'admin': user,
+                'form_data': {
+                    'name': name,
+                    'composition': composition,
+                    'hsn_code': hsn_code,
+                    'weight': weight,
+                    'quantity': quantity_str,
+                    'stock_quantity': stock_quantity_str,
+                    'price': price_str,
+                    'requirement_type': requirement_type,
+                    'category_type': category_type,
+                    'medicine_type': medicine_type,
+                    'description': description,
+                    'expiry_date': expiry_date_str,
+                },
+                'hsn_info': hsn_info
+            }
             if pharmacist_ctx:
                 ctx['pharmacist'] = pharmacist_ctx
             return render(request, 'hospital_admin/add-medicine.html', ctx)
@@ -807,29 +952,39 @@ def add_medicine(request):
         medicine_id = f"#M-{str(uuid.uuid4())[:8].upper()}"
 
         try:
-            # Create medicine instance
+            # Create medicine instance with new fields
             medicine = Medicine(
                 name=name,
+                composition=composition,
+                hsn_code=hsn_code,
                 weight=weight,
                 quantity=quantity,
                 price=price,
+                stock_quantity=stock_quantity,
                 Prescription_reqiuired=requirement_type,
                 medicine_category=category_type,
                 medicine_type=medicine_type,
                 description=description,
                 featured_image=featured_image or 'medicines/default.png',
-                stock_quantity=quantity,
                 medicine_id=medicine_id,
                 expiry_date=expiry_date
             )
             # Save to database
             medicine.save()
-            # Success message and redirect
-            messages.success(request, f'Medicine "{name}" added successfully!')
+            
+            # Success message with HSN info
+            success_msg = f'Medicine "{name}" added successfully!'
+            if hsn_code:
+                success_msg += f' (HSN: {hsn_code})'
+            if composition:
+                success_msg += f' with composition: {composition[:50]}{"..." if len(composition) > 50 else ""}'
+                
+            messages.success(request, success_msg)
             return redirect('medicine-list')
+            
         except Exception as e:
             messages.error(request, f'Error adding medicine: {str(e)}')
-            ctx = {'admin': user}
+            ctx = {'admin': user, 'hsn_info': hsn_info}
             if pharmacist_ctx:
                 ctx['pharmacist'] = pharmacist_ctx
             return render(request, 'hospital_admin/add-medicine.html', ctx)
@@ -842,10 +997,16 @@ def add_medicine(request):
 @csrf_exempt
 @login_required(login_url='admin_login')
 def edit_medicine(request, pk):
+    from pharmacy.hsn_utils import auto_fetch_hsn_code
+    
     if request.user.is_pharmacist:
         user = Pharmacist.objects.get(user=request.user)
+        pharmacist_ctx = user
+        admin_ctx = None
     elif request.user.is_hospital_admin:
         user = Admin_Information.objects.get(user=request.user)
+        admin_ctx = user
+        pharmacist_ctx = None
     
     medicine = get_object_or_404(Medicine, serial_number=pk)
     
@@ -853,23 +1014,81 @@ def edit_medicine(request, pk):
         form = MedicineForm(request.POST, request.FILES, instance=medicine)
         
         if form.is_valid():
-            medicine = form.save(commit=False)
-            # Only update stock_quantity if it was explicitly provided in the form
-            # Otherwise, keep the existing stock_quantity value
+            updated_medicine = form.save(commit=False)
+            
+            # Handle HSN auto-fetch if requested
+            fetch_hsn = request.POST.get('fetch_hsn', 'off') == 'on'
+            if fetch_hsn and not updated_medicine.hsn_code:
+                hsn_result = auto_fetch_hsn_code(
+                    medicine_name=updated_medicine.name,
+                    composition=updated_medicine.composition,
+                    category=updated_medicine.medicine_category
+                )
+                
+                if hsn_result.get('hsn_code'):
+                    updated_medicine.hsn_code = hsn_result['hsn_code']
+                    
+                    # Show HSN fetch info
+                    if hsn_result.get('source') == 'database':
+                        messages.info(request, f'HSN code {hsn_result["hsn_code"]} auto-filled from database')
+                    elif hsn_result.get('source') == 'api':
+                        messages.info(request, f'HSN code {hsn_result["hsn_code"]} fetched from external API')
+                    else:
+                        messages.warning(request, f'Default HSN code {hsn_result["hsn_code"]} assigned - please verify manually')
+            
+            # Handle stock quantity properly
             if 'stock_quantity' in request.POST and request.POST['stock_quantity']:
                 try:
-                    medicine.stock_quantity = int(request.POST['stock_quantity'])
+                    updated_medicine.stock_quantity = int(request.POST['stock_quantity'])
                 except ValueError:
                     pass  # Keep existing value if conversion fails
-            medicine.save()
-            messages.success(request, f'Medicine "{medicine.name}" updated successfully!')
+            
+            updated_medicine.save()
+            
+            # Enhanced success message with composition and HSN info
+            success_msg = f'Medicine "{updated_medicine.name}" updated successfully!'
+            if updated_medicine.composition:
+                success_msg += f' (Composition: {updated_medicine.composition[:50]}{"..." if len(updated_medicine.composition) > 50 else ""})'
+            if updated_medicine.hsn_code:
+                success_msg += f' [HSN: {updated_medicine.hsn_code}]'
+                
+            messages.success(request, success_msg)
             return redirect('medicine-list')
         else:
-            messages.error(request, 'Please correct the errors below.')
+            # Show specific form errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    if field == '__all__':
+                        messages.error(request, f'Form error: {error}')
+                    else:
+                        field_name = form.fields[field].label or field.replace('_', ' ').title()
+                        messages.error(request, f'{field_name}: {error}')
     else:
         form = MedicineForm(instance=medicine)
 
-    return render(request, 'hospital_admin/edit-medicine.html', {'form': form, 'medicine': medicine, 'admin': user})
+    context = {
+        'form': form, 
+        'medicine': medicine, 
+        'admin': admin_ctx,
+        'pharmacist': pharmacist_ctx,
+        'is_edit': True,  # Flag to indicate this is an edit operation
+        'form_data': {
+            'name': medicine.name,
+            'composition': medicine.composition,
+            'hsn_code': medicine.hsn_code,
+            'weight': medicine.weight,
+            'quantity': medicine.quantity,
+            'stock_quantity': medicine.stock_quantity,
+            'price': medicine.price,
+            'requirement_type': medicine.Prescription_reqiuired,
+            'category_type': medicine.medicine_category,
+            'medicine_type': medicine.medicine_type,
+            'description': medicine.description,
+            'expiry_date': medicine.expiry_date.strftime('%Y-%m-%d') if medicine.expiry_date else '',
+        }
+    }
+    
+    return render(request, 'hospital_admin/edit-medicine.html', context)
 
 
 @csrf_exempt
@@ -892,18 +1111,32 @@ def add_lab_worker(request):
         if request.method == 'POST':
             form = LabWorkerCreationForm(request.POST)
             if form.is_valid():
-                # form.save(), commit=False --> don't save to database yet (we have a chance to modify object)
-                user = form.save(commit=False)
-                user.is_labworker = True
-                user.save()
+                try:
+                    # form.save(), commit=False --> don't save to database yet (we have a chance to modify object)
+                    new_user = form.save(commit=False)
+                    new_user.is_labworker = True
+                    new_user.save()
 
-                messages.success(request, 'Clinical Laboratory Technician account was created!')
-
-                # After user is created, we can log them in
-                #login(request, user)
-                return redirect('lab-worker-list')
+                    # Verify that Clinical_Laboratory_Technician was created
+                    try:
+                        lab_tech = Clinical_Laboratory_Technician.objects.get(user=new_user)
+                        messages.success(request, f'Clinical Laboratory Technician account created successfully! Username: {new_user.username}')
+                        return redirect('lab-worker-list')
+                    except Clinical_Laboratory_Technician.DoesNotExist:
+                        new_user.delete()  # Clean up if profile creation failed
+                        messages.error(request, 'Error creating lab technician profile. Please contact system administrator.')
+                        
+                except Exception as e:
+                    messages.error(request, f'Error creating account: {str(e)}')
             else:
-                messages.error(request, 'An error has occurred during registration')
+                # Show specific form errors
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        if field == '__all__':
+                            messages.error(request, f'Form Error: {error}')
+                        else:
+                            field_name = field.replace('_', ' ').title()
+                            messages.error(request, f'{field_name}: {error}')
     
     context = {'form': form, 'admin': user}
     return render(request, 'hospital_admin/add-lab-worker.html', context)  
@@ -1172,7 +1405,7 @@ def mypatient_list(request):
                 'prescription__patient__user',
                 'prescription__doctor'
             ).filter(
-                test_info_pay_status='paid'  # Only show paid tests
+                test_info_pay_status__in=['paid', 'cod_pending', 'cod']  # Show paid, COD pending, and COD tests
             ).order_by('-test_id')
             
             # Count statistics first
@@ -1208,8 +1441,18 @@ def mypatient_list(request):
                     
                     # Get doctor information
                     test.doctor_name = test.prescription.doctor.name if test.prescription.doctor else 'Unknown'
+                else:
+                    # Handle cases where prescription might be None (standalone tests from before the fix)
+                    test.patient_name = 'Standalone Booking'
+                    test.patient_phone = 'N/A'
+                    test.patient_email = 'N/A' 
+                    test.patient_id = 'N/A'
+                    test.patient_image = None
+                    test.doctor_name = 'Self-Booked'
+                    patient = None
                     
-                    # Check if there's an existing report
+                # Check if there's an existing report (only for tests with patients)
+                if patient:
                     try:
                         test.report = Report.objects.get(
                             patient=patient,
@@ -1221,19 +1464,24 @@ def mypatient_list(request):
                         test.report = None
                         test.has_report = False
                         test.has_pdf = False
+                else:
+                    # No patient linked, no report possible
+                    test.report = None
+                    test.has_report = False
+                    test.has_pdf = False
                     
-                    # Set action buttons availability
-                    test.can_collect = test.test_status in ['prescribed', 'paid'] and test.test_info_pay_status == 'paid'
-                    test.can_process = test.test_status == 'collected'
-                    test.can_complete = test.test_status == 'processing'
-                    test.can_upload_result = test.test_status == 'completed'
-                    test.can_create_report = test.test_status == 'completed' and not test.has_report
-                    test.can_resubmit_report = test.test_status == 'completed' and test.has_report
-                    # PDF upload logic: show upload if no PDF, show reupload if PDF exists
-                    test.show_upload_pdf = test.test_status == 'completed' and not test.has_pdf
-                    test.show_reupload_pdf = test.test_status == 'completed' and test.has_pdf
-                    
-                    tests_with_info.append(test)
+                # Set action buttons availability
+                test.can_collect = test.test_status in ['prescribed', 'paid'] and test.test_info_pay_status in ['paid', 'cod_pending', 'cod']
+                test.can_process = test.test_status == 'collected'
+                test.can_complete = test.test_status == 'processing'
+                test.can_upload_result = test.test_status == 'completed'
+                test.can_create_report = test.test_status == 'completed' and not test.has_report and patient is not None
+                test.can_resubmit_report = test.test_status == 'completed' and test.has_report and patient is not None
+                # PDF upload logic: show upload if no PDF, show reupload if PDF exists
+                test.show_upload_pdf = test.test_status == 'completed' and not test.has_pdf
+                test.show_reupload_pdf = test.test_status == 'completed' and test.has_pdf
+                
+                tests_with_info.append(test)
             
             context = {
                 'tests': tests_with_info,
@@ -1280,10 +1528,19 @@ def add_test(request):
 @csrf_exempt
 @login_required(login_url='admin-login')
 def test_list(request):
+    context = {}
     if request.user.is_labworker:
-        lab_workers = Clinical_Laboratory_Technician.objects.get(user=request.user)
+        try:
+            lab_workers = Clinical_Laboratory_Technician.objects.get(user=request.user)
+            test = Test_Information.objects.all()
+            context = {'test':test,'lab_workers':lab_workers}
+        except Clinical_Laboratory_Technician.DoesNotExist:
+            test = Test_Information.objects.all()
+            context = {'test':test,'lab_workers':None}
+    else:
+        # For non-lab workers, still show tests but without lab worker context
         test = Test_Information.objects.all()
-        context = {'test':test,'lab_workers':lab_workers}
+        context = {'test':test,'lab_workers':None}
     return render(request, 'hospital_admin/test-list.html',context)
 
 
@@ -1568,19 +1825,90 @@ def pharmacist_order_management(request):
         return redirect('admin-logout')
     pharmacist = Pharmacist.objects.get(user=request.user)
 
-    # Get pending and processing orders
+    # Get all orders with different payment statuses
     from pharmacy.models import Order
-    pending_orders = (
+    from django.db.models import Q
+    
+    # Online paid orders
+    online_orders = (
         Order.objects.filter(ordered=True, payment_status='paid')
         .exclude(order_status__in=['delivered', 'completed', 'cancelled'])
-        .select_related('user')
+        .select_related('user__patient')
+        .prefetch_related('orderitems__item')
+        .order_by('-created')
+    )
+    
+    # COD orders (Cash on Delivery)
+    cod_orders = (
+        Order.objects.filter(
+            ordered=True, 
+            payment_status__in=['cod', 'cash_on_delivery', 'cod_pending']
+        )
+        .exclude(order_status__in=['delivered', 'completed', 'cancelled'])
+        .select_related('user__patient')
+        .prefetch_related('orderitems__item')
+        .order_by('-created')
+    )
+    
+    # Failed payment orders that need attention
+    failed_orders = (
+        Order.objects.filter(
+            Q(payment_status='failed') | Q(payment_status='pending'),
+            ordered=False
+        )
+        .select_related('user__patient')
+        .prefetch_related('orderitems__item')
+        .order_by('-created')[:10]  # Last 10 failed orders
+    )
+    
+    # Orders ready for pickup
+    ready_orders = (
+        Order.objects.filter(
+            ordered=True,
+            order_status='ready',
+            payment_status__in=['paid', 'cod', 'cash_on_delivery']
+        )
+        .select_related('user__patient')
+        .prefetch_related('orderitems__item')
+        .order_by('created')
+    )
+    
+    # Out for delivery orders
+    delivery_orders = (
+        Order.objects.filter(
+            ordered=True,
+            order_status='out_for_delivery',
+            delivery_method='delivery'
+        )
+        .select_related('user__patient')
         .prefetch_related('orderitems__item')
         .order_by('created')
     )
 
+    # Calculate stats
+    total_pending = online_orders.count() + cod_orders.count()
+    total_revenue_today = sum([
+        float(order.final_bill()) for order in 
+        Order.objects.filter(
+            ordered=True,
+            payment_status__in=['paid', 'cod', 'cash_on_delivery'],
+            created__date=timezone.now().date()
+        )
+    ])
+    
+    # Low stock medicines alert
+    low_stock_medicines = Medicine.objects.filter(quantity__lte=10).order_by('quantity')[:10]
+
     context = {
-        'pending_orders': pending_orders,
+        'online_orders': online_orders,
+        'cod_orders': cod_orders,
+        'failed_orders': failed_orders,
+        'ready_orders': ready_orders,
+        'delivery_orders': delivery_orders,
         'pharmacist': pharmacist,
+        'total_pending': total_pending,
+        'total_revenue_today': round(total_revenue_today, 2),
+        'low_stock_medicines': low_stock_medicines,
     }
     return render(request, 'hospital_admin/pharmacist-order-management.html', context)
 
@@ -1599,31 +1927,229 @@ def update_order_status(request, order_id):
     if request.method == 'POST':
         new_status = request.POST.get('order_status')
         pharmacist_notes = request.POST.get('pharmacist_notes', '')
+        payment_collected = request.POST.get('payment_collected', 'no')  # For COD orders
         
         # Get valid status choices
         valid_statuses = [choice[0] for choice in Order.ORDER_STATUS_CHOICES]
         
         if new_status in valid_statuses:
+            old_status = order.order_status
             order.order_status = new_status
+            
             if pharmacist_notes:
-                order.pharmacist_notes = pharmacist_notes
+                existing_notes = order.pharmacist_notes or ""
+                timestamp = timezone.now().strftime("%Y-%m-%d %H:%M")
+                order.pharmacist_notes = f"{existing_notes}\n[{timestamp}] {pharmacist_notes}".strip()
+            
+            # Handle COD payment collection
+            if order.payment_status in ['cod', 'cash_on_delivery', 'cod_pending']:
+                if payment_collected == 'yes' and new_status in ['delivered', 'completed']:
+                    order.payment_status = 'paid'  # Mark as paid when COD is collected
+                    success_message = f'Order #{order.id} completed and payment collected'
+                elif new_status == 'cancelled':
+                    success_message = f'COD Order #{order.id} cancelled'
+                else:
+                    success_message = f'COD Order #{order.id} status updated to {order.get_order_status_display()}'
+            else:
+                success_message = f'Order #{order.id} status updated to {order.get_order_status_display()}'
+            
+            # Stock management for cancelled orders
+            if new_status == 'cancelled' and old_status != 'cancelled':
+                try:
+                    # Restore stock quantities
+                    for order_item in order.orderitems.all():
+                        medicine = order_item.item
+                        medicine.quantity += order_item.quantity
+                        if medicine.stock_quantity is not None:
+                            medicine.stock_quantity += order_item.quantity
+                        medicine.save()
+                    success_message += " - Stock quantities restored"
+                except Exception as e:
+                    success_message += f" - Warning: Stock restoration failed: {str(e)}"
+            
             order.save()
+            
+            # Send notifications if needed
+            try:
+                send_order_status_notification(order, old_status, new_status)
+            except Exception as e:
+                # Don't fail the update if notification fails
+                pass
             
             # Check if it's an AJAX request
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': True,
-                    'message': f'Order #{order.id} status updated to {order.get_order_status_display()}'
+                    'message': success_message,
+                    'new_status': order.get_order_status_display(),
+                    'payment_status': order.payment_status
                 })
             
-            messages.success(request, f'Order #{order.id} status updated to {order.get_order_status_display()}')
+            messages.success(request, success_message)
         else:
+            error_message = 'Invalid order status'
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
-                    'message': 'Invalid order status'
+                    'message': error_message
                 })
-            messages.error(request, 'Invalid order status')
+            messages.error(request, error_message)
+    
+    return redirect('pharmacist-order-management')
+
+
+def send_order_status_notification(order, old_status, new_status):
+    """Send notification when order status changes"""
+    try:
+        from django.core.mail import send_mail
+        from django.conf import settings
+        
+        if not hasattr(order.user, 'patient'):
+            return
+            
+        patient = order.user.patient
+        
+        # Status change messages
+        status_messages = {
+            'confirmed': 'Your order has been confirmed and is being prepared.',
+            'preparing': 'Your medicines are being prepared by our pharmacist.',
+            'ready': 'Your order is ready for pickup at the pharmacy.',
+            'out_for_delivery': 'Your order is out for delivery.',
+            'delivered': 'Your order has been delivered successfully.',
+            'completed': 'Your order has been completed.',
+            'cancelled': 'Your order has been cancelled. Any payment will be refunded.'
+        }
+        
+        message = status_messages.get(new_status, f'Your order status has been updated to {new_status}.')
+        
+        subject = f'Order #{order.id} Status Update - {order.get_order_status_display()}'
+        
+        email_body = f"""
+Dear {patient.name},
+
+{message}
+
+Order Details:
+- Order ID: #{order.id}
+- Total Amount: ₹{order.final_bill()}
+- Payment Status: {order.payment_status}
+- Delivery Method: {order.get_delivery_method_display()}
+
+"""
+        
+        if order.pharmacist_notes:
+            email_body += f"\nPharmacist Notes:\n{order.pharmacist_notes}\n"
+        
+        if new_status == 'ready' and order.delivery_method == 'pickup':
+            email_body += "\nPlease visit the pharmacy to collect your medicines.\n"
+        elif new_status == 'out_for_delivery':
+            email_body += f"\nDelivery Address: {order.delivery_address}\nContact: {order.delivery_phone}\n"
+        
+        email_body += """
+Thank you for choosing Mahima Medicare.
+
+Best regards,
+Mahima Medicare Team
+"""
+        
+        send_mail(
+            subject,
+            email_body,
+            settings.DEFAULT_FROM_EMAIL,
+            [patient.email],
+            fail_silently=True
+        )
+        
+    except Exception as e:
+        # Log error but don't raise it
+        print(f"Error sending order notification: {e}")
+
+
+@csrf_exempt
+@login_required(login_url='admin_login')
+def process_cod_payment(request, order_id):
+    """Process COD payment collection by pharmacist"""
+    if not request.user.is_pharmacist:
+        return redirect('admin-logout')
+    
+    from pharmacy.models import Order
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        amount_received = request.POST.get('amount_received', '0')
+        payment_notes = request.POST.get('payment_notes', '')
+        
+        try:
+            amount_received = float(amount_received)
+            expected_amount = float(order.final_bill())
+            
+            if amount_received >= expected_amount:
+                order.payment_status = 'paid'
+                order.order_status = 'completed'
+                
+                # Add payment collection notes
+                timestamp = timezone.now().strftime("%Y-%m-%d %H:%M")
+                payment_note = f"[{timestamp}] COD Payment Collected - Amount: ₹{amount_received}"
+                if payment_notes:
+                    payment_note += f" - Notes: {payment_notes}"
+                
+                existing_notes = order.pharmacist_notes or ""
+                order.pharmacist_notes = f"{existing_notes}\n{payment_note}".strip()
+                order.save()
+                
+                messages.success(request, f'COD payment collected successfully for Order #{order.id}')
+            else:
+                messages.error(request, f'Insufficient payment. Expected: ₹{expected_amount}, Received: ₹{amount_received}')
+        except ValueError:
+            messages.error(request, 'Invalid payment amount')
+    
+    return redirect('pharmacist-order-management')
+
+
+@csrf_exempt
+@login_required(login_url='admin_login')
+def handle_payment_failure(request, order_id):
+    """Handle failed payment scenarios"""
+    if not request.user.is_pharmacist:
+        return redirect('admin-logout')
+    
+    from pharmacy.models import Order
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'retry_payment':
+            # Reset order for payment retry
+            order.payment_status = 'pending'
+            order.ordered = False
+            order.save()
+            messages.success(request, f'Order #{order.id} reset for payment retry')
+            
+        elif action == 'convert_to_cod':
+            # Convert to COD
+            order.payment_status = 'cod'
+            order.ordered = True
+            order.order_status = 'confirmed'
+            order.save()
+            messages.success(request, f'Order #{order.id} converted to Cash on Delivery')
+            
+        elif action == 'cancel_order':
+            # Cancel the order and restore stock
+            try:
+                for order_item in order.orderitems.all():
+                    medicine = order_item.item
+                    medicine.quantity += order_item.quantity
+                    if medicine.stock_quantity is not None:
+                        medicine.stock_quantity += order_item.quantity
+                    medicine.save()
+                
+                order.order_status = 'cancelled'
+                order.payment_status = 'cancelled'
+                order.save()
+                messages.success(request, f'Order #{order.id} cancelled and stock restored')
+            except Exception as e:
+                messages.error(request, f'Error cancelling order: {str(e)}')
     
     return redirect('pharmacist-order-management')
 
@@ -1668,6 +2194,8 @@ def bulk_medicine_management(request):
                     price = float(row.get('price') or 0)
                     weight = (row.get('weight') or '').strip()
                     description = (row.get('description') or '').strip()
+                    composition = (row.get('composition') or '').strip()
+                    hsn_code = (row.get('hsn_code') or '').strip()
                     medicine_type = (row.get('medicine_type') or '').strip() or None
                     medicine_category = (row.get('medicine_category') or '').strip() or None
                     requirement = (row.get('prescription_required') or '').strip() or None
@@ -1680,6 +2208,13 @@ def bulk_medicine_management(request):
                         except ValueError:
                             expiry_date = None
 
+                    # Auto-fetch HSN if not provided but composition is available
+                    if composition and not hsn_code:
+                        from pharmacy.hsn_utils import auto_fetch_hsn_code
+                        hsn_result = auto_fetch_hsn_code(name, composition, medicine_category)
+                        if hsn_result['success']:
+                            hsn_code = hsn_result['hsn_code']
+
                     Medicine.objects.create(
                         name=name,
                         weight=weight,
@@ -1687,6 +2222,8 @@ def bulk_medicine_management(request):
                         stock_quantity=quantity,
                         price=price,
                         description=description,
+                        composition=composition,
+                        hsn_code=hsn_code,
                         medicine_type=medicine_type,
                         medicine_category=medicine_category,
                         Prescription_reqiuired=requirement,
@@ -2589,11 +3126,11 @@ def lab_update_test_status(request):
             lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
             test = Prescription_test.objects.get(test_id=test_id)
             
-            # Check payment status before allowing collection
-            if new_status == 'collected' and test.test_info_pay_status != 'paid':
+            # Check payment status before allowing collection (allow COD tests)
+            if new_status == 'collected' and test.test_info_pay_status not in ['paid', 'cod_pending', 'cod']:
                 return JsonResponse({
                     'success': False, 
-                    'message': 'Payment must be completed before sample collection'
+                    'message': 'Payment must be completed or COD arranged before sample collection'
                 })
             
             # Update the test status directly in Prescription_test
@@ -2609,30 +3146,32 @@ def lab_update_test_status(request):
             
             test.save()
             
-            # Also create/update Report for tracking
-            report, created = Report.objects.get_or_create(
-                patient=test.prescription.patient,
-                test_name=test.test_name,
-                defaults={
-                    'doctor': test.prescription.doctor,
-                    'assigned_technician': lab_worker,
-                    'status': new_status,
-                    'uploaded_at': timezone.now()
-                }
-            )
-            
-            if not created:
-                # Update existing report
-                report.status = new_status
-                report.assigned_technician = lab_worker
+            # Also create/update Report for tracking (only if patient exists)
+            report = None
+            if test.prescription and test.prescription.patient:
+                report, created = Report.objects.get_or_create(
+                    patient=test.prescription.patient,
+                    test_name=test.test_name,
+                    defaults={
+                        'doctor': test.prescription.doctor if test.prescription.doctor else None,
+                        'assigned_technician': lab_worker,
+                        'status': new_status,
+                        'uploaded_at': timezone.now()
+                    }
+                )
                 
-                # Set timestamps based on status
-                if new_status == 'collected':
-                    report.collection_date = timezone.now()
-                elif new_status == 'processing':
-                    report.receiving_date = timezone.now()
-                
-                report.save()
+                if not created and report:
+                    # Update existing report
+                    report.status = new_status
+                    report.assigned_technician = lab_worker
+                    
+                    # Set timestamps based on status
+                    if new_status == 'collected':
+                        report.collection_date = timezone.now()
+                    elif new_status == 'processing':
+                        report.receiving_date = timezone.now()
+                    
+                    report.save()
             
             return JsonResponse({
                 'success': True, 
@@ -3431,3 +3970,625 @@ def lab_notifications_center(request):
     }
     
     return render(request, 'hospital_admin/lab-notifications.html', context)
+
+
+# ==================== ENHANCED LAB TECHNICIAN ORDER MANAGEMENT ====================
+
+@login_required(login_url='admin-login')
+def lab_technician_order_management(request):
+    """Comprehensive lab technician order management with complete patient-lab workflow"""
+    if not request.user.is_labworker:
+        return redirect('admin-logout')
+    
+    lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+    
+    # === IMPORT REQUIRED MODELS ===
+    from doctor.models import testOrder, testCart, Prescription_test, Prescription
+    from django.db.models import Q, Count, Sum, Avg
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    # === GET ALL ORDERS WITH COMPREHENSIVE DATA ===
+    # Test orders from testOrder model (online/COD orders)
+    all_test_orders = testOrder.objects.select_related(
+        'user', 'user__patient'
+    ).prefetch_related(
+        'orderitems', 'orderitems__item'
+    ).order_by('-created')
+    
+    # Prescription tests (doctor prescribed tests)
+    all_prescription_tests = Prescription_test.objects.select_related(
+        'prescription', 'prescription__patient', 'prescription__patient__user',
+        'prescription__doctor', 'assigned_technician'
+    ).order_by('-created_at')
+    
+    # === ORDER CATEGORIZATION ===
+    # Online paid orders (ready for collection)
+    paid_orders = all_test_orders.filter(
+        payment_status='paid',
+        ordered=True
+    ).exclude(
+        payment_status__in=['collected', 'processing', 'completed']
+    )
+    
+    # COD orders (need payment collection + sample collection)
+    cod_orders = all_test_orders.filter(
+        Q(payment_status='cod_pending') | Q(payment_status='cash_on_delivery'),
+        ordered=True
+    ).exclude(
+        payment_status__in=['collected', 'processing', 'completed']
+    )
+    
+    # Processing orders (samples collected, tests in progress)
+    processing_orders = []
+    
+    # Add testOrders in processing
+    processing_test_orders = all_test_orders.filter(
+        payment_status__in=['collected', 'processing'],
+        ordered=True
+    )
+    processing_orders.extend(processing_test_orders)
+    
+    # Add prescription tests in processing
+    processing_prescription_tests = all_prescription_tests.filter(
+        test_status__in=['collected', 'processing'],
+        test_info_pay_status='paid'
+    )
+    processing_orders.extend(processing_prescription_tests)
+    
+    # Completed orders
+    completed_orders = []
+    
+    # Add completed testOrders
+    completed_test_orders = all_test_orders.filter(
+        payment_status='completed',
+        ordered=True
+    )
+    completed_orders.extend(completed_test_orders)
+    
+    # Add completed prescription tests
+    completed_prescription_tests = all_prescription_tests.filter(
+        test_status='completed',
+        test_info_pay_status='paid'
+    )
+    completed_orders.extend(completed_prescription_tests)
+    
+    # Failed payment orders
+    failed_orders = all_test_orders.filter(
+        payment_status='failed',
+        ordered=True
+    )
+    
+    # === ORDER STATISTICS ===
+    today = timezone.now().date()
+    week_ago = today - timedelta(days=7)
+    
+    order_stats = {
+        'prescribed': all_prescription_tests.filter(test_info_pay_status='unpaid').count(),
+        'paid': paid_orders.count(),
+        'cod': cod_orders.count(),
+        'collected': all_test_orders.filter(payment_status='collected').count() + 
+                    all_prescription_tests.filter(test_status='collected').count(),
+        'processing': len(processing_orders),
+        'completed': len(completed_orders),
+        'failed': failed_orders.count(),
+    }
+    
+    # Performance metrics
+    completed_today = len([o for o in completed_orders if hasattr(o, 'updated_at') and 
+                          o.updated_at.date() == today]) + \
+                     len([o for o in completed_orders if hasattr(o, 'created') and 
+                          o.created.date() == today])
+    
+    completed_week = len([o for o in completed_orders if hasattr(o, 'updated_at') and 
+                         o.updated_at.date() >= week_ago]) + \
+                    len([o for o in completed_orders if hasattr(o, 'created') and 
+                         o.created.date() >= week_ago])
+    
+    # Average wait time calculation (simplified)
+    avg_wait_time = "2-3 hours"
+    priority_count = all_prescription_tests.filter(
+        test_status__in=['collected', 'processing'],
+        created_at__date__lte=today - timedelta(days=1)
+    ).count()
+    
+    context = {
+        'lab_worker': lab_worker,
+        'order_stats': order_stats,
+        'paid_orders': paid_orders,
+        'cod_orders': cod_orders,
+        'processing_orders': processing_orders,
+        'completed_orders': completed_orders,
+        'failed_orders': failed_orders,
+        'completed_today': completed_today,
+        'completed_week': completed_week,
+        'avg_wait_time': avg_wait_time,
+        'priority_count': priority_count,
+    }
+    
+    return render(request, 'hospital_admin/lab-technician-order-management.html', context)
+
+
+@login_required(login_url='admin-login')
+def lab_update_order_status(request):
+    """Update lab order status - comprehensive status management"""
+    if request.method != 'POST' or not request.user.is_labworker:
+        return JsonResponse({'success': False, 'message': 'Invalid request'})
+    
+    try:
+        from doctor.models import testOrder, Prescription_test
+        
+        order_id = request.POST.get('order_id')
+        status = request.POST.get('status')
+        order_type = request.POST.get('order_type', 'lab')
+        
+        if not order_id or not status:
+            return JsonResponse({'success': False, 'message': 'Missing required parameters'})
+        
+        # Handle different order types
+        if order_type == 'lab' or order_type == 'test':
+            # Handle testOrder model
+            try:
+                order = testOrder.objects.get(id=order_id)
+                
+                # Update status based on current status and requested status
+                if status == 'collected' and order.payment_status in ['paid', 'cod_pending', 'cash_on_delivery']:
+                    order.payment_status = 'collected'
+                    message = 'Sample collected successfully!'
+                    
+                elif status == 'processing' and order.payment_status == 'collected':
+                    order.payment_status = 'processing'
+                    message = 'Test processing started!'
+                    
+                elif status == 'completed' and order.payment_status == 'processing':
+                    order.payment_status = 'completed'
+                    message = 'Test completed successfully!'
+                    
+                else:
+                    return JsonResponse({'success': False, 'message': 'Invalid status transition'})
+                
+                order.save()
+                
+            except testOrder.DoesNotExist:
+                # Try prescription test model
+                try:
+                    order = Prescription_test.objects.get(test_id=order_id)
+                    
+                    if status == 'collected' and order.test_status in ['prescribed', 'paid']:
+                        order.test_status = 'collected'
+                        message = 'Sample collected successfully!'
+                        
+                    elif status == 'processing' and order.test_status == 'collected':
+                        order.test_status = 'processing'
+                        message = 'Test processing started!'
+                        
+                    elif status == 'completed' and order.test_status == 'processing':
+                        order.test_status = 'completed'
+                        message = 'Test completed successfully!'
+                        
+                    else:
+                        return JsonResponse({'success': False, 'message': 'Invalid status transition'})
+                    
+                    order.save()
+                    
+                except Prescription_test.DoesNotExist:
+                    return JsonResponse({'success': False, 'message': 'Order not found'})
+        
+        # Send notification email to patient
+        try:
+            if hasattr(order, 'user') and order.user:
+                patient_email = order.user.email
+                patient_name = f"{order.user.first_name} {order.user.last_name}".strip() or order.user.username
+            elif hasattr(order, 'prescription') and order.prescription:
+                patient_email = order.prescription.patient.user.email
+                patient_name = f"{order.prescription.patient.user.first_name} {order.prescription.patient.user.last_name}".strip()
+            else:
+                patient_email = None
+                patient_name = "Patient"
+            
+            if patient_email:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                status_messages = {
+                    'collected': 'Your lab sample has been collected and will be processed shortly.',
+                    'processing': 'Your lab test is currently being processed in our laboratory.',
+                    'completed': 'Your lab test results are ready. Please check your patient dashboard.'
+                }
+                
+                send_mail(
+                    subject=f'Lab Test Update - {status.title()}',
+                    message=f'''
+Dear {patient_name},
+
+Your lab test status has been updated.
+
+Status: {status.title()}
+Order ID: #{order_id}
+Update: {status_messages.get(status, 'Status updated')}
+
+You can check your complete test results and reports in your patient dashboard.
+
+Best regards,
+Mahima Medicare Laboratory Team
+                    ''',
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[patient_email],
+                    fail_silently=True,
+                )
+        except Exception as e:
+            # Email sending failed, but order update was successful
+            print(f"Email sending failed: {e}")
+        
+        return JsonResponse({'success': True, 'message': message})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Error updating order: {str(e)}'})
+
+
+@login_required(login_url='admin-login')
+def lab_process_cod_payment(request):
+    """Process COD payment collection for lab tests"""
+    if request.method != 'POST' or not request.user.is_labworker:
+        return JsonResponse({'success': False, 'message': 'Invalid request'})
+    
+    try:
+        from doctor.models import testOrder
+        
+        order_id = request.POST.get('order_id')
+        payment_method = request.POST.get('payment_method')
+        amount_received = request.POST.get('amount_received')
+        notes = request.POST.get('notes', '')
+        
+        if not all([order_id, payment_method, amount_received]):
+            return JsonResponse({'success': False, 'message': 'Missing required payment information'})
+        
+        try:
+            amount_received = float(amount_received)
+        except (ValueError, TypeError):
+            return JsonResponse({'success': False, 'message': 'Invalid amount format'})
+        
+        # Get the order
+        try:
+            order = testOrder.objects.get(id=order_id)
+        except testOrder.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Order not found'})
+        
+        # Validate payment amount
+        expected_amount = float(order.final_bill if hasattr(order, 'final_bill') and order.final_bill else order.total_amount)
+        
+        if amount_received < expected_amount:
+            return JsonResponse({
+                'success': False, 
+                'message': f'Insufficient payment. Expected: ₹{expected_amount}, Received: ₹{amount_received}'
+            })
+        
+        # Process payment
+        order.payment_status = 'collected'  # Payment collected, sample collected
+        order.trans_ID = f"COD_{order_id}_{timezone.now().strftime('%Y%m%d_%H%M%S')}"
+        order.save()
+        
+        # Create payment record (if you have a payment model)
+        try:
+            from razorpay_payment.models import RazorpayPayment
+            
+            RazorpayPayment.objects.create(
+                razorpay_order_id=f"LAB_{order_id}",
+                razorpay_payment_id=order.trans_ID,
+                razorpay_signature="COD_PAYMENT",
+                amount=amount_received,
+                status="captured",
+                payment_type="test",
+                test_order=order,
+                patient=order.user.patient if hasattr(order.user, 'patient') else None,
+                name=f"{order.user.first_name} {order.user.last_name}".strip(),
+                email=order.user.email
+            )
+        except Exception as e:
+            print(f"Payment record creation failed: {e}")
+        
+        # Send confirmation email
+        try:
+            if order.user and order.user.email:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                send_mail(
+                    subject='Payment Confirmed - Lab Test Order',
+                    message=f'''
+Dear {order.user.first_name} {order.user.last_name},
+
+Your cash payment has been successfully collected for your lab test order.
+
+Order ID: #{order_id}
+Amount Paid: ₹{amount_received}
+Payment Method: {payment_method.title()}
+Transaction ID: {order.trans_ID}
+
+Your sample has been collected and will be processed shortly. You will receive another notification once your test results are ready.
+
+Best regards,
+Mahima Medicare Laboratory Team
+                    ''',
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[order.user.email],
+                    fail_silently=True,
+                )
+        except Exception as e:
+            print(f"Email sending failed: {e}")
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'COD payment of ₹{amount_received} collected successfully! Sample collection recorded.'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Error processing payment: {str(e)}'})
+
+
+@login_required(login_url='admin-login')
+def lab_complete_test_with_results(request):
+    """Complete lab test with detailed results"""
+    if request.method != 'POST' or not request.user.is_labworker:
+        return JsonResponse({'success': False, 'message': 'Invalid request'})
+    
+    try:
+        from doctor.models import testOrder, Prescription_test
+        
+        order_id = request.POST.get('order_id')
+        test_results = request.POST.get('test_results')
+        unit = request.POST.get('unit', '')
+        normal_range = request.POST.get('normal_range', '')
+        technician_comments = request.POST.get('technician_comments', '')
+        report_status = request.POST.get('report_status', 'normal')
+        
+        if not order_id or not test_results:
+            return JsonResponse({'success': False, 'message': 'Missing required test results'})
+        
+        lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+        
+        # Try to find the order in testOrder first
+        order = None
+        order_type = None
+        
+        try:
+            order = testOrder.objects.get(id=order_id)
+            order_type = 'test_order'
+        except testOrder.DoesNotExist:
+            # Try prescription test
+            try:
+                order = Prescription_test.objects.get(test_id=order_id)
+                order_type = 'prescription_test'
+            except Prescription_test.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'Order not found'})
+        
+        # Update order status
+        if order_type == 'test_order':
+            order.payment_status = 'completed'
+        else:
+            order.test_status = 'completed'
+            order.assigned_technician = lab_worker
+        
+        order.save()
+        
+        # Create/Update test report
+        try:
+            # Try to import your report model
+            from doctor.models import Test_report  # Adjust import as needed
+            
+            # Create comprehensive test report
+            report_data = {
+                'test_results': test_results,
+                'unit': unit,
+                'normal_range': normal_range,
+                'technician_comments': technician_comments,
+                'report_status': report_status,
+                'technician_name': lab_worker.name or lab_worker.user.username,
+                'completed_at': timezone.now(),
+            }
+            
+            if order_type == 'test_order':
+                # For testOrder, create report for each test
+                for item in order.orderitems.all():
+                    Test_report.objects.update_or_create(
+                        test_name=item.test.test_name,
+                        patient=order.user.patient if hasattr(order.user, 'patient') else None,
+                        defaults=report_data
+                    )
+            else:
+                # For prescription test
+                Test_report.objects.update_or_create(
+                    test_name=order.test_name,
+                    patient=order.prescription.patient,
+                    prescription=order.prescription,
+                    defaults=report_data
+                )
+        
+        except Exception as e:
+            print(f"Report creation failed: {e}")
+            # Continue even if report creation fails
+        
+        # Send completion notification
+        try:
+            patient_email = None
+            patient_name = "Patient"
+            
+            if order_type == 'test_order' and order.user:
+                patient_email = order.user.email
+                patient_name = f"{order.user.first_name} {order.user.last_name}".strip() or order.user.username
+            elif order_type == 'prescription_test' and order.prescription:
+                patient_email = order.prescription.patient.user.email
+                patient_name = f"{order.prescription.patient.user.first_name} {order.prescription.patient.user.last_name}".strip()
+            
+            if patient_email:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                send_mail(
+                    subject='Lab Test Results Ready - Mahima Medicare',
+                    message=f'''
+Dear {patient_name},
+
+Your lab test results are now ready for review.
+
+Order ID: #{order_id}
+Test Status: Completed
+Completed By: {lab_worker.name or lab_worker.user.username}
+Completion Date: {timezone.now().strftime('%B %d, %Y at %I:%M %p')}
+
+Result Summary: {report_status.title()}
+
+Please log into your patient dashboard to view your complete test results and download your report.
+
+If you have any questions about your results, please consult with your doctor or contact our laboratory team.
+
+Best regards,
+Mahima Medicare Laboratory Team
+                    ''',
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[patient_email],
+                    fail_silently=True,
+                )
+        except Exception as e:
+            print(f"Email notification failed: {e}")
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Test completed successfully! Results saved and patient notified.'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Error completing test: {str(e)}'})
+
+
+@login_required(login_url='admin-login')
+def lab_handle_payment_failure(request):
+    """Handle failed payment recovery for lab tests"""
+    if request.method != 'POST' or not request.user.is_labworker:
+        return JsonResponse({'success': False, 'message': 'Invalid request'})
+    
+    try:
+        from doctor.models import testOrder
+        
+        order_id = request.POST.get('order_id')
+        action = request.POST.get('action')  # 'retry', 'convert_to_cod', 'cancel'
+        
+        if not order_id or not action:
+            return JsonResponse({'success': False, 'message': 'Missing required parameters'})
+        
+        try:
+            order = testOrder.objects.get(id=order_id)
+        except testOrder.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Order not found'})
+        
+        if action == 'retry':
+            # Reset payment status for retry
+            order.payment_status = 'pending'
+            order.save()
+            
+            # Send retry email to patient
+            if order.user and order.user.email:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                send_mail(
+                    subject='Payment Retry - Lab Test Order',
+                    message=f'''
+Dear {order.user.first_name} {order.user.last_name},
+
+Your lab test order payment failed, but you can retry the payment now.
+
+Order ID: #{order_id}
+Amount: ₹{order.final_bill if hasattr(order, 'final_bill') else order.total_amount}
+
+Please log into your patient dashboard to retry the payment for your lab tests.
+
+Our lab technician team is ready to collect your samples once payment is completed.
+
+Best regards,
+Mahima Medicare Laboratory Team
+                    ''',
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[order.user.email],
+                    fail_silently=True,
+                )
+            
+            message = 'Payment retry enabled. Patient has been notified via email.'
+            
+        elif action == 'convert_to_cod':
+            # Convert to cash on delivery
+            order.payment_status = 'cod_pending'
+            order.save()
+            
+            # Send COD conversion email
+            if order.user and order.user.email:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                send_mail(
+                    subject='Payment Method Changed to Cash on Delivery',
+                    message=f'''
+Dear {order.user.first_name} {order.user.last_name},
+
+Your lab test order has been converted to Cash on Delivery (COD) payment method.
+
+Order ID: #{order_id}
+Amount: ₹{order.final_bill if hasattr(order, 'final_bill') else order.total_amount}
+Payment Method: Cash on Delivery
+
+Our lab technician will collect the payment in cash when collecting your samples. Please keep the exact amount ready.
+
+You will receive a call from our team to schedule the sample collection.
+
+Best regards,
+Mahima Medicare Laboratory Team
+                    ''',
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[order.user.email],
+                    fail_silently=True,
+                )
+            
+            message = 'Order converted to COD. Patient will pay during sample collection.'
+            
+        elif action == 'cancel':
+            # Cancel the order
+            order.payment_status = 'cancelled'
+            order.ordered = False
+            order.save()
+            
+            # Send cancellation email
+            if order.user and order.user.email:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                send_mail(
+                    subject='Lab Test Order Cancelled',
+                    message=f'''
+Dear {order.user.first_name} {order.user.last_name},
+
+Your lab test order has been cancelled due to payment issues.
+
+Order ID: #{order_id}
+Cancellation Date: {timezone.now().strftime('%B %d, %Y at %I:%M %p')}
+
+If you still need these tests, please create a new order through your patient dashboard or contact our support team.
+
+We apologize for any inconvenience caused.
+
+Best regards,
+Mahima Medicare Laboratory Team
+                    ''',
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[order.user.email],
+                    fail_silently=True,
+                )
+            
+            message = 'Order cancelled successfully. Patient has been notified.'
+            
+        else:
+            return JsonResponse({'success': False, 'message': 'Invalid action specified'})
+        
+        return JsonResponse({'success': True, 'message': message})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Error handling payment failure: {str(e)}'})

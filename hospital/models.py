@@ -22,6 +22,17 @@ Django automatically creates id field for each model class which will be a PK # 
 """
 
 class User(AbstractUser):
+    # Override username field to allow spaces and remove default validators
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        help_text='Username can contain spaces and most characters',
+        validators=[],  # Remove default validators
+        error_messages={
+            'unique': "A user with that username already exists.",
+        },
+    )
+    
     is_patient = models.BooleanField(default=False)
     is_doctor = models.BooleanField(default=False)
     is_hospital_admin = models.BooleanField(default=False)
@@ -80,6 +91,10 @@ class Patient(models.Model):
     login_status = models.CharField(max_length=200, null=True, blank=True, default="offline")
 
     def __str__(self):
-        return str(self.user.username)
+        if self.user and hasattr(self.user, 'username') and self.user.username:
+            return str(self.user.username)
+        elif self.name:
+            return str(self.name)
+        return f"Patient #{self.patient_id}"
 
 

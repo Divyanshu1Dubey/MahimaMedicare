@@ -25,7 +25,11 @@ class Admin_Information(models.Model):
     hospital = models.ForeignKey(Hospital_Information, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return str(self.user.username)
+        if self.user and hasattr(self.user, 'username') and self.user.username:
+            return str(self.user.username)
+        elif self.name:
+            return str(self.name)
+        return f"Admin #{self.admin_id}"
 
 
 class Clinical_Laboratory_Technician(models.Model):
@@ -40,7 +44,11 @@ class Clinical_Laboratory_Technician(models.Model):
     hospital = models.ForeignKey(Hospital_Information, on_delete=models.SET_NULL, null=True, blank=True)
     
     def __str__(self):
-        return str(self.user.username)
+        if self.user and hasattr(self.user, 'username') and self.user.username:
+            return str(self.user.username)
+        elif self.name:
+            return str(self.name)
+        return f"Technician #{self.technician_id}"
 
 
 

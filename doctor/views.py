@@ -124,29 +124,46 @@ def doctor_login(request):
     if request.method == 'GET':
         return render(request, 'doctor-login.html')
     elif request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
         
+        # Check if fields are empty
+        if not username:
+            messages.error(request, 'Please enter your username.')
+            return render(request, 'doctor-login.html')
+        
+        if not password:
+            messages.error(request, 'Please enter your password.')
+            return render(request, 'doctor-login.html')
+
+        # Check if user exists (case-insensitive)
         try:
-            user = User.objects.get(username=username)
-        except:
-            messages.error(request, 'Username does not exist')
+            # First try exact match
+            existing_user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            # Try case-insensitive match
+            try:
+                existing_user = User.objects.get(username__iexact=username)
+                username = existing_user.username  # Use the correct case
+            except User.DoesNotExist:
+                messages.error(request, f'Doctor username "{username}" does not exist. Please check your spelling.')
+                return render(request, 'doctor-login.html')
                 
         user = authenticate(username=username, password=password)
         
         if user is not None:
-            
-            login(request, user)
-            if request.user.is_doctor:
+            if user.is_doctor:
+                login(request, user)
                 # user.login_status = "online"
                 # user.save()
-                messages.success(request, 'Welcome Doctor!')
+                messages.success(request, f'Welcome back, Dr. {user.username}!')
                 return redirect('doctor-dashboard')
             else:
-                messages.error(request, 'Invalid credentials. Not a Doctor')
-                return redirect('doctor-logout')   
+                messages.error(request, f'Account "{username}" is not registered as a doctor. Please use the patient login if you are a patient.')
+                return render(request, 'doctor-login.html')   
         else:
-            messages.error(request, 'Invalid username or password')
+            messages.error(request, f'Incorrect password for Dr. {username}. Please check your password and try again.')
+            return render(request, 'doctor-login.html')
             
     return render(request, 'doctor-login.html')
 
@@ -684,8 +701,9 @@ def got_online(sender, user, request, **kwargs):
 @csrf_exempt
 @receiver(user_logged_out)
 def got_offline(sender, user, request, **kwargs):   
-    user.login_status = False
-    user.save()
+    if user is not None:
+        user.login_status = False
+        user.save()
 
 @csrf_exempt
 @login_required(login_url="login")

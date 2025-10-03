@@ -174,7 +174,11 @@
                         <p class="text-muted mb-0">Administrator</p>
                     </div>
                 </div>
+                {% if pharmacist.pharmacist_id %}
                 <a class="dropdown-item" href="{% url 'edit-pharmacist' pk=pharmacist.pharmacist_id %}">My Profile</a>
+                {% else %}
+                <a class="dropdown-item" href="#" onclick="alert('Profile not available')">My Profile</a>
+                {% endif %}
                 <a class="dropdown-item" href="{% url 'pharmacist-dashboard' %}">Settings</a>
                 <a class="dropdown-item" href="{% url 'admin-logout' %}">Logout</a>
             </div>

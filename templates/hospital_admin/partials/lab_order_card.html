@@ -1,0 +1,291 @@
+{% load static %}
+
+<!-- Lab Order Card Partial Template -->
+<div class="order-card status-{{ order.status|default:'prescribed' }}">
+    <div class="order-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="mb-1">
+                    <i class="fe fe-vial"></i> 
+                    {% if order.test_name %}
+                        {{ order.test_name }}
+                    {% elif order.orderitems.all %}
+                        {{ order.orderitems.all.0.test.test_name }}{% if order.orderitems.all|length > 1 %} +{{ order.orderitems.all|length|add:"-1" }} more{% endif %}
+                    {% else %}
+                        Lab Test Order
+                    {% endif %}
+                </h6>
+                <small class="text-muted">
+                    <i class="fe fe-calendar"></i> 
+                    {% if order.created %}
+                        {{ order.created|date:"M d, Y H:i" }}
+                    {% elif order.create_date %}
+                        {{ order.create_date|date:"M d, Y" }}
+                    {% else %}
+                        Recent
+                    {% endif %}
+                </small>
+            </div>
+            <div class="text-right">
+                <span class="order-status">
+                    {% if order_type == 'paid' %}
+                        Paid
+                    {% elif order_type == 'cod' %}
+                        COD Pending
+                    {% elif order_type == 'processing' %}
+                        Processing
+                    {% elif order_type == 'completed' %}
+                        Completed
+                    {% elif order_type == 'failed' %}
+                        Payment Failed
+                    {% else %}
+                        {{ order.status|default:'Pending'|title }}
+                    {% endif %}
+                </span>
+                
+                {% if order.payment_status %}
+                    <span class="payment-badge {{ order.payment_status }}">
+                        {% if order.payment_status == 'paid' %}
+                            💳 Paid
+                        {% elif order.payment_status == 'cod_pending' or order.payment_status == 'cash_on_delivery' %}
+                            💵 COD
+                        {% elif order.payment_status == 'failed' %}
+                            ❌ Failed
+                        {% else %}
+                            {{ order.payment_status|title }}
+                        {% endif %}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="order-body">
+        <!-- Patient Information -->
+        <div class="patient-info">
+            <div class="patient-name">
+                <i class="fe fe-user"></i>
+                {% if order.user %}
+                    {{ order.user.first_name }} {{ order.user.last_name }}
+                {% elif order.patient %}
+                    {{ order.patient.user.first_name }} {{ order.patient.user.last_name }}
+                {% elif order.prescription %}
+                    {{ order.prescription.patient.user.first_name }} {{ order.prescription.patient.user.last_name }}
+                {% else %}
+                    Unknown Patient
+                {% endif %}
+            </div>
+            
+            <div class="patient-details">
+                <div class="row">
+                    <div class="col-6">
+                        <small>
+                            <i class="fe fe-credit-card"></i>
+                            <strong>ID:</strong> 
+                            {% if order.user %}
+                                #{{ order.user.id }}
+                            {% elif order.patient %}
+                                #{{ order.patient.patient_id }}
+                            {% elif order.prescription %}
+                                #{{ order.prescription.patient.patient_id }}
+                            {% else %}
+                                #{{ order.id }}
+                            {% endif %}
+                        </small>
+                    </div>
+                    <div class="col-6">
+                        <small>
+                            <i class="fe fe-phone"></i>
+                            <strong>Phone:</strong>
+                            {% if order.patient and order.patient.phone_number %}
+                                {{ order.patient.phone_number }}
+                            {% elif order.prescription and order.prescription.patient.phone_number %}
+                                {{ order.prescription.patient.phone_number }}
+                            {% else %}
+                                Not available
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                
+                {% if order.prescription %}
+                    <div class="mt-2">
+                        <small>
+                            <i class="fe fe-user-md"></i>
+                            <strong>Doctor:</strong> Dr. {{ order.prescription.doctor.name }}
+                        </small>
+                        {% if order.prescription.doctor.department %}
+                            <small class="ml-2">
+                                <i class="fe fe-briefcase"></i>
+                                {{ order.prescription.doctor.department }}
+                            </small>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Test/Order Details -->
+        <div class="test-list">
+            <h6 class="mb-2"><i class="fe fe-list"></i> Test Details</h6>
+            
+            {% if order.orderitems.all %}
+                <!-- For testOrder model -->
+                {% for item in order.orderitems.all %}
+                    <div class="test-item">
+                        <div class="test-name">
+                            <i class="fe fe-vial"></i> {{ item.test.test_name }}
+                        </div>
+                        <div class="test-price">
+                            ₹{{ item.test.test_price|default:"0.00" }}
+                        </div>
+                    </div>
+                {% endfor %}
+                
+                <!-- Total Amount -->
+                <div class="test-item" style="border-top: 2px solid #95C270; font-weight: bold;">
+                    <div class="test-name">Total Amount</div>
+                    <div class="test-price" style="font-size: 1.1rem;">
+                        ₹{% if order.final_bill %}{{ order.final_bill }}{% elif order.total_amount %}{{ order.total_amount }}{% else %}0.00{% endif %}
+                    </div>
+                </div>
+                
+            {% elif order.test_name %}
+                <!-- For single test -->
+                <div class="test-item">
+                    <div class="test-name">
+                        <i class="fe fe-vial"></i> {{ order.test_name }}
+                    </div>
+                    <div class="test-price">
+                        ₹{{ order.test_price|default:"0.00" }}
+                    </div>
+                </div>
+                
+            {% else %}
+                <div class="test-item">
+                    <div class="test-name">
+                        <i class="fe fe-vial"></i> Laboratory Test
+                    </div>
+                    <div class="test-price">
+                        ₹0.00
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Additional Information -->
+        {% if order.test_description %}
+            <div class="mt-3">
+                <small class="text-muted">
+                    <i class="fe fe-info"></i>
+                    <strong>Notes:</strong> {{ order.test_description }}
+                </small>
+            </div>
+        {% endif %}
+        
+        {% if order.trans_ID %}
+            <div class="mt-2">
+                <small class="text-muted">
+                    <i class="fe fe-credit-card"></i>
+                    <strong>Transaction ID:</strong> {{ order.trans_ID }}
+                </small>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Order Actions -->
+    <div class="order-actions">
+        {% if order_type == 'paid' %}
+            <!-- Paid Orders - Ready for Collection -->
+            <button class="action-btn btn-collect" 
+                    onclick="updateLabOrderStatus('{{ order.id }}', 'collected', 'lab')"
+                    data-toggle="tooltip" title="Collect sample from patient">
+                <i class="fe fe-check"></i> Collect Sample
+            </button>
+            
+        {% elif order_type == 'cod' %}
+            <!-- COD Orders - Collect Payment & Sample -->
+            <button class="action-btn btn-cod-collect" 
+                    onclick="collectCODPayment('{{ order.id }}', '{% if order.final_bill %}{{ order.final_bill }}{% elif order.total_amount %}{{ order.total_amount }}{% else %}0.00{% endif %}')"
+                    data-toggle="tooltip" title="Collect payment and sample">
+                <i class="fe fe-credit-card"></i> Collect COD & Sample
+            </button>
+            
+        {% elif order_type == 'processing' %}
+            <!-- Processing Orders - Complete Test -->
+            <button class="action-btn btn-complete" 
+                    onclick="completeTestWithResults('{{ order.id }}', '{% if order.test_name %}{{ order.test_name }}{% elif order.orderitems.all %}{{ order.orderitems.all.0.test.test_name }}{% else %}Lab Test{% endif %}')"
+                    data-toggle="tooltip" title="Add results and complete test">
+                <i class="fe fe-check-circle"></i> Complete Test
+            </button>
+            
+        {% elif order_type == 'completed' %}
+            <!-- Completed Orders - View Report -->
+            <button class="action-btn btn-view" 
+                    onclick="viewLabReport('{{ order.id }}')"
+                    data-toggle="tooltip" title="View test report">
+                <i class="fe fe-eye"></i> View Report
+            </button>
+            <span class="text-success ml-2">
+                <i class="fe fe-check-circle"></i> Test Completed
+            </span>
+            
+        {% elif order_type == 'failed' %}
+            <!-- Failed Orders - Recovery Options -->
+            <button class="action-btn btn-retry" 
+                    onclick="handlePaymentFailure('{{ order.id }}', 'retry')"
+                    data-toggle="tooltip" title="Help patient retry payment">
+                <i class="fe fe-refresh-cw"></i> Retry Payment
+            </button>
+            <button class="action-btn btn-cod-collect" 
+                    onclick="handlePaymentFailure('{{ order.id }}', 'convert_to_cod')"
+                    data-toggle="tooltip" title="Convert to cash on delivery">
+                <i class="fe fe-credit-card"></i> Convert to COD
+            </button>
+            <button class="action-btn btn-cancel" 
+                    onclick="handlePaymentFailure('{{ order.id }}', 'cancel')"
+                    data-toggle="tooltip" title="Cancel this order">
+                <i class="fe fe-x-circle"></i> Cancel Order
+            </button>
+            
+        {% else %}
+            <!-- Default Actions -->
+            {% if order.payment_status == 'paid' %}
+                <button class="action-btn btn-process" 
+                        onclick="updateLabOrderStatus('{{ order.id }}', 'collected', 'lab')"
+                        data-toggle="tooltip" title="Start processing this test">
+                    <i class="fe fe-play"></i> Start Processing
+                </button>
+            {% else %}
+                <span class="text-warning">
+                    <i class="fe fe-clock"></i> Waiting for payment completion
+                </span>
+            {% endif %}
+        {% endif %}
+        
+        <!-- Common Actions -->
+        <button class="action-btn btn-view" 
+                onclick="viewOrderDetails('{{ order.id }}')"
+                data-toggle="tooltip" title="View complete order details">
+            <i class="fe fe-info"></i> Details
+        </button>
+    </div>
+</div>
+
+<script>
+    // Additional functions for lab order management
+    
+    function viewLabReport(orderId) {
+        // Open report in new window/modal
+        window.open(`/lab/report/${orderId}/`, '_blank');
+    }
+    
+    function viewOrderDetails(orderId) {
+        // Show detailed order information
+        alert(`Order Details for #${orderId} - Feature coming soon!`);
+        // TODO: Implement detailed order view modal
+    }
+    
+    // Initialize tooltips for this card
+    $('[data-toggle="tooltip"]').tooltip();
+</script>

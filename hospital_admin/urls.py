@@ -68,6 +68,8 @@ urlpatterns = [
     path('bulk-medicine-management/', views.bulk_medicine_management, name='bulk-medicine-management'),
     path('medicine/<int:pk>/increase/', views.increase_medicine_stock, name='increase-medicine-stock'),
     path('medicine/<int:pk>/decrease/', views.decrease_medicine_stock, name='decrease-medicine-stock'),
+    path('process-cod-payment/<int:order_id>/', views.process_cod_payment, name='process-cod-payment'),
+    path('handle-payment-failure/<int:order_id>/', views.handle_payment_failure, name='handle-payment-failure'),
     path('report-history/', views.report_history,name='report-history'),
     path('upload-report-pdf/<int:report_id>/', views.upload_report_pdf, name='upload-report-pdf'),
     path('download-report-pdf/<int:report_id>/', views.download_report_pdf, name='download-report-pdf'),
@@ -107,6 +109,13 @@ urlpatterns = [
     
     # Lab Communication System
     path('lab-notifications/', views.lab_notifications_center, name='lab-notifications'),
+    
+    # Enhanced Lab Technician Order Management URLs
+    path('lab-technician-order-management/', views.lab_technician_order_management, name='lab-technician-order-management'),
+    path('lab-update-order-status/', views.lab_update_order_status, name='lab-update-order-status'),
+    path('lab-process-cod-payment/', views.lab_process_cod_payment, name='lab-process-cod-payment'),
+    path('lab-complete-test-with-results/', views.lab_complete_test_with_results, name='lab-complete-test-with-results'),
+    path('lab-handle-payment-failure/', views.lab_handle_payment_failure, name='lab-handle-payment-failure'),
     
 ]
   

@@ -17,7 +17,11 @@ class Pharmacist(models.Model):
     age = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.user.username)
+        if self.user and hasattr(self.user, 'username') and self.user.username:
+            return str(self.user.username)
+        elif self.name:
+            return str(self.name)
+        return f"Pharmacist #{self.pharmacist_id}"
 
 
 class Medicine(models.Model):
@@ -54,6 +58,8 @@ class Medicine(models.Model):
     serial_number = models.AutoField(primary_key=True)
     medicine_id = models.CharField(max_length=200, null=True, blank=True)
     name = models.CharField(max_length=200, null=True, blank=True)
+    composition = models.TextField(null=True, blank=True, help_text="Active ingredients and their quantities")
+    hsn_code = models.CharField(max_length=20, null=True, blank=True, help_text="HSN code for tax classification")
     weight = models.CharField(max_length=200, null=True, blank=True)
     quantity = models.IntegerField(null=True, blank=True, default=0)
     featured_image = models.ImageField(upload_to='medicines/', default='medicines/default.png', null=True, blank=True)
@@ -61,7 +67,7 @@ class Medicine(models.Model):
     medicine_type = models.CharField(max_length=200, choices=MEDICINE_TYPE, null=True, blank=True)
     medicine_category = models.CharField(max_length=200, choices=MEDICINE_CATEGORY, null=True, blank=True)
 
-    price = models.IntegerField(null=True, blank=True, default=0)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0.00)
     stock_quantity = models.IntegerField(null=True, blank=True, default=0)
     Prescription_reqiuired = models.CharField(max_length=200, choices=REQUIREMENT_TYPE, null=True, blank=True)
     expiry_date = models.DateField(null=True, blank=True)
@@ -82,7 +88,12 @@ class Medicine(models.Model):
         return None
 
     def __str__(self):
-        return str(self.name)
+        if self.name and self.composition:
+            return f"{self.name} - {self.composition[:50]}{'...' if len(self.composition) > 50 else ''}"
+        elif self.name:
+            return str(self.name)
+        else:
+            return f"Medicine #{self.serial_number}"
 
 
 class Cart(models.Model):

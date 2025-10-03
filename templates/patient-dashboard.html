@@ -10,9 +10,7 @@
   <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
 
   <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="{% static 'HealthStack-S                                  ₹{{ appointment.doctor.consultation_fee }} INR
-                                {% else %}
-                                  ₹{{ appointment.doctor.report_fee }} INRem/css/Normal/bootstrap.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}" />
 
   <!-- Fontawesome CSS -->
   <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}" />
@@ -506,19 +504,30 @@
                                 <td>
                                   <a href="javascript:void(0);">{{ prescription.prescription_id }}</a>
                                 </td>
-                                <td>{{ prescription.doctor.name }}</td>
+                                <td>
+                                  {% if prescription.doctor %}
+                                    {{ prescription.doctor.name }}
+                                  {% else %}
+                                    System - Standalone Booking
+                                  {% endif %}
+                                </td>
                                 <td>
                                   <div class="table-avatar">
                                     <a href="doctor-profile.html" class="avatar avatar-sm">
                                       <img
                                         class="avatar-img rounded-circle"
-                                        src="{{ prescription.doctor.featured_image.url }}"
+                                        src="{% if prescription.doctor and prescription.doctor.featured_image %}{{ prescription.doctor.featured_image.url }}{% else %}{% static 'HealthStack-System/images/Normal/user.jpg' %}{% endif %}"
                                         alt="Doctor Image"
                                       />
                                     </a>
                                     <a href="doctor-profile.html">
-                                      Dr. {{ prescription.doctor }}
-                                      <span>{{ prescription.doctor.department_name }}</span>
+                                      {% if prescription.doctor %}
+                                        Dr. {{ prescription.doctor }}
+                                        <span>{{ prescription.doctor.department_name|default:"General" }}</span>
+                                      {% else %}
+                                        System - Standalone Booking
+                                        <span>Self-Service</span>
+                                      {% endif %}
                                     </a>
                                   </div>
                                 </td>
@@ -644,6 +653,7 @@
           <tbody>
             <!-- Pharmacy Orders -->
             {% for order in pharmacy_orders %}
+            {% if order.razorpaypayment_set.first %}
             <tr>
               <td>
                 <div class="table-avatar">
@@ -652,8 +662,8 @@
                   <small class="d-block text-muted">{{ order.orderitems.count }} item(s)</small>
                 </div>
               </td>
-              <td>{{ order.payment_id|default:"-" }}</td>
-              <td>{{ order.created|date:"M d, Y" }}</td>
+              <td>{{ order.razorpaypayment_set.first.razorpay_payment_id|default:"-" }}</td>
+              <td>{{ order.razorpaypayment_set.first.created_at|date:"M d, Y"|default:order.created|date:"M d, Y" }}</td>
               <td>₹{{ order.final_bill|floatformat:2 }}</td>
               <td>Razorpay</td>
               <td>
@@ -670,39 +680,62 @@
                 </div>
               </td>
             </tr>
+            {% endif %}
             {% endfor %}
             
             <!-- Doctor Appointments & Lab Tests -->
             {% for payment in payments %}
+            {% if payment.payment_type != 'pharmacy' %}
             <tr>
               <td>
                 {% if payment.appointment %}
                   <div class="table-avatar">
                     <i class="fas fa-user-md text-primary"></i>
-                    <span class="ml-2">{{ payment.appointment.doctor.name }}</span>
-                    <small class="d-block text-muted">{{ payment.appointment.doctor.department }}</small>
+                    <span class="ml-2">
+                      {% if payment.appointment.doctor and payment.appointment.doctor.name %}
+                        Dr. {{ payment.appointment.doctor.name }}
+                      {% else %}
+                        Doctor Consultation
+                      {% endif %}
+                    </span>
+                    <small class="d-block text-muted">
+                      {% if payment.appointment.doctor and payment.appointment.doctor.department %}
+                        {{ payment.appointment.doctor.department }}
+                      {% else %}
+                        Appointment Payment
+                      {% endif %}
+                    </small>
                   </div>
                 {% elif payment.test_order %}
                   <div class="table-avatar">
                     <i class="fas fa-flask text-info"></i>
-                    <span class="ml-2">Lab Test Payment</span>
+                    <span class="ml-2">Laboratory Test</span>
+                    <small class="d-block text-muted">Lab Test Payment</small>
+                  </div>
+                {% elif payment.payment_type == 'appointment' %}
+                  <div class="table-avatar">
+                    <i class="fas fa-user-md text-primary"></i>
+                    <span class="ml-2">Doctor Consultation</span>
+                    <small class="d-block text-muted">Appointment Payment</small>
+                  </div>
+                {% elif payment.payment_type == 'test' %}
+                  <div class="table-avatar">
+                    <i class="fas fa-flask text-info"></i>
+                    <span class="ml-2">Laboratory Test</span>
+                    <small class="d-block text-muted">Test Payment</small>
                   </div>
                 {% else %}
-                  <span>-</span>
+                  <div class="table-avatar">
+                    <i class="fas fa-receipt text-secondary"></i>
+                    <span class="ml-2">Service Payment</span>
+                    <small class="d-block text-muted">{{ payment.payment_type|title }}</small>
+                  </div>
                 {% endif %}
               </td>
-              <td>{{ payment.transaction_id|default:"-" }}</td>
-              <td>{{ payment.transaction_date|default:"-" }}</td>
-              <td>
-                {% if payment.currency_amount %}
-                  ₹{{ payment.currency_amount|floatformat:2 }}
-                {% elif payment.test_order %}
-                  ₹{{ payment.test_order.final_bill|floatformat:2 }}
-                {% else %}
-                  ₹0.00
-                {% endif %}
-              </td>
-              <td>{{ payment.card_type|default:"Razorpay" }}</td>
+              <td>{{ payment.razorpay_payment_id|default:"-" }}</td>
+              <td>{{ payment.created_at|date:"M d, Y"|default:"-" }}</td>
+              <td>₹{{ payment.amount|floatformat:2 }}</td>
+              <td>Razorpay</td>
               <td>
                 {% if payment.status|lower == 'captured' or payment.status|lower == 'paid' %}
                   <span class="badge bg-success-light">Success</span>
@@ -727,6 +760,7 @@
                 {% endif %}
               </td>
             </tr>
+            {% endif %}
             {% empty %}
               {% if not pharmacy_orders %}
                 <tr>

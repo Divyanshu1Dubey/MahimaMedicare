@@ -72,7 +72,11 @@ class Doctor_Information(models.Model):
     hospital_name = models.ForeignKey(Hospital_Information, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return str(self.user.username)
+        if self.user and hasattr(self.user, 'username') and self.user.username:
+            return str(self.user.username)
+        elif self.name:
+            return str(self.name)
+        return f"Doctor #{self.doctor_id}"
 
 
 class Appointment(models.Model):
@@ -260,7 +264,9 @@ class Prescription(models.Model):
     extra_information = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.patient.username)
+        if self.patient and hasattr(self.patient, 'username') and self.patient.username:
+            return str(self.patient.username)
+        return f"Prescription #{self.prescription_id}"
 
 class Prescription_medicine(models.Model):
     prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE, null=True, blank=True)
@@ -359,7 +365,8 @@ class testOrder(models.Model):
 
     @property
     def final_bill(self):
-        vat = 20.00
+        from django.conf import settings
+        vat = getattr(settings, 'LAB_TEST_VAT_AMOUNT', 20.00)
         return round(self.total_amount + vat, 2)
 
 

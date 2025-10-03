@@ -23,7 +23,12 @@
       <div class="card mb-4">
         <div class="card-header"><h5 class="mb-0">Import via CSV</h5></div>
         <div class="card-body">
-          <p class="text-muted">Upload a CSV with headers: name,weight,quantity,price,description,medicine_type,medicine_category,prescription_required,expiry_date (YYYY-MM-DD)</p>
+          <p class="text-muted">Upload a CSV with headers: name,weight,quantity,price,description,composition,hsn_code,medicine_type,medicine_category,prescription_required,expiry_date (YYYY-MM-DD)</p>
+          <div class="alert alert-info">
+            <strong>New Features:</strong> 
+            • Include <strong>composition</strong> column for active ingredients
+            • Include <strong>hsn_code</strong> column for tax classification (optional - will auto-fetch if composition provided)
+          </div>
           <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" name="action" value="import" />
@@ -59,6 +64,8 @@
                 <tr>
                   <th><input type="checkbox" id="selectAll" /></th>
                   <th>Name</th>
+                  <th>Composition</th>
+                  <th>HSN Code</th>
                   <th>Weight</th>
                   <th>Qty</th>
                   <th>Price</th>
@@ -72,6 +79,20 @@
                 <tr>
                   <td><input type="checkbox" class="row-check" value="{{ m.serial_number }}" /></td>
                   <td>{{ m.name }}</td>
+                  <td>
+                    {% if m.composition %}
+                      <span title="{{m.composition}}">{{ m.composition|truncatechars:25 }}</span>
+                    {% else %}
+                      <span class="text-muted">Not set</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if m.hsn_code %}
+                      <span class="badge badge-info">{{ m.hsn_code }}</span>
+                    {% else %}
+                      <span class="text-muted">No HSN</span>
+                    {% endif %}
+                  </td>
                   <td>{{ m.weight }}</td>
                   <td>{{ m.stock_quantity }}</td>
                   <td>₹{{ m.price }}</td>
@@ -80,7 +101,7 @@
                   <td>{{ m.expiry_date }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="8" class="text-center text-muted">No medicines found.</td></tr>
+                <tr><td colspan="10" class="text-center text-muted">No medicines found.</td></tr>
                 {% endfor %}
               </tbody>
             </table>

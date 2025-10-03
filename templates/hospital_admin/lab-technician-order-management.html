@@ -1,0 +1,923 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Lab Order Management - Mahima Medicare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css' %}">
+    
+    <!-- Feathericon CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css' %}">
+    
+    <style>
+        .order-management-wrapper {
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .management-header {
+            background: linear-gradient(135deg, #95C270 0%, #7ba05a 100%);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        .stats-overview {
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--card-color, #95C270);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--card-color, #95C270);
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-card.prescribed { --card-color: #ffc107; }
+        .stat-card.paid { --card-color: #28a745; }
+        .stat-card.cod { --card-color: #fd7e14; }
+        .stat-card.collected { --card-color: #17a2b8; }
+        .stat-card.processing { --card-color: #007bff; }
+        .stat-card.completed { --card-color: #6f42c1; }
+        .stat-card.failed { --card-color: #dc3545; }
+        
+        .management-tabs {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .nav-tabs {
+            border: none;
+            background: #f8f9fa;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            color: #666;
+            font-weight: 600;
+            padding: 15px 25px;
+            border-radius: 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            background: #e9ecef;
+            border: none;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: #95C270;
+            color: white;
+            border: none;
+        }
+        
+        .tab-content {
+            padding: 25px;
+        }
+        
+        .orders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .order-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border-left: 5px solid var(--status-color, #95C270);
+        }
+        
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .order-header {
+            padding: 20px 25px 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .order-status {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: white;
+            background: var(--status-color, #95C270);
+        }
+        
+        .payment-badge {
+            margin-left: 10px;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .payment-badge.paid { background: #d4edda; color: #155724; }
+        .payment-badge.cod { background: #fff3cd; color: #856404; }
+        .payment-badge.failed { background: #f8d7da; color: #721c24; }
+        
+        .order-body {
+            padding: 20px 25px;
+        }
+        
+        .patient-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .patient-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .patient-details {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .test-list {
+            margin: 15px 0;
+        }
+        
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        
+        .test-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .test-price {
+            color: #95C270;
+            font-weight: 700;
+        }
+        
+        .order-actions {
+            padding: 15px 25px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-collect { background: #28a745; color: white; }
+        .btn-process { background: #007bff; color: white; }
+        .btn-complete { background: #17a2b8; color: white; }
+        .btn-view { background: #6c757d; color: white; }
+        .btn-cod-collect { background: #fd7e14; color: white; }
+        .btn-retry { background: #ffc107; color: #333; }
+        .btn-cancel { background: #dc3545; color: white; }
+        
+        .no-orders {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .no-orders i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .quick-stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .quick-stat {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        /* Status Colors */
+        .status-prescribed { --status-color: #ffc107; }
+        .status-paid { --status-color: #28a745; }
+        .status-collected { --status-color: #17a2b8; }
+        .status-processing { --status-color: #007bff; }
+        .status-completed { --status-color: #6f42c1; }
+        .status-failed { --status-color: #dc3545; }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .orders-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-overview {
+                display: block;
+            }
+            
+            .stat-card {
+                margin-bottom: 15px;
+            }
+        }
+        
+        /* Loading Animation */
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        /* Success/Error Messages */
+        .alert {
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+        }
+        
+        .alert-error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper order-management-wrapper">
+        <!-- Header -->
+        {% include 'hospital_admin/labworker-navbar.html' %}
+        
+        <!-- Sidebar -->
+        {% include 'hospital_admin/labworker-sidebar.html' %}
+        
+        <!-- Page Wrapper -->
+        <div class="page-wrapper">
+            <!-- Management Header -->
+            <div class="management-header">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h1 class="mb-1">📋 Lab Order Management</h1>
+                            <p class="mb-0 opacity-75">Complete workflow management for laboratory tests and orders</p>
+                        </div>
+                        <div class="col-lg-4 text-right">
+                            <button class="btn btn-light btn-sm" onclick="refreshOrders()">
+                                <i class="fe fe-refresh-cw"></i> Refresh Orders
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content container-fluid">
+                <!-- Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <!-- Statistics Overview -->
+                <div class="row stats-overview">
+                    <div class="col-lg-2 col-md-4 col-sm-6">
+                        <div class="stat-card prescribed">
+                            <span class="stat-number">{{ order_stats.prescribed }}</span>
+                            <div class="stat-label">Prescribed Tests</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6">
+                        <div class="stat-card paid">
+                            <span class="stat-number">{{ order_stats.paid }}</span>
+                            <div class="stat-label">Paid Orders</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6">
+                        <div class="stat-card cod">
+                            <span class="stat-number">{{ order_stats.cod }}</span>
+                            <div class="stat-label">COD Orders</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6">
+                        <div class="stat-card collected">
+                            <span class="stat-number">{{ order_stats.collected }}</span>
+                            <div class="stat-label">Sample Collected</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6">
+                        <div class="stat-card processing">
+                            <span class="stat-number">{{ order_stats.processing }}</span>
+                            <div class="stat-label">Processing</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6">
+                        <div class="stat-card completed">
+                            <span class="stat-number">{{ order_stats.completed }}</span>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Management Tabs -->
+                <div class="management-tabs">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="tab" href="#paid-orders" role="tab">
+                                <i class="fe fe-check-circle"></i> Paid Orders ({{ order_stats.paid }})
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#cod-orders" role="tab">
+                                <i class="fe fe-credit-card"></i> COD Orders ({{ order_stats.cod }})
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#processing-orders" role="tab">
+                                <i class="fe fe-activity"></i> Processing ({{ order_stats.processing }})
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#completed-orders" role="tab">
+                                <i class="fe fe-check"></i> Completed ({{ order_stats.completed }})
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#failed-orders" role="tab">
+                                <i class="fe fe-x-circle"></i> Failed Orders ({{ order_stats.failed }})
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content">
+                        <!-- Paid Orders Tab -->
+                        <div class="tab-pane fade show active" id="paid-orders" role="tabpanel">
+                            <div class="filter-section">
+                                <div class="quick-stats">
+                                    <span class="quick-stat">💰 Ready for Collection: {{ order_stats.paid }}</span>
+                                    <span class="quick-stat">⏰ Average Wait Time: {{ avg_wait_time|default:"2 hours" }}</span>
+                                </div>
+                                <p><i class="fe fe-info"></i> These orders have been paid and are ready for sample collection.</p>
+                            </div>
+                            
+                            {% if paid_orders %}
+                                <div class="orders-grid">
+                                    {% for order in paid_orders %}
+                                        {% include 'hospital_admin/partials/lab_order_card.html' with order=order order_type='paid' %}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="no-orders">
+                                    <i class="fe fe-package"></i>
+                                    <h4>No Paid Orders</h4>
+                                    <p>All orders are either being processed or waiting for payment.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- COD Orders Tab -->
+                        <div class="tab-pane fade" id="cod-orders" role="tabpanel">
+                            <div class="filter-section">
+                                <div class="quick-stats">
+                                    <span class="quick-stat">💵 COD Pending: {{ order_stats.cod }}</span>
+                                    <span class="quick-stat">📋 Collection Required: Yes</span>
+                                </div>
+                                <p><i class="fe fe-credit-card"></i> Cash on Delivery orders - collect payment during sample collection.</p>
+                            </div>
+                            
+                            {% if cod_orders %}
+                                <div class="orders-grid">
+                                    {% for order in cod_orders %}
+                                        {% include 'hospital_admin/partials/lab_order_card.html' with order=order order_type='cod' %}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="no-orders">
+                                    <i class="fe fe-credit-card"></i>
+                                    <h4>No COD Orders</h4>
+                                    <p>No cash on delivery orders pending at the moment.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Processing Orders Tab -->
+                        <div class="tab-pane fade" id="processing-orders" role="tabpanel">
+                            <div class="filter-section">
+                                <div class="quick-stats">
+                                    <span class="quick-stat">🔬 In Progress: {{ order_stats.processing }}</span>
+                                    <span class="quick-stat">⚡ Priority Tests: {{ priority_count|default:0 }}</span>
+                                </div>
+                                <p><i class="fe fe-activity"></i> Tests currently being processed in the laboratory.</p>
+                            </div>
+                            
+                            {% if processing_orders %}
+                                <div class="orders-grid">
+                                    {% for order in processing_orders %}
+                                        {% include 'hospital_admin/partials/lab_order_card.html' with order=order order_type='processing' %}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="no-orders">
+                                    <i class="fe fe-activity"></i>
+                                    <h4>No Tests Processing</h4>
+                                    <p>No tests are currently being processed.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Completed Orders Tab -->
+                        <div class="tab-pane fade" id="completed-orders" role="tabpanel">
+                            <div class="filter-section">
+                                <div class="quick-stats">
+                                    <span class="quick-stat">✅ Completed Today: {{ completed_today|default:0 }}</span>
+                                    <span class="quick-stat">📊 This Week: {{ completed_week|default:0 }}</span>
+                                </div>
+                                <p><i class="fe fe-check-circle"></i> Successfully completed tests with reports ready.</p>
+                            </div>
+                            
+                            {% if completed_orders %}
+                                <div class="orders-grid">
+                                    {% for order in completed_orders %}
+                                        {% include 'hospital_admin/partials/lab_order_card.html' with order=order order_type='completed' %}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="no-orders">
+                                    <i class="fe fe-check-circle"></i>
+                                    <h4>No Completed Orders</h4>
+                                    <p>Complete some tests to see them here.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Failed Orders Tab -->
+                        <div class="tab-pane fade" id="failed-orders" role="tabpanel">
+                            <div class="filter-section">
+                                <div class="quick-stats">
+                                    <span class="quick-stat">❌ Payment Failed: {{ order_stats.failed }}</span>
+                                    <span class="quick-stat">🔄 Recovery Options: Available</span>
+                                </div>
+                                <p><i class="fe fe-alert-triangle"></i> Orders with failed payments - help patients resolve payment issues.</p>
+                            </div>
+                            
+                            {% if failed_orders %}
+                                <div class="orders-grid">
+                                    {% for order in failed_orders %}
+                                        {% include 'hospital_admin/partials/lab_order_card.html' with order=order order_type='failed' %}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="no-orders">
+                                    <i class="fe fe-check-circle"></i>
+                                    <h4>No Failed Orders</h4>
+                                    <p>Great! All payments are successful.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- COD Collection Modal -->
+    <div class="modal fade" id="codCollectionModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">💵 Collect COD Payment</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="codCollectionForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="codOrderId" name="order_id">
+                        <div class="payment-summary">
+                            <h6>Payment Summary</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>Order Total:</strong>
+                                </div>
+                                <div class="col-6 text-right">
+                                    ₹<span id="codAmount">0.00</span>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>Amount to Collect:</strong>
+                                </div>
+                                <div class="col-6 text-right">
+                                    <strong>₹<span id="codTotalAmount">0.00</span></strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-3">
+                            <label>Payment Method</label>
+                            <select class="form-control" name="payment_method" required>
+                                <option value="cash">Cash</option>
+                                <option value="upi">UPI/Digital Payment</option>
+                                <option value="card">Card Payment</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Amount Received</label>
+                            <input type="number" class="form-control" name="amount_received" 
+                                   step="0.01" min="0" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Notes (Optional)</label>
+                            <textarea class="form-control" name="notes" rows="2" 
+                                    placeholder="Any additional notes about payment collection..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fe fe-check"></i> Confirm Payment Collection
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Test Results Modal -->
+    <div class="modal fade" id="testResultsModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">🔬 Add Test Results</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="testResultsForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="testOrderId" name="order_id">
+                        
+                        <div class="test-info">
+                            <h6>Test Information</h6>
+                            <div id="testDetails"></div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="form-group">
+                            <label>Test Results</label>
+                            <textarea class="form-control" name="test_results" rows="4" 
+                                    placeholder="Enter detailed test results..." required></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Unit</label>
+                                    <input type="text" class="form-control" name="unit" 
+                                           placeholder="e.g., mg/dL, mmol/L">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Normal Range</label>
+                                    <input type="text" class="form-control" name="normal_range" 
+                                           placeholder="e.g., 70-100 mg/dL">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Technician Comments</label>
+                            <textarea class="form-control" name="technician_comments" rows="3" 
+                                    placeholder="Additional observations or comments..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Report Status</label>
+                            <select class="form-control" name="report_status" required>
+                                <option value="normal">Normal</option>
+                                <option value="abnormal">Abnormal</option>
+                                <option value="critical">Critical</option>
+                                <option value="inconclusive">Inconclusive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fe fe-save"></i> Save Results & Complete Test
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <p class="mt-2">Processing...</p>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
+    
+    <script>
+        // Lab Order Management JavaScript
+        
+        // Update order status
+        function updateLabOrderStatus(orderId, status, orderType = 'lab') {
+            showLoading();
+            
+            $.ajax({
+                url: '{% url "lab-update-order-status" %}',
+                type: 'POST',
+                data: {
+                    'order_id': orderId,
+                    'status': status,
+                    'order_type': orderType,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    hideLoading();
+                    if (response.success) {
+                        showMessage('success', response.message || 'Order status updated successfully!');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showMessage('error', response.message || 'Failed to update order status.');
+                    }
+                },
+                error: function() {
+                    hideLoading();
+                    showMessage('error', 'Network error. Please try again.');
+                }
+            });
+        }
+        
+        // COD Payment Collection
+        function collectCODPayment(orderId, amount) {
+            $('#codOrderId').val(orderId);
+            $('#codAmount').text(amount);
+            $('#codTotalAmount').text(amount);
+            $('input[name="amount_received"]').val(amount);
+            $('#codCollectionModal').modal('show');
+        }
+        
+        $('#codCollectionForm').on('submit', function(e) {
+            e.preventDefault();
+            showLoading();
+            
+            $.ajax({
+                url: '{% url "lab-process-cod-payment" %}',
+                type: 'POST',
+                data: $(this).serialize() + '&csrfmiddlewaretoken={{ csrf_token }}',
+                success: function(response) {
+                    hideLoading();
+                    $('#codCollectionModal').modal('hide');
+                    
+                    if (response.success) {
+                        showMessage('success', response.message || 'COD payment collected successfully!');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showMessage('error', response.message || 'Failed to process COD payment.');
+                    }
+                },
+                error: function() {
+                    hideLoading();
+                    showMessage('error', 'Failed to process payment. Please try again.');
+                }
+            });
+        });
+        
+        // Complete Test with Results
+        function completeTestWithResults(orderId, testName) {
+            $('#testOrderId').val(orderId);
+            $('#testDetails').html(`
+                <div class="alert alert-info">
+                    <strong>Test:</strong> ${testName}<br>
+                    <strong>Order ID:</strong> #${orderId}
+                </div>
+            `);
+            $('#testResultsModal').modal('show');
+        }
+        
+        $('#testResultsForm').on('submit', function(e) {
+            e.preventDefault();
+            showLoading();
+            
+            $.ajax({
+                url: '{% url "lab-complete-test-with-results" %}',
+                type: 'POST',
+                data: $(this).serialize() + '&csrfmiddlewaretoken={{ csrf_token }}',
+                success: function(response) {
+                    hideLoading();
+                    $('#testResultsModal').modal('hide');
+                    
+                    if (response.success) {
+                        showMessage('success', response.message || 'Test completed successfully!');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showMessage('error', response.message || 'Failed to complete test.');
+                    }
+                },
+                error: function() {
+                    hideLoading();
+                    showMessage('error', 'Failed to save results. Please try again.');
+                }
+            });
+        });
+        
+        // Payment failure handling
+        function handlePaymentFailure(orderId, action) {
+            if (!confirm(`Are you sure you want to ${action} this order?`)) {
+                return;
+            }
+            
+            showLoading();
+            
+            $.ajax({
+                url: '{% url "lab-handle-payment-failure" %}',
+                type: 'POST',
+                data: {
+                    'order_id': orderId,
+                    'action': action,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    hideLoading();
+                    if (response.success) {
+                        showMessage('success', response.message);
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showMessage('error', response.message || 'Failed to process request.');
+                    }
+                },
+                error: function() {
+                    hideLoading();
+                    showMessage('error', 'Network error. Please try again.');
+                }
+            });
+        }
+        
+        // Utility functions
+        function showLoading() {
+            $('#loadingSpinner').show();
+        }
+        
+        function hideLoading() {
+            $('#loadingSpinner').hide();
+        }
+        
+        function showMessage(type, message) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show">
+                    ${message}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                </div>
+            `;
+            
+            $('.content').prepend(alertHtml);
+            
+            setTimeout(() => {
+                $('.alert').fadeOut();
+            }, 5000);
+        }
+        
+        function refreshOrders() {
+            location.reload();
+        }
+        
+        // Auto-refresh every 2 minutes
+        setInterval(function() {
+            if (!$('.modal').hasClass('show')) {
+                location.reload();
+            }
+        }, 120000);
+        
+        // Initialize tooltips
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
+</body>
+</html>

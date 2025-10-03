@@ -10,6 +10,7 @@ from io import BytesIO
 import os
 from datetime import datetime
 from decimal import Decimal
+from .models import Invoice, InvoiceItem
 
 
 class InvoicePDFGenerator:
@@ -20,164 +21,267 @@ class InvoicePDFGenerator:
         self.width, self.height = self.pagesize
         
     def generate_pdf(self):
-        """Generate PDF invoice and return the buffer"""
-        doc = SimpleDocTemplate(
-            self.buffer,
-            pagesize=self.pagesize,
-            rightMargin=72,
-            leftMargin=72,
-            topMargin=72,
-            bottomMargin=18
-        )
-        
-        # Build the PDF content
-        story = []
-        
-        # Add company header
-        story.extend(self._create_header())
-        story.append(Spacer(1, 20))
-        
-        # Add invoice details
-        story.extend(self._create_invoice_details())
-        story.append(Spacer(1, 10))
-        
-        # Add invoice items table
-        story.extend(self._create_items_table())
-        story.append(Spacer(1, 20))
-        
-        # Add totals
-        story.extend(self._create_totals())
-        story.append(Spacer(1, 20))
-        
-        # Add footer
-        story.extend(self._create_footer())
-        
-        # Build PDF
-        doc.build(story)
-        
-        # Get PDF content
-        pdf_content = self.buffer.getvalue()
-        self.buffer.close()
-        
-        return pdf_content
+        """Generate PDF invoice and return the buffer (production-safe)"""
+        try:
+            doc = SimpleDocTemplate(
+                self.buffer,
+                pagesize=self.pagesize,
+                rightMargin=72,
+                leftMargin=72,
+                topMargin=72,
+                bottomMargin=18
+            )
+            
+            # Build the PDF content
+            story = []
+            
+            # Add company header (with error handling)
+            try:
+                story.extend(self._create_header())
+                story.append(Spacer(1, 20))
+            except Exception as e:
+                print(f"Header creation error: {e}")
+                # Add fallback header
+                story.append(Paragraph("<b>MAHIMA MEDICARE</b>", getSampleStyleSheet()['Title']))
+                story.append(Spacer(1, 20))
+            
+            # Add invoice details
+            try:
+                story.extend(self._create_invoice_details())
+                story.append(Spacer(1, 10))
+            except Exception as e:
+                print(f"Invoice details error: {e}")
+                story.append(Paragraph(f"Invoice #{self.invoice.invoice_number}", getSampleStyleSheet()['Heading2']))
+            
+            # Add invoice items table
+            try:
+                story.extend(self._create_items_table())
+                story.append(Spacer(1, 20))
+            except Exception as e:
+                print(f"Items table error: {e}")
+                story.append(Paragraph(f"Total: ₹{self.invoice.total_amount}", getSampleStyleSheet()['Normal']))
+            
+            # Add totals
+            try:
+                story.extend(self._create_totals())
+                story.append(Spacer(1, 20))
+            except Exception as e:
+                print(f"Totals section error: {e}")
+            
+            # Add footer
+            try:
+                story.extend(self._create_footer())
+            except Exception as e:
+                print(f"Footer error: {e}")
+            
+            # Build PDF
+            doc.build(story)
+            
+            # Get PDF content
+            pdf_content = self.buffer.getvalue()
+            self.buffer.close()
+            
+            return pdf_content
+            
+        except Exception as e:
+            print(f"PDF generation error: {e}")
+            # Clean up buffer
+            try:
+                self.buffer.close()
+            except:
+                pass
+            raise Exception(f"Invoice PDF generation failed: {str(e)}")
     
     def _create_header(self):
-        """Create GST tax invoice header section with logo"""
+        """Create professional header with Mahima Medicare branding"""
         styles = getSampleStyleSheet()
+        elements = []
         
-        # Try to add company logo
+        # Custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            spaceAfter=20,
+            alignment=TA_CENTER,
+            textColor=colors.Color(0.2, 0.4, 0.8)  # Professional blue
+        )
+        
+        subtitle_style = ParagraphStyle(
+            'CustomSubtitle',
+            parent=styles['Normal'],
+            fontSize=14,
+            spaceAfter=15,
+            alignment=TA_CENTER,
+            textColor=colors.Color(0.3, 0.3, 0.3)
+        )
+        
+        # Try to add Mahima Medicare logo (safe for production)
         logo = None
         try:
-            logo_path = os.path.join(settings.STATIC_ROOT or settings.STATICFILES_DIRS[0], 'HealthStack-System', 'images', 'Normal', 'logo.png')
-            if os.path.exists(logo_path):
-                logo = Image(logo_path, width=1*inch, height=0.7*inch)
-            else:
-                # Fallback to other logo locations
-                alt_logo_path = os.path.join(settings.BASE_DIR, 'static', 'HealthStack-System', 'images', 'Normal', 'logo.png')
-                if os.path.exists(alt_logo_path):
-                    logo = Image(alt_logo_path, width=1*inch, height=0.7*inch)
-        except:
+            # Try multiple logo paths (production-safe)
+            logo_paths = []
+            
+            # Add STATIC_ROOT path if available
+            if hasattr(settings, 'STATIC_ROOT') and settings.STATIC_ROOT:
+                logo_paths.append(os.path.join(settings.STATIC_ROOT, 'HealthStack-System', 'images', 'Normal', 'logo.png'))
+            
+            # Add STATICFILES_DIRS paths if available
+            if hasattr(settings, 'STATICFILES_DIRS') and settings.STATICFILES_DIRS:
+                for static_dir in settings.STATICFILES_DIRS:
+                    logo_paths.append(os.path.join(static_dir, 'HealthStack-System', 'images', 'Normal', 'logo.png'))
+            
+            # Add BASE_DIR fallback
+            logo_paths.extend([
+                os.path.join(settings.BASE_DIR, 'static', 'HealthStack-System', 'images', 'Normal', 'logo.png'),
+                os.path.join(settings.BASE_DIR, 'static', 'images', 'logo.png'),
+            ])
+            
+            for logo_path in logo_paths:
+                try:
+                    if os.path.exists(logo_path) and os.path.isfile(logo_path):
+                        logo = Image(logo_path, width=2*inch, height=1.4*inch)
+                        break
+                except (IOError, OSError) as img_error:
+                    print(f"Could not load logo from {logo_path}: {img_error}")
+                    continue
+                    
+        except Exception as e:
+            print(f"Logo loading error (continuing without logo): {e}")
             logo = None
         
-        # Create header table with company info and GST tax invoice title
+        # Header with logo and company info
         if logo:
+            # Create header table with logo and company details
             header_data = [
-                # Row 1: Logo and GST TAX INVOICE
                 [
                     logo,
-                    Paragraph('<font size="16"><b>GST TAX INVOICE</b></font>', 
-                             ParagraphStyle('Title', parent=styles['Normal'], alignment=TA_CENTER, fontSize=16))
-                ],
-                # Row 2: Company name and Original for Buyer
-                [
-                    Paragraph(f'<font size="14"><b>{self.invoice.company_name}</b></font>', styles['Normal']),
-                    Paragraph('<font size="8">Original for Buyer</font>', 
-                             ParagraphStyle('OriginalBuyer', parent=styles['Normal'], alignment=TA_RIGHT, fontSize=8))
-                ],
-                # Row 3: Company details and Subject to jurisdiction
-                [
-                    Paragraph(f'''<font size="9">
-                    Sale of - I, Near Mani Residency Complex,<br/>
-                    {self.invoice.company_address}<br/>
-                    Ph.: {self.invoice.company_phone} | Email: info@mahimamedicare.com
-                    </font>''', styles['Normal']),
-                    Paragraph('<font size="8">Subject to Vadodara Jurisdiction</font>', styles['Normal'])
+                    Paragraph('''
+                    <font size="18" color="#2E5CBA"><b>MAHIMA MEDICARE</b></font><br/>
+                    <font size="10" color="#666666">Healthcare Services & Medical Solutions</font><br/>
+                    <font size="9" color="#333333">
+                    Address: Near Mani Residency Complex, Indore, MP<br/>
+                    Phone: +91-98765-43210 | Email: info@mahimamedicare.co.in<br/>
+                    <b>GSTIN: 23AAAAA0000A1Z5 | PAN: AAAAA0000A</b>
+                    </font>
+                    ''', ParagraphStyle('CompanyInfo', parent=styles['Normal'], alignment=TA_LEFT))
                 ]
             ]
+            
+            header_table = Table(header_data, colWidths=[2.5*inch, 4.5*inch])
+            header_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ]))
+            elements.append(header_table)
         else:
-            # Fallback without logo
-            header_data = [
-                # Row 1: Subject to jurisdiction and GST TAX INVOICE
-                [
-                    Paragraph('<font size="8">Subject to Vadodara Jurisdiction</font>', styles['Normal']),
-                    Paragraph('<font size="16"><b>GST TAX INVOICE</b></font>', 
-                             ParagraphStyle('Title', parent=styles['Normal'], alignment=TA_CENTER, fontSize=16))
-                ],
-                # Row 2: Company name and Original for Buyer
-                [
-                    Paragraph(f'<font size="14"><b>{self.invoice.company_name}</b></font>', styles['Normal']),
-                    Paragraph('<font size="8">Original for Buyer</font>', 
-                             ParagraphStyle('OriginalBuyer', parent=styles['Normal'], alignment=TA_RIGHT, fontSize=8))
-                ],
-                # Row 3: Company details
-                [
-                    Paragraph(f'''<font size="9">
-                    Sale of - I, Near Mani Residency Complex,<br/>
-                    {self.invoice.company_address}<br/>
-                    Ph.: {self.invoice.company_phone} | Email: info@mahimamedicare.com
-                    </font>''', styles['Normal']),
-                    ''
-                ]
-            ]
+            # Fallback header without logo
+            elements.append(Paragraph("MAHIMA MEDICARE", title_style))
+            elements.append(Paragraph("Healthcare Services & Medical Solutions", subtitle_style))
+            elements.append(Paragraph('''
+            Address: Near Mani Residency Complex, Indore, MP<br/>
+            Phone: +91-98765-43210 | Email: info@mahimamedicare.co.in<br/>
+            <b>GSTIN: 23AAAAA0000A1Z5 | PAN: AAAAA0000A</b>
+            ''', ParagraphStyle('CompanyAddress', parent=styles['Normal'], alignment=TA_CENTER, fontSize=9)))
         
-        header_table = Table(header_data, colWidths=[4*inch, 2.5*inch])
-        header_table.setStyle(TableStyle([
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('LEFTPADDING', (0, 0), (-1, -1), 6),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-            ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ]))
+        elements.append(Spacer(1, 10))
         
-        return [header_table, Spacer(1, 10)]
+        # Invoice title with border
+        invoice_title_style = ParagraphStyle(
+            'InvoiceTitle',
+            parent=styles['Heading2'],
+            fontSize=16,
+            alignment=TA_CENTER,
+            textColor=colors.darkblue,
+            borderWidth=1,
+            borderColor=colors.darkblue,
+            borderPadding=10,
+            spaceAfter=15
+        )
+        
+        payment_type = self.invoice.payment.payment_type if self.invoice.payment else 'service'
+        if payment_type == 'pharmacy':
+            title_text = "MEDICINE PURCHASE INVOICE"
+        elif payment_type == 'appointment':
+            title_text = "DOCTOR CONSULTATION INVOICE" 
+        elif payment_type == 'test':
+            title_text = "LABORATORY TEST INVOICE"
+        else:
+            title_text = "SERVICE INVOICE"
+            
+        elements.append(Paragraph(f"<b>{title_text}</b>", invoice_title_style))
+        
+        return elements
+
     
     def _create_invoice_details(self):
-        """Create GST invoice details section"""
+        """Create professional invoice details section"""
         styles = getSampleStyleSheet()
+        elements = []
         
-        # Create invoice details table matching GST format
-        details_data = [
-            # Row 1: D.L. No, State & Code, Invoice details
-            [
-                Paragraph('<font size="8"><b>D.L. No.</b><br/>20C VAD 94560, 20D VAD 93441<br/><b>Dated:</b> 20 May 2000<br/><b>Food Reg. No.</b><br/><b>GSTIN:</b> 24AAKPP1343N1ZK</font>', styles['Normal']),
-                Paragraph('<font size="8"><b>State & Code</b><br/>Invoice No. : 12<br/>Date : 18-04-2024<br/>Due Date : 28-05-2024<br/>Invoice Type : C</font>', styles['Normal']),
-            ],
-            # Row 2: To section and GSTIN details
-            [
-                Paragraph(f'''<font size="9"><b>To</b><br/>
-                <b>{self.invoice.customer_name}</b><br/>
-                {self.invoice.customer_address or "Address not provided"}<br/>
-                Ph No.: {self.invoice.customer_phone}
-                </font>''', styles['Normal']),
-                Paragraph(f'''<font size="8"><b>GSTIN No.</b><br/>
-                <b>D.L. No.</b><br/>
-                <b>PAN No.</b><br/>
-                <b>State & Code:</b> Gujarat-24
-                </font>''', styles['Normal'])
-            ]
+        # Custom header style
+        header_style = ParagraphStyle(
+            'CustomHeader',
+            parent=styles['Heading3'],
+            fontSize=14,
+            spaceAfter=12,
+            textColor=colors.Color(0.2, 0.4, 0.8)
+        )
+        
+        # Invoice details section
+        elements.append(Paragraph("Invoice Details", header_style))
+        
+        invoice_details_data = [
+            ['Invoice Number:', f'INV-{self.invoice.invoice_number}'],
+            ['Invoice Date:', self.invoice.created_at.strftime('%B %d, %Y')],
+            ['Payment ID:', self.invoice.payment.razorpay_payment_id if self.invoice.payment and self.invoice.payment.razorpay_payment_id else 'N/A'],
+            ['Payment Status:', 'Paid'],
         ]
         
-        details_table = Table(details_data, colWidths=[3.5*inch, 3*inch])
-        details_table.setStyle(TableStyle([
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('LEFTPADDING', (0, 0), (-1, -1), 6),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-            ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ]))
+        # Add service-specific details
+        if self.invoice.payment:
+            if self.invoice.payment.payment_type == 'appointment' and self.invoice.payment.appointment:
+                invoice_details_data.append(['Doctor:', self.invoice.payment.appointment.doctor.name])
+                invoice_details_data.append(['Appointment Date:', self.invoice.payment.appointment.date.strftime('%B %d, %Y')])
+            elif self.invoice.payment.payment_type == 'pharmacy' and self.invoice.payment.order:
+                invoice_details_data.append(['Order Status:', self.invoice.payment.order.get_order_status_display()])
+                invoice_details_data.append(['Total Items:', str(self.invoice.payment.order.orderitems.count())])
         
-        return [details_table]
+        invoice_details_table = Table(invoice_details_data, colWidths=[2.5*inch, 3.5*inch])
+        invoice_details_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
+        ]))
+        elements.append(invoice_details_table)
+        elements.append(Spacer(1, 15))
+        
+        # Customer details section
+        elements.append(Paragraph("Customer Information", header_style))
+        
+        customer_data = [
+            ['Name:', self.invoice.customer_name],
+            ['Phone:', self.invoice.customer_phone or 'N/A'],
+            ['Email:', self.invoice.customer_email or 'N/A'],
+        ]
+        
+        if self.invoice.customer_address:
+            customer_data.append(['Address:', self.invoice.customer_address])
+        
+        customer_table = Table(customer_data, colWidths=[2.5*inch, 3.5*inch])
+        customer_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
+        ]))
+        elements.append(customer_table)
+        
+        return elements
     
     def _create_customer_details(self):
         """Create customer details section"""
@@ -216,170 +320,194 @@ class InvoicePDFGenerator:
         return details
     
     def _create_items_table(self):
-        """Create GST invoice items table"""
-        # Table headers matching GST format
-        headers = [
-            'Sr.', 'HSN', 'Mfg.', 'Product Name', 'Pack', 'MRP', 'Batch No.', 'Exp Dt', 'Qty', 'Free', 'Rate', 'Dis %', 'GST%', 'Amount'
-        ]
+        """Create professional service items table"""
+        styles = getSampleStyleSheet()
+        elements = []
         
-        # Table data
+        # Items header
+        header_style = ParagraphStyle(
+            'ItemsHeader',
+            parent=styles['Heading3'],
+            fontSize=14,
+            spaceAfter=12,
+            textColor=colors.Color(0.2, 0.4, 0.8)
+        )
+        
+        payment_type = self.invoice.payment.payment_type if self.invoice.payment else 'service'
+        
+        if payment_type == 'pharmacy':
+            elements.append(Paragraph("Medicine Details", header_style))
+        elif payment_type == 'appointment':
+            elements.append(Paragraph("Consultation Details", header_style))
+        elif payment_type == 'test':
+            elements.append(Paragraph("Laboratory Test Details", header_style))
+        else:
+            elements.append(Paragraph("Service Details", header_style))
+        
+        # Table headers - simpler format
+        headers = ['Description', 'Quantity', 'Unit Price', 'Total Price']
         data = [headers]
         
-        sr_no = 1
+        # Add items
         for item in self.invoice.items.all():
-            # Calculate GST (assuming 12% for medical services)
-            gst_rate = 12 if item.item_type in ['appointment', 'test'] else 5  # 5% for medicines
-            base_amount = float(item.unit_price)
-            gst_amount = (base_amount * gst_rate) / (100 + gst_rate)
-            net_amount = base_amount - gst_amount
-            
             row = [
-                str(sr_no),
-                '1234',  # HSN code - you can make this dynamic
-                'Cipla',  # Manufacturer - you can make this dynamic
                 item.description,
-                '1 X 10' if item.item_type == 'medicine' else '1',  # Pack
-                f"₹{item.unit_price:.2f}",  # MRP
-                'ABC345' if item.item_type == 'medicine' else '-',  # Batch No
-                '03-2026' if item.item_type == 'medicine' else '-',  # Exp Date
                 str(item.quantity),
-                '0',  # Free
-                f"₹{net_amount:.2f}",  # Rate (without GST)
-                '0',  # Discount %
-                f"{gst_rate}%",  # GST %
-                f"₹{item.total_price:.2f}"  # Amount
+                f'₹{item.unit_price:.2f}',
+                f'₹{item.total_price:.2f}'
             ]
             data.append(row)
-            sr_no += 1
         
-        # Create table with appropriate column widths
-        col_widths = [0.3*inch, 0.4*inch, 0.4*inch, 2*inch, 0.5*inch, 0.6*inch, 0.6*inch, 0.5*inch, 0.3*inch, 0.3*inch, 0.6*inch, 0.4*inch, 0.4*inch, 0.7*inch]
-        table = Table(data, colWidths=col_widths)
-        
-        # Table style matching GST format
-        table.setStyle(TableStyle([
-            # Header row
-            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+        # Create table
+        items_table = Table(data, colWidths=[3.5*inch, 1*inch, 1.5*inch, 1.5*inch])
+        items_table.setStyle(TableStyle([
+            # Header styling
+            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.2, 0.4, 0.8)),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 8),
-            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             
-            # Data rows
-            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 7),
-            ('ALIGN', (0, 1), (0, -1), 'CENTER'),  # Sr. No center
-            ('ALIGN', (3, 1), (3, -1), 'LEFT'),    # Product name left
-            ('ALIGN', (4, 1), (-1, -1), 'CENTER'), # Rest center aligned
-            
-            # Grid and borders
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            # Data styling
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('ALIGN', (0, 1), (0, -1), 'LEFT'),  # Description left-aligned
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.Color(0.95, 0.95, 0.95)])
         ]))
         
-        return [table]
+        elements.append(items_table)
+        return elements
     
     def _create_totals(self):
-        """Create GST totals section"""
+        """Create professional billing summary section"""
         styles = getSampleStyleSheet()
+        elements = []
         
-        # Calculate GST breakdown
+        # Billing summary header
+        header_style = ParagraphStyle(
+            'BillingHeader',
+            parent=styles['Heading3'],
+            fontSize=14,
+            spaceAfter=12,
+            textColor=colors.Color(0.2, 0.4, 0.8)
+        )
+        
+        elements.append(Paragraph("Billing Summary", header_style))
+        
+        # Calculate totals
         total_amount = float(self.invoice.total_amount)
         
-        # Create totals table matching GST format
-        totals_data = [
-            # Row 1: Remarks and GST breakdown
-            [
-                Paragraph('<font size="8"><b>Remarks:</b></font>', styles['Normal']),
-                Paragraph('<font size="8"><b>GST %</b></font>', styles['Normal']),
-                Paragraph('<font size="8"><b>Taxable Amt</b></font>', styles['Normal']),
-                Paragraph('<font size="8"><b>SGST Amt</b></font>', styles['Normal']),
-                Paragraph('<font size="8"><b>CGST Amt</b></font>', styles['Normal']),
-                Paragraph('<font size="8"><b>Tax Amt</b></font>', styles['Normal'])
-            ],
-            # Row 2: Values
-            [
-                '',
-                Paragraph('<font size="8">12 %</font>', styles['Normal']),
-                Paragraph(f'<font size="8">₹{total_amount * 0.89:.2f}</font>', styles['Normal']),
-                Paragraph(f'<font size="8">₹{total_amount * 0.055:.2f}</font>', styles['Normal']),
-                Paragraph(f'<font size="8">₹{total_amount * 0.055:.2f}</font>', styles['Normal']),
-                Paragraph(f'<font size="8">₹{total_amount * 0.11:.2f}</font>', styles['Normal'])
-            ]
+        # Determine GST rate based on payment type
+        payment_type = self.invoice.payment.payment_type if self.invoice.payment else 'service'
+        if payment_type == 'pharmacy':
+            gst_rate = 5  # 5% GST for medicines
+        else:
+            gst_rate = 18  # 18% GST for services
+        
+        # Calculate amounts
+        base_amount = total_amount / (1 + gst_rate/100)
+        gst_amount = total_amount - base_amount
+        
+        # Create billing summary table
+        billing_data = [
+            ['Subtotal (Before GST):', f'₹{base_amount:.2f}'],
+            [f'GST ({gst_rate}%):', f'₹{gst_amount:.2f}'],
         ]
         
-        totals_table = Table(totals_data, colWidths=[2*inch, 0.8*inch, 1*inch, 0.8*inch, 0.8*inch, 0.8*inch])
-        totals_table.setStyle(TableStyle([
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-            ('FONTSIZE', (0, 0), (-1, -1), 8),
-            ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        # Add delivery charges for pharmacy orders
+        if payment_type == 'pharmacy' and self.invoice.payment and self.invoice.payment.order:
+            delivery_fee = 40 if hasattr(self.invoice.payment.order, 'delivery_method') and self.invoice.payment.order.delivery_method == 'delivery' else 0
+            if delivery_fee > 0:
+                billing_data.insert(-1, ['Delivery Charges:', f'₹{delivery_fee:.2f}'])
+        
+        billing_data.append(['Total Amount:', f'₹{total_amount:.2f}'])
+        
+        billing_table = Table(billing_data, colWidths=[4*inch, 2*inch])
+        billing_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LINEABOVE', (0, -1), (-1, -1), 2, colors.Color(0.2, 0.4, 0.8)),
+            ('TEXTCOLOR', (0, -1), (-1, -1), colors.Color(0.2, 0.4, 0.8)),
         ]))
         
-        # Bank details and final total
-        bank_details = Paragraph(f'''<font size="8">
-        <b>Bank Details:</b><br/>
-        State Bank of India<br/>
-        Ac No.: 30880782555 IFSC Code: SBIN223ED1<br/>
-        <b>Terms & Conditions:</b><br/>
-        Subject to Vadodara Jurisdiction<br/>
-        Advance Payment before Delivery.<br/>
-        E-Invoice data
-        </font>''', styles['Normal'])
-        
-        final_total = Paragraph(f'''<font size="10">
-        <b>Sub Total:</b> ₹{total_amount * 0.89:.2f}<br/>
-        <b>Discount:</b> ₹0.00<br/>
-        <b>CGST/SGST:</b> ₹{total_amount * 0.11:.2f}<br/>
-        <b>SGST:</b> ₹{total_amount * 0.055:.2f}<br/>
-        <br/>
-        <b>Net Amount:</b> ₹{total_amount:.2f}
-        </font>''', styles['Normal'])
-        
-        # Bottom section
-        bottom_data = [
-            [bank_details, final_total]
-        ]
-        
-        bottom_table = Table(bottom_data, colWidths=[4*inch, 2.5*inch])
-        bottom_table.setStyle(TableStyle([
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('LEFTPADDING', (0, 0), (-1, -1), 6),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-        ]))
-        
-        return [totals_table, Spacer(1, 10), bottom_table]
+        elements.append(billing_table)
+        return elements
     
     def _create_footer(self):
-        """Create GST invoice footer"""
+        """Create professional invoice footer"""
         styles = getSampleStyleSheet()
+        elements = []
         
-        footer = []
+        # Terms and conditions
+        elements.append(Spacer(1, 15))
         
-        # Company signature line
-        footer.append(Spacer(1, 20))
+        terms_style = ParagraphStyle(
+            'Terms',
+            parent=styles['Normal'],
+            fontSize=8,
+            alignment=TA_LEFT,
+            textColor=colors.Color(0.3, 0.3, 0.3)
+        )
         
+        terms_text = """
+        <b>Terms & Conditions:</b><br/>
+        • Payment is subject to realization of cheque/DD.<br/>
+        • All disputes are subject to Indore jurisdiction.<br/>
+        • Goods once sold will not be taken back.<br/>
+        • E&OE (Errors and Omissions Excepted)
+        """
+        
+        elements.append(Paragraph(terms_text, terms_style))
+        elements.append(Spacer(1, 20))
+        
+        # Thank you message
+        thank_you_style = ParagraphStyle(
+            'ThankYou',
+            parent=styles['Normal'],
+            fontSize=12,
+            alignment=TA_CENTER,
+            textColor=colors.Color(0.2, 0.4, 0.8),
+            spaceAfter=10
+        )
+        
+        elements.append(Paragraph("Thank you for choosing Mahima Medicare for your healthcare needs!", thank_you_style))
+        
+        # Company signature section
         signature_data = [
-            ['', f'for {self.invoice.company_name}', 'Page 1 of 1']
+            ['Customer Signature', '', 'Authorized Signatory\nMAHIMA MEDICARE']
         ]
         
-        signature_table = Table(signature_data, colWidths=[2*inch, 3*inch, 1.5*inch])
+        signature_table = Table(signature_data, colWidths=[2.5*inch, 1*inch, 2.5*inch])
         signature_table.setStyle(TableStyle([
-            ('FONTSIZE', (0, 0), (-1, -1), 8),
-            ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('ALIGN', (0, 0), (0, 0), 'LEFT'),
             ('ALIGN', (2, 0), (2, 0), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('TOPPADDING', (0, 0), (-1, -1), 20),
         ]))
         
-        footer.append(signature_table)
+        elements.append(signature_table)
+        elements.append(Spacer(1, 10))
         
         # Computer generated message
-        footer.append(Spacer(1, 10))
-        footer.append(Paragraph(
-            '<font size="7">This is computer generated invoice hence doesn\'t require signature</font>',
-            ParagraphStyle('ComputerGenerated', parent=styles['Normal'], alignment=TA_CENTER, fontSize=7)
+        computer_msg_style = ParagraphStyle(
+            'ComputerMsg',
+            parent=styles['Normal'],
+            fontSize=7,
+            alignment=TA_CENTER,
+            textColor=colors.grey
+        )
+        
+        elements.append(Paragraph(
+            "This is a computer generated invoice and does not require physical signature.",
+            computer_msg_style
         ))
         
-        return footer
+        return elements
 
 
 def generate_invoice_for_payment(payment):
@@ -387,11 +515,28 @@ def generate_invoice_for_payment(payment):
     Generate invoice for a successful payment
     """
     try:
-        from .models import Invoice, InvoiceItem
+        # Check if invoice already exists - prevent duplicates (multiple checks)
+        try:
+            if hasattr(payment, 'invoice') and payment.invoice:
+                print(f"Found existing invoice via hasattr: {payment.invoice.invoice_number}")
+                return payment.invoice
+        except Invoice.DoesNotExist:
+            # Invoice relation exists but invoice was deleted, continue to create new one
+            pass
         
-        # Check if invoice already exists
-        if hasattr(payment, 'invoice'):
-            return payment.invoice
+        # Double check: Look for any existing invoice for this payment
+        existing_invoice = Invoice.objects.filter(payment=payment).first()
+        if existing_invoice:
+            print(f"Found existing invoice via filter: {existing_invoice.invoice_number}")
+            return existing_invoice
+            
+        # Triple check: Check by payment ID directly to be extra sure
+        existing_by_id = Invoice.objects.filter(payment_id=payment.payment_id).first()
+        if existing_by_id:
+            print(f"Found existing invoice via payment_id: {existing_by_id.invoice_number}")
+            return existing_by_id
+            
+        print(f"Creating new invoice for payment {payment.payment_id}")
         
         # Calculate amounts
         subtotal = payment.amount
@@ -495,7 +640,7 @@ def generate_invoice_for_payment(payment):
         from django.core.files.base import ContentFile
         pdf_file = ContentFile(pdf_content)
         invoice.pdf_file.save(
-            f"invoice_{invoice_number}.pdf",
+            f"invoice_{invoice.invoice_number}.pdf",
             pdf_file,
             save=True
         )
@@ -533,78 +678,164 @@ def generate_pharmacy_invoice_pdf(order):
         # Get styles
         styles = getSampleStyleSheet()
         
-        # Custom styles
+        # Custom styles - Professional Design
         title_style = ParagraphStyle(
             'CustomTitle',
             parent=styles['Heading1'],
             fontSize=24,
-            spaceAfter=30,
+            spaceAfter=20,
             alignment=TA_CENTER,
-            textColor=colors.darkblue
+            textColor=colors.Color(0.2, 0.4, 0.8)  # Professional blue
+        )
+        
+        subtitle_style = ParagraphStyle(
+            'CustomSubtitle',
+            parent=styles['Normal'],
+            fontSize=14,
+            spaceAfter=15,
+            alignment=TA_CENTER,
+            textColor=colors.Color(0.3, 0.3, 0.3)
         )
         
         header_style = ParagraphStyle(
             'CustomHeader',
-            parent=styles['Heading2'],
-            fontSize=16,
+            parent=styles['Heading3'],
+            fontSize=14,
             spaceAfter=12,
-            textColor=colors.darkblue
+            textColor=colors.Color(0.2, 0.4, 0.8)
         )
         
-        # Title
-        title = Paragraph("MAHIMA MEDICARE", title_style)
-        elements.append(title)
+        # Try to add Mahima Medicare logo (production-safe)
+        logo = None
+        try:
+            logo_paths = []
+            
+            if hasattr(settings, 'STATIC_ROOT') and settings.STATIC_ROOT:
+                logo_paths.append(os.path.join(settings.STATIC_ROOT, 'HealthStack-System', 'images', 'Normal', 'logo.png'))
+            
+            if hasattr(settings, 'STATICFILES_DIRS') and settings.STATICFILES_DIRS:
+                for static_dir in settings.STATICFILES_DIRS:
+                    logo_paths.append(os.path.join(static_dir, 'HealthStack-System', 'images', 'Normal', 'logo.png'))
+            
+            logo_paths.extend([
+                os.path.join(settings.BASE_DIR, 'static', 'HealthStack-System', 'images', 'Normal', 'logo.png'),
+                os.path.join(settings.BASE_DIR, 'static', 'images', 'logo.png'),
+            ])
+            
+            for logo_path in logo_paths:
+                try:
+                    if os.path.exists(logo_path) and os.path.isfile(logo_path):
+                        logo = Image(logo_path, width=2*inch, height=1.4*inch)
+                        break
+                except (IOError, OSError):
+                    continue
+        except Exception as e:
+            print(f"Logo loading error (continuing without logo): {e}")
+            logo = None
         
-        subtitle = Paragraph("Medicine Purchase Invoice", styles['Heading2'])
-        elements.append(subtitle)
-        elements.append(Spacer(1, 20))
+        # Header with logo and company info
+        if logo:
+            header_data = [
+                [
+                    logo,
+                    Paragraph('''
+                    <font size="18" color="#2E5CBA"><b>MAHIMA MEDICARE</b></font><br/>
+                    <font size="10" color="#666666">Healthcare Services & Medical Solutions</font><br/>
+                    <font size="9" color="#333333">
+                    Address: Near Mani Residency Complex, Indore, MP<br/>
+                    Phone: +91-98765-43210 | Email: info@mahimamedicare.co.in<br/>
+                    <b>GSTIN: 23AAAAA0000A1Z5 | PAN: AAAAA0000A</b>
+                    </font>
+                    ''', ParagraphStyle('CompanyInfo', parent=styles['Normal'], alignment=TA_LEFT))
+                ]
+            ]
+            
+            header_table = Table(header_data, colWidths=[2.5*inch, 4.5*inch])
+            header_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ]))
+            elements.append(header_table)
+        else:
+            # Fallback header without logo
+            elements.append(Paragraph("MAHIMA MEDICARE", title_style))
+            elements.append(Paragraph("Healthcare Services & Medical Solutions", subtitle_style))
+            elements.append(Paragraph('''
+            Address: Near Mani Residency Complex, Indore, MP<br/>
+            Phone: +91-98765-43210 | Email: info@mahimamedicare.co.in<br/>
+            <b>GSTIN: 23AAAAA0000A1Z5 | PAN: AAAAA0000A</b>
+            ''', ParagraphStyle('CompanyAddress', parent=styles['Normal'], alignment=TA_CENTER, fontSize=9)))
         
-        # Invoice details
-        invoice_data = [
+        elements.append(Spacer(1, 10))
+        
+        # Invoice title with professional styling
+        invoice_title_style = ParagraphStyle(
+            'InvoiceTitle',
+            parent=styles['Heading2'],
+            fontSize=16,
+            alignment=TA_CENTER,
+            textColor=colors.darkblue,
+            spaceAfter=15
+        )
+        
+        elements.append(Paragraph("<b>MEDICINE PURCHASE INVOICE</b>", invoice_title_style))
+        elements.append(Spacer(1, 15))
+        
+        # Invoice details section
+        elements.append(Paragraph("Invoice Details", header_style))
+        
+        # Get payment information for transaction details
+        payment_info = order.razorpaypayment_set.first() if hasattr(order, 'razorpaypayment_set') else None
+        
+        invoice_details_data = [
             ['Invoice Number:', f'INV-{order.id:06d}'],
             ['Order Date:', order.created.strftime('%B %d, %Y')],
+            ['Payment ID:', payment_info.razorpay_payment_id if payment_info and payment_info.razorpay_payment_id else 'N/A'],
             ['Payment Status:', 'Paid'],
             ['Order Status:', order.get_order_status_display()],
+            ['Total Items:', str(order.orderitems.count())],
         ]
         
-        invoice_table = Table(invoice_data, colWidths=[2*inch, 3*inch])
-        invoice_table.setStyle(TableStyle([
+        invoice_details_table = Table(invoice_details_data, colWidths=[2.5*inch, 3.5*inch])
+        invoice_details_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 10),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
         ]))
-        elements.append(invoice_table)
-        elements.append(Spacer(1, 20))
+        elements.append(invoice_details_table)
+        elements.append(Spacer(1, 15))
         
-        # Patient details
-        patient_header = Paragraph("Patient Information", header_style)
-        elements.append(patient_header)
+        # Customer details section
+        elements.append(Paragraph("Customer Information", header_style))
         
-        patient_data = [
+        customer_data = [
             ['Name:', order.user.patient.name if hasattr(order.user, 'patient') else order.user.username],
             ['Phone:', order.delivery_phone or 'N/A'],
+            ['Email:', order.user.email or 'N/A'],
             ['Delivery Method:', order.get_delivery_method_display()],
         ]
         
         if order.delivery_method == 'delivery' and order.delivery_address:
-            patient_data.append(['Address:', order.delivery_address])
+            customer_data.append(['Delivery Address:', order.delivery_address])
         
-        patient_table = Table(patient_data, colWidths=[2*inch, 4*inch])
-        patient_table.setStyle(TableStyle([
+        customer_table = Table(customer_data, colWidths=[2.5*inch, 3.5*inch])
+        customer_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 10),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
         ]))
-        elements.append(patient_table)
-        elements.append(Spacer(1, 20))
+        elements.append(customer_table)
+        elements.append(Spacer(1, 15))
         
-        # Medicine details
-        medicine_header = Paragraph("Medicine Details", header_style)
-        elements.append(medicine_header)
+        # Medicine details section
+        elements.append(Paragraph("Medicine Details", header_style))
         
-        # Table headers
+        # Table headers with professional styling
         medicine_data = [['Medicine Name', 'Quantity', 'Unit Price', 'Total Price']]
         
         # Add medicine items
@@ -616,23 +847,28 @@ def generate_pharmacy_invoice_pdf(order):
                 f'₹{item.get_total():.2f}'
             ])
         
-        medicine_table = Table(medicine_data, colWidths=[3*inch, 1*inch, 1.5*inch, 1.5*inch])
+        medicine_table = Table(medicine_data, colWidths=[3.5*inch, 1*inch, 1.5*inch, 1.5*inch])
         medicine_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            # Header styling - professional blue
+            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.2, 0.4, 0.8)),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 10),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            
+            # Data styling
             ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ('ALIGN', (0, 1), (0, -1), 'LEFT'),  # Medicine name left-aligned
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.Color(0.95, 0.95, 0.95)])
         ]))
         elements.append(medicine_table)
-        elements.append(Spacer(1, 20))
+        elements.append(Spacer(1, 15))
         
-        # Billing summary
-        billing_header = Paragraph("Billing Summary", header_style)
-        elements.append(billing_header)
+        # Billing summary section
+        elements.append(Paragraph("Billing Summary", header_style))
         
         subtotal = order.get_totals()
         gst_amount = order.get_gst_amount()
@@ -640,7 +876,7 @@ def generate_pharmacy_invoice_pdf(order):
         total_amount = order.final_bill()
         
         billing_data = [
-            ['Subtotal:', f'₹{subtotal:.2f}'],
+            ['Subtotal (Before GST):', f'₹{subtotal:.2f}'],
             ['GST (5%):', f'₹{gst_amount:.2f}'],
             ['Delivery Charges:', f'₹{delivery_fee:.2f}' if delivery_fee > 0 else 'FREE'],
             ['Total Amount:', f'₹{total_amount:.2f}']
@@ -652,15 +888,66 @@ def generate_pharmacy_invoice_pdf(order):
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 12),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-            ('LINEABOVE', (0, -1), (-1, -1), 2, colors.black),
+            ('LINEABOVE', (0, -1), (-1, -1), 2, colors.Color(0.2, 0.4, 0.8)),
+            ('TEXTCOLOR', (0, -1), (-1, -1), colors.Color(0.2, 0.4, 0.8)),
         ]))
         elements.append(billing_table)
-        elements.append(Spacer(1, 30))
+        elements.append(Spacer(1, 20))
         
-        # Footer
-        footer_text = "Thank you for choosing Mahima Medicare for your healthcare needs!"
-        footer = Paragraph(footer_text, styles['Normal'])
-        elements.append(footer)
+        # Professional footer
+        terms_style = ParagraphStyle(
+            'Terms',
+            parent=styles['Normal'],
+            fontSize=8,
+            alignment=TA_LEFT,
+            textColor=colors.Color(0.3, 0.3, 0.3)
+        )
+        
+        terms_text = """
+        <b>Terms & Conditions:</b><br/>
+        • Payment is subject to realization of cheque/DD.<br/>
+        • All disputes are subject to Indore jurisdiction.<br/>
+        • Medicines once sold will not be taken back unless defective.<br/>
+        • E&OE (Errors and Omissions Excepted)
+        """
+        
+        elements.append(Paragraph(terms_text, terms_style))
+        elements.append(Spacer(1, 15))
+        
+        # Thank you message
+        thank_you_style = ParagraphStyle(
+            'ThankYou',
+            parent=styles['Normal'],
+            fontSize=12,
+            alignment=TA_CENTER,
+            textColor=colors.Color(0.2, 0.4, 0.8),
+        )
+        
+        elements.append(Paragraph("Thank you for choosing Mahima Medicare for your healthcare needs!", thank_you_style))
+        elements.append(Spacer(1, 15))
+        
+        # Signature section
+        signature_data = [
+            ['Customer Signature', '', 'Authorized Signatory\nMAHIMA MEDICARE']
+        ]
+        
+        signature_table = Table(signature_data, colWidths=[2.5*inch, 1*inch, 2.5*inch])
+        signature_table.setStyle(TableStyle([
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+            ('ALIGN', (2, 0), (2, 0), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('TOPPADDING', (0, 0), (-1, -1), 20),
+        ]))
+        
+        elements.append(signature_table)
+        elements.append(Spacer(1, 10))
+        
+        # Computer generated message
+        elements.append(Paragraph(
+            "This is a computer generated invoice and does not require physical signature.",
+            ParagraphStyle('ComputerMsg', parent=styles['Normal'], fontSize=7, alignment=TA_CENTER, textColor=colors.grey)
+        ))
         
         # Build PDF
         doc.build(elements)
