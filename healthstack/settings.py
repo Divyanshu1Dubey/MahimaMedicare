@@ -41,7 +41,18 @@ DEBUG = env('DEBUG', default=False)
 
 # Use environment variable for ALLOWED_HOSTS or fallback to default values
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
-# ALLOWED_HOSTS = ['mobile view', 'local host','ngrok -- keeps on changing']
+
+# Additional hosts for production deployment
+if not DEBUG:
+    # Always include common production domains
+    production_hosts = [
+        'mahimamedicare.onrender.com',
+        '.onrender.com',  # Allow all render subdomains
+        '127.0.0.1',
+        'localhost'
+    ]
+    # Merge with existing ALLOWED_HOSTS
+    ALLOWED_HOSTS = list(set(ALLOWED_HOSTS + production_hosts))
 
 # Application definition
 
