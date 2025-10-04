@@ -2455,9 +2455,20 @@ def lab_dashboard(request):
     
     # Add priority and timing information
     for test in urgent_tests:
-        test.doctor_name = test.prescription.doctor.name
-        test.patient_name = f"{test.prescription.patient.user.first_name} {test.prescription.patient.user.last_name}".strip()
-        test.days_since_prescription = (timezone.now().date() - timezone.datetime.strptime(test.prescription.create_date, '%Y-%m-%d').date()).days
+        test.doctor_name = test.prescription.doctor.name if test.prescription.doctor else "Unknown Doctor"
+        test.patient_name = f"{test.prescription.patient.user.first_name} {test.prescription.patient.user.last_name}".strip() if test.prescription.patient and test.prescription.patient.user else "Unknown Patient"
+        
+        # Safe date parsing with fallback
+        try:
+            if test.prescription.create_date:
+                prescription_date = timezone.datetime.strptime(test.prescription.create_date, '%Y-%m-%d').date()
+                test.days_since_prescription = (timezone.now().date() - prescription_date).days
+            else:
+                # Fallback: use test creation date if prescription date is missing
+                test.days_since_prescription = (timezone.now().date() - test.created_at.date()).days
+        except (ValueError, TypeError, AttributeError):
+            # Fallback: assume recent if date parsing fails
+            test.days_since_prescription = 0
         
         # Determine urgency
         if test.days_since_prescription > 3:
@@ -2468,9 +2479,10 @@ def lab_dashboard(request):
             test.urgency = 'normal'
     
     # === DOCTOR ACTIVITY ANALYSIS ===
+    # Note: Using prescription_test creation date since prescription.create_date is unreliable CharField
     doctor_stats = Prescription.objects.filter(
         prescription_test__test_info_pay_status='paid',
-        create_date__gte=(today - timedelta(days=30)).strftime('%Y-%m-%d')
+        prescription_test__created_at__gte=(today - timedelta(days=30))
     ).values(
         'doctor__name', 'doctor__department'
     ).annotate(
@@ -2502,9 +2514,15 @@ def lab_dashboard(request):
     ).select_related('prescription__patient__user')[:5]
     
     for test in completed_today:
+        # Safe patient name extraction
+        patient_name = "Unknown Patient"
+        if test.prescription and test.prescription.patient and test.prescription.patient.user:
+            user = test.prescription.patient.user
+            patient_name = f"{user.first_name} {user.last_name}".strip() or user.username or "Unknown Patient"
+        
         recent_activity.append({
             'type': 'completion',
-            'message': f"Completed {test.test_name} for {test.prescription.patient.user.first_name} {test.prescription.patient.user.last_name}",
+            'message': f"Completed {test.test_name or 'Test'} for {patient_name}",
             'time': test.updated_at,
             'icon': 'fa-check-circle',
             'color': 'success'
@@ -2517,9 +2535,15 @@ def lab_dashboard(request):
     ).order_by('-updated_at')[:3]
     
     for test in newly_assigned:
+        # Safe patient name extraction
+        patient_name = "Unknown Patient"
+        if test.prescription and test.prescription.patient and test.prescription.patient.user:
+            user = test.prescription.patient.user
+            patient_name = f"{user.first_name} {user.last_name}".strip() or user.username or "Unknown Patient"
+            
         recent_activity.append({
             'type': 'assignment',
-            'message': f"Assigned {test.test_name} for {test.prescription.patient.user.first_name} {test.prescription.patient.user.last_name}",
+            'message': f"Assigned {test.test_name or 'Test'} for {patient_name}",
             'time': test.updated_at,
             'icon': 'fa-user-check',
             'color': 'info'
@@ -2538,13 +2562,20 @@ def lab_dashboard(request):
     for test in workflow_tests:
         if test.prescription and test.prescription.patient:
             patient = test.prescription.patient
-            test.patient_name = f"{patient.user.first_name} {patient.user.last_name}".strip() or patient.user.username
+            
+            # Safe patient name extraction
+            if patient.user:
+                test.patient_name = f"{patient.user.first_name or ''} {patient.user.last_name or ''}".strip() or patient.user.username or 'Unknown Patient'
+                test.patient_email = getattr(patient, 'email', patient.user.email if patient.user.email else 'N/A')
+            else:
+                test.patient_name = 'Unknown Patient'
+                test.patient_email = 'N/A'
+                
             test.patient_phone = getattr(patient, 'phone_number', 'N/A')
-            test.patient_email = getattr(patient, 'email', patient.user.email)
-            test.patient_id = patient.patient_id
+            test.patient_id = getattr(patient, 'patient_id', 'N/A')
             test.patient_image = getattr(patient, 'featured_image', None)
             
-            # Get doctor information
+            # Get doctor information safely
             test.doctor_name = test.prescription.doctor.name if test.prescription.doctor else 'Unknown'
             
             # Check if there's an existing report/PDF
@@ -2553,9 +2584,9 @@ def lab_dashboard(request):
                     patient=patient,
                     test_name=test.test_name
                 )
-                test.has_pdf = bool(test.report.file) if hasattr(test.report, 'file') else False
+                test.has_pdf = bool(getattr(test.report, 'file', None))
                 test.has_report = True
-            except Report.DoesNotExist:
+            except (Report.DoesNotExist, AttributeError):
                 test.report = None
                 test.has_pdf = False
                 test.has_report = False
