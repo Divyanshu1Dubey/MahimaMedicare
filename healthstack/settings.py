@@ -25,7 +25,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ### setting up env
 env = environ.Env()
 
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+# Try to read .env file, but don't fail if it doesn't exist
+try:
+    environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+except:
+    print("Warning: .env file not found. Using default settings for development.")
 
 
 
@@ -34,13 +38,18 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
+# Provide fallback for development when .env file doesn't exist
+try:
+    SECRET_KEY = env('SECRET_KEY')
+except:
+    SECRET_KEY = 'django-insecure-fallback-key-for-development-only-change-in-production'
+    print("Warning: Using fallback SECRET_KEY. Create .env file for production!")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 try:
     DEBUG = env.bool('DEBUG')
 except:
-    DEBUG = False
+    DEBUG = True  # Default to True for development
 
 # ALLOWED_HOSTS Configuration - Production ready for Render.com
 ALLOWED_HOSTS = [
@@ -191,9 +200,18 @@ if not DEBUG:
 
 ### SSLCOMMERZ env variables
 #VARIABLE should be in capital letter.
-STORE_ID = env('STORE_ID')
-STORE_PASSWORD = env('STORE_PASSWORD')
-STORE_NAME = env('STORE_NAME')
+try:
+    STORE_ID = env('STORE_ID')
+except:
+    STORE_ID = ''
+try:
+    STORE_PASSWORD = env('STORE_PASSWORD')
+except:
+    STORE_PASSWORD = ''
+try:
+    STORE_NAME = env('STORE_NAME')
+except:
+    STORE_NAME = 'Mahima Medicare'
 
 ### Gmail SMTP Configuration
 # For production, use custom backend with SSL bypass
