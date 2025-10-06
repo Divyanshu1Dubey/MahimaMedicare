@@ -28,10 +28,12 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', views.login_user, name='login'),
+    path('signup/', views.patient_register, name='signup'),
     path('', include('hospital.urls')),
     path('doctor/', include('doctor.urls')),
     path('api/', include('api.urls')),
     path('hospital_admin/', include('hospital_admin.urls')),
+    path('payment-management/', include('payment_management.urls')),
     path('chat/', include('ChatApp.urls')),
     path('razorpay/', include('razorpay_payment.urls')),
     path('pharmacy/', include('pharmacy.urls')),

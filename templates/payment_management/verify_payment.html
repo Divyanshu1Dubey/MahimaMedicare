@@ -1,0 +1,201 @@
+{% extends 'hospital_admin/base.html' %}
+{% load static %}
+
+{% block title %}Verify Payment - {{ payment.payment_id }}{% endblock %}
+{% block page_title %}Payment Verification{% endblock %}
+{% block breadcrumb %}Verify Payment{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-info-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .status-badge {
+        font-size: 1em;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    .status-verified { background: #d4edda; color: #155724; }
+    .status-received { background: #d1ecf1; color: #0c5460; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-failed { background: #f8d7da; color: #721c24; }
+    .verification-form {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 30px;
+    }
+    .amount-display {
+        font-size: 2em;
+        font-weight: bold;
+        color: #28a745;
+        text-align: center;
+        margin: 20px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card payment-info-card">
+            <div class="card-header">
+                <h5 class="mb-0">💰 Payment Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Payment Details</h6>
+                        <p><strong>Payment ID:</strong> {{ payment.payment_id }}</p>
+                        <p><strong>Status:</strong> 
+                            <span class="status-badge status-{{ payment.status }}">
+                                {{ payment.get_status_display }}
+                            </span>
+                        </p>
+                        <p><strong>Type:</strong> 
+                            <span class="badge bg-primary">{{ payment.get_payment_type_display }}</span>
+                        </p>
+                        <p><strong>Method:</strong> {{ payment.get_payment_method_display }}</p>
+                        <p><strong>Order Reference:</strong> {{ payment.order_reference }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Customer Information</h6>
+                        <p><strong>Name:</strong> {{ payment.customer_name }}</p>
+                        <p><strong>Phone:</strong> {{ payment.customer_phone }}</p>
+                        <p><strong>User:</strong> {{ payment.user.username }}</p>
+                        {% if payment.customer_address %}
+                            <p><strong>Address:</strong> {{ payment.customer_address }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="amount-display">
+                    Total Amount: ₹{{ payment.total_amount }}
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Base Amount: ₹{{ payment.base_amount }}<br>
+                            Additional Fees: ₹{{ payment.additional_fees }}
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Created: {{ payment.created_at|date:"M d, Y H:i" }}<br>
+                            {% if payment.payment_received_at %}
+                                Received: {{ payment.payment_received_at|date:"M d, Y H:i" }}
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if payment.payment_method == 'online' and payment.razorpay_payment_id %}
+        <div class="card payment-info-card">
+            <div class="card-header">
+                <h5 class="mb-0">💳 Razorpay Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Razorpay Payment ID:</strong> {{ payment.razorpay_payment_id }}<br>
+                    {% if payment.razorpay_order_id %}
+                        <strong>Order ID:</strong> {{ payment.razorpay_order_id }}<br>
+                    {% endif %}
+                    {% if payment.razorpay_signature %}
+                        <strong>Signature:</strong> ✅ Verified<br>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <div class="verification-form">
+            <h5 class="text-center mb-4">🔐 Admin Verification</h5>
+            
+            {% if payment.is_admin_verified %}
+                <div class="alert alert-success">
+                    <strong>✅ Already Verified</strong><br>
+                    By: {{ payment.admin_verified_by.username }}<br>
+                    Date: {{ payment.admin_verification_date|date:"M d, Y H:i" }}
+                </div>
+                
+                {% if payment.admin_notes %}
+                    <div class="mt-3">
+                        <h6>Admin Notes:</h6>
+                        <div class="alert alert-light text-dark">
+                            {{ payment.admin_notes|linebreaks }}
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="admin_notes" class="form-label">Verification Notes:</label>
+                        <textarea name="admin_notes" id="admin_notes" class="form-control" 
+                                  rows="4" placeholder="Add your verification notes here..."></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" name="action" value="verify" 
+                                class="btn btn-success btn-lg">
+                            ✅ Verify Payment
+                        </button>
+                        
+                        {% if payment.status == 'pending' %}
+                        <button type="submit" name="action" value="mark_received" 
+                                class="btn btn-info">
+                            📝 Mark as Received
+                        </button>
+                        {% endif %}
+                        
+                        <button type="submit" name="action" value="reject" 
+                                class="btn btn-danger">
+                            ❌ Mark as Failed
+                        </button>
+                    </div>
+                </form>
+            {% endif %}
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'payment_management:payment_detail' payment.payment_id %}" 
+                   class="btn btn-light btn-sm">
+                    📋 View Full Details
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="text-center">
+            <a href="{% url 'payment_management:dashboard' %}" class="btn btn-secondary">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-focus on notes textarea
+document.getElementById('admin_notes').focus();
+
+// Confirmation for reject action
+document.querySelector('button[value="reject"]').addEventListener('click', function(e) {
+    if (!confirm('Are you sure you want to mark this payment as failed?')) {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

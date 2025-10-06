@@ -37,16 +37,17 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG', default=False)
+try:
+    DEBUG = env.bool('DEBUG')
+except:
+    DEBUG = False
 
-# ALLOWED_HOSTS Configuration - Hardcoded to ensure Render.com works
+# ALLOWED_HOSTS Configuration - Production ready for Render.com
 ALLOWED_HOSTS = [
     'mahimamedicare.onrender.com',
-    '*.onrender.com', 
     'localhost',
     '127.0.0.1',
-    '0.0.0.0',
-    '*'  # Allow all hosts for now - CHANGE THIS IN PRODUCTION for security
+    'testserver',  # For Django testing
 ]
 
 # Try to read from environment variable as well, but fallback to hardcoded values
@@ -75,6 +76,7 @@ INSTALLED_APPS = [
     'doctor.apps.DoctorConfig',
     'pharmacy.apps.PharmacyConfig',
     'razorpay_payment.apps.RazorpayPaymentConfig',
+    'payment_management.apps.PaymentManagementConfig',
     'widget_tweaks',
     'rest_framework',
     'ChatApp.apps.ChatappConfig',
@@ -140,7 +142,10 @@ DATABASES = {
 if 'DATABASE_URL' in os.environ:
     try:
         import dj_database_url
-        DATABASES['default'] = dj_database_url.parse(os.environ.get('DATABASE_URL'))
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            parsed_db = dj_database_url.parse(database_url)
+            DATABASES['default'].update(parsed_db)
     except ImportError:
         # dj_database_url not installed, will use default SQLite
         pass

@@ -1,0 +1,738 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Book Lab Tests - Mahima Medicare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+    
+    <style>
+        .collection-card {
+            border: 2px solid #e3e6f0;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .collection-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        .collection-card:hover::before {
+            left: 100%;
+        }
+        
+        .collection-card.selected {
+            border-color: #28a745;
+            background-color: #f8fff9;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.15);
+        }
+        
+        .collection-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .collection-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #6c757d;
+            transition: color 0.3s ease;
+        }
+        
+        .collection-card.selected .collection-icon {
+            color: #28a745;
+        }
+        
+        .collection-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+        
+        .collection-description {
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+        
+        .collection-fee {
+            font-size: 18px;
+            font-weight: 700;
+            color: #28a745;
+        }
+        
+        .home-collection-details {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .home-collection-details.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .test-summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .test-selection-card {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .test-selection-card:hover {
+            border-color: #007bff;
+            box-shadow: 0 4px 8px rgba(0,123,255,0.1);
+        }
+        
+        .test-selection-card.border-success {
+            border-color: #28a745 !important;
+            background-color: #f8fff9 !important;
+        }
+        
+        .form-check-label {
+            cursor: pointer;
+        }
+        
+        .test-checkbox {
+            transform: scale(1.2);
+        }
+        
+        .price-breakdown {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+        }
+        
+        .price-row.total {
+            border-top: 2px solid #dee2e6;
+            font-weight: 700;
+            font-size: 18px;
+            color: #28a745;
+            margin-top: 15px;
+            padding-top: 15px;
+        }
+        
+        .collection-fee-highlight {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #d73527;
+            font-weight: 600;
+        }
+        
+        .btn-book-tests {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-book-tests:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        
+        .datetime-input {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 12px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .datetime-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .form-check-input:checked {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        
+        .alert-info {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+            border: none;
+            border-left: 4px solid #17a2b8;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <nav class="navbar navbar-expand-lg header-nav">
+                <div class="navbar-header">
+                    <a id="mobile_btn" href="javascript:void(0);">
+                        <span class="bar-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </a>
+                    <a href="{% url 'login' %}" class="navbar-brand logo">
+                        <img src="{% static 'HealthStack-System/images/Normal/logo.png' %}" class="img-fluid" alt="Logo">
+                    </a>
+                </div>
+                <div class="main-menu-wrapper">
+                    <div class="menu-header">
+                        <a href="{% url 'login' %}" class="menu-logo">
+                            <img src="{% static 'HealthStack-System/images/Normal/logo.png' %}" class="img-fluid" alt="Logo">
+                        </a>
+                        <a id="menu_close" class="menu-close" href="javascript:void(0);">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <ul class="nav header-navbar-rht">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown has-arrow logged-item">
+                            <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
+                                <span class="user-img">
+                                    <i class="fas fa-user-circle fa-2x"></i>
+                                </span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <div class="user-header">
+                                    <div class="avatar avatar-sm">
+                                        <i class="fas fa-user-circle fa-2x"></i>
+                                    </div>
+                                    <div class="user-text">
+                                        <h6>{{ user.get_full_name|default:user.username }}</h6>
+                                        <p class="text-muted mb-0">Patient</p>
+                                    </div>
+                                </div>
+                                <a class="dropdown-item" href="{% url 'patient-dashboard' %}">Dashboard</a>
+                                <a class="dropdown-item" href="{% url 'patient-lab-tests' %}">My Lab Tests</a>
+                                <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                            </div>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </header>
+        <!-- /Header -->
+
+        <!-- Page Content -->
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-5 col-lg-4 col-xl-3 theiaStickySidebar">
+                        <!-- Test Summary -->
+                        <div class="test-summary-card">
+                            <h4><i class="fas fa-flask mr-2"></i>Test Summary</h4>
+                            <div class="mt-3">
+                                <div id="selected-tests-count" class="mb-2">
+                                    <i class="fas fa-vial mr-2"></i><strong id="test-count">0</strong> Test(s) Selected
+                                </div>
+                                <div class="test-list" id="selected-tests-list">
+                                    <p class="text-center mb-0 text-muted">No tests selected</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Price Breakdown -->
+                            <div class="price-breakdown">
+                                <div class="price-row">
+                                    <span>Tests Subtotal:</span>
+                                    <span id="tests-subtotal">₹0</span>
+                                </div>
+                                <div class="price-row collection-fee-row" style="display: none;">
+                                    <span>Home Collection Fee:</span>
+                                    <span id="collection-fee" class="collection-fee-highlight">₹99</span>
+                                </div>
+                                <!-- VAT removed for lab tests as per user request -->
+                                <div class="price-row total">
+                                    <span>Total Amount:</span>
+                                    <span id="total-amount">₹{{ total_amount }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-7 col-lg-8 col-xl-9">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title mb-4">
+                                    <i class="fas fa-clipboard-list mr-2"></i>Complete Your Lab Test Booking
+                                </h4>
+
+                                {% if available_tests %}
+                                    <!-- Test Selection Section -->
+                                    <div class="card mb-4">
+                                        <div class="card-header bg-primary text-white">
+                                            <h5 class="mb-0"><i class="fas fa-flask mr-2"></i>Select Lab Tests ({{ test_count }} available)</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                {% for test in available_tests %}
+                                                <div class="col-md-6 col-lg-4 mb-3">
+                                                    <div class="card test-selection-card h-100">
+                                                        <div class="card-body">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input test-checkbox" 
+                                                                       type="checkbox" 
+                                                                       name="selected_tests" 
+                                                                       value="{{ test.id }}" 
+                                                                       id="test_{{ test.id }}"
+                                                                       data-price="{{ test.price }}">
+                                                                <label class="form-check-label w-100" for="test_{{ test.id }}">
+                                                                    <strong>{{ test.name }}</strong><br>
+                                                                    <small class="text-muted">{{ test.description|truncatechars:60 }}</small><br>
+                                                                    <span class="text-success font-weight-bold">₹{{ test.price }}</span>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            
+                                            <div class="alert alert-warning mt-3" id="no-tests-selected" style="display: none;">
+                                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                                Please select at least one test to continue.
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                                        No lab tests are currently available. Please contact the lab administrator.
+                                    </div>
+                                {% endif %}
+                                
+                                {% if available_tests %}
+                                    <form method="post" id="lab-booking-form">
+                                        {% csrf_token %}
+                                        
+                                        <!-- Collection Type Selection -->
+                                        <div class="card mb-4">
+                                            <div class="card-body">
+                                                <h5 class="card-title mb-4">
+                                                    <i class="fas fa-map-marker-alt mr-2"></i>Choose Collection Method
+                                                </h5>
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="collection-card" data-collection="center">
+                                                            <div class="text-center">
+                                                                <i class="fas fa-hospital collection-icon"></i>
+                                                                <h5 class="collection-title">Collection at Center</h5>
+                                                                <p class="collection-description">
+                                                                    Visit our lab center for sample collection. 
+                                                                    Quick and convenient with immediate processing.
+                                                                </p>
+                                                                <div class="collection-fee">FREE</div>
+                                                            </div>
+                                                            <input type="radio" name="collection_type" value="center" 
+                                                                   class="d-none collection-radio" checked>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="col-md-6">
+                                                        <div class="collection-card" data-collection="home">
+                                                            <div class="text-center">
+                                                                <i class="fas fa-home collection-icon"></i>
+                                                                <h5 class="collection-title">Home Sample Collection</h5>
+                                                                <p class="collection-description">
+                                                                    Our trained phlebotomist will visit your home 
+                                                                    for convenient sample collection.
+                                                                </p>
+                                                                <div class="collection-fee">₹99 Collection Fee</div>
+                                                            </div>
+                                                            <input type="radio" name="collection_type" value="home" 
+                                                                   class="d-none collection-radio">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Home Collection Details -->
+                                                <div class="home-collection-details" id="home-collection-details">
+                                                    <h5 class="mb-3">
+                                                        <i class="fas fa-calendar-alt mr-2"></i>Schedule Your Home Collection
+                                                    </h5>
+                                                    
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="font-weight-bold">Preferred Date *</label>
+                                                                <input type="date" name="preferred_collection_date" 
+                                                                       class="form-control datetime-input" 
+                                                                       min="{{ today }}" required>
+                                                                <small class="text-muted">Collection available from tomorrow onwards</small>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="font-weight-bold">Preferred Time *</label>
+                                                                <select name="preferred_collection_time" class="form-control datetime-input" required>
+                                                                    <option value="">Select Time Slot</option>
+                                                                    <option value="08:00:00">8:00 AM - 9:00 AM</option>
+                                                                    <option value="09:00:00">9:00 AM - 10:00 AM</option>
+                                                                    <option value="10:00:00">10:00 AM - 11:00 AM</option>
+                                                                    <option value="11:00:00">11:00 AM - 12:00 PM</option>
+                                                                    <option value="14:00:00">2:00 PM - 3:00 PM</option>
+                                                                    <option value="15:00:00">3:00 PM - 4:00 PM</option>
+                                                                    <option value="16:00:00">4:00 PM - 5:00 PM</option>
+                                                                    <option value="17:00:00">5:00 PM - 6:00 PM</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="form-group">
+                                                        <label class="font-weight-bold">Collection Address *</label>
+                                                        <textarea name="collection_address" class="form-control" 
+                                                                  rows="3" placeholder="Enter complete address with landmarks" required></textarea>
+                                                        <small class="text-muted">Please provide complete address including area, city, and pincode</small>
+                                                    </div>
+                                                    
+                                                    <div class="alert alert-info">
+                                                        <i class="fas fa-info-circle mr-2"></i>
+                                                        <strong>Home Collection Policy:</strong><br>
+                                                        • Collection fee: ₹99 (added to total bill)<br>
+                                                        • Available Monday to Saturday (8 AM - 6 PM)<br>
+                                                        • Minimum 24 hours advance booking required<br>
+                                                        • Our certified phlebotomist will visit your location
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Payment Options -->
+                                        <div class="card mb-4">
+                                            <div class="card-body">
+                                                <h5 class="card-title mb-4">
+                                                    <i class="fas fa-credit-card mr-2"></i>Payment Options
+                                                </h5>
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-check mb-3">
+                                                            <input type="radio" name="payment_method" value="online" 
+                                                                   class="form-check-input" id="online-payment" checked>
+                                                            <label class="form-check-label" for="online-payment">
+                                                                <i class="fas fa-mobile-alt mr-2 text-success"></i>
+                                                                <strong>Pay Online</strong><br>
+                                                                <small class="text-muted">Secure payment via Razorpay (UPI, Card, Net Banking)</small>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="col-md-6">
+                                                        <div class="form-check mb-3">
+                                                            <input type="radio" name="payment_method" value="cod" 
+                                                                   class="form-check-input" id="cod-payment">
+                                                            <label class="form-check-label" for="cod-payment">
+                                                                <i class="fas fa-money-bill-wave mr-2 text-primary"></i>
+                                                                <strong>Cash on Delivery</strong><br>
+                                                                <small class="text-muted">Pay in cash during sample collection</small>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Terms and Conditions -->
+                                        <div class="card mb-4">
+                                            <div class="card-body">
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input" id="terms-checkbox" required>
+                                                    <label class="form-check-label" for="terms-checkbox">
+                                                        I agree to the <a href="#" class="text-primary">Terms & Conditions</a> 
+                                                        and <a href="#" class="text-primary">Privacy Policy</a>. 
+                                                        I understand the collection procedures and payment terms.
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Submit Button -->
+                                        <div class="text-center">
+                                            <button type="submit" class="btn btn-book-tests btn-lg">
+                                                <i class="fas fa-calendar-check mr-2"></i>
+                                                Book Lab Tests - ₹<span id="final-amount">{{ total_amount }}</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Content -->
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-top">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="footer-widget footer-about">
+                                <div class="footer-logo">
+                                    <img src="{% static 'HealthStack-System/images/Normal/footer-logo.png' %}" alt="logo">
+                                </div>
+                                <div class="footer-about-content">
+                                    <p>Advanced healthcare solutions with professional lab testing services.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="container-fluid">
+                    <div class="copyright">
+                        <div class="row">
+                            <div class="col-md-6 col-lg-6">
+                                <div class="copyright-text">
+                                    <p class="mb-0">&copy; 2024 Mahima Medicare. All rights reserved.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- /Footer -->
+    </div>
+
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/script.js' %}"></script>
+
+    <script>
+        $(document).ready(function() {
+            var selectedTests = [];
+            var homeCollectionFee = 99.0;
+            
+            // Test selection handling
+            $('.test-checkbox').change(function() {
+                updateSelectedTests();
+            });
+            
+            function updateSelectedTests() {
+                selectedTests = [];
+                var testsSubtotal = 0;
+                
+                $('.test-checkbox:checked').each(function() {
+                    var testId = $(this).val();
+                    var testPrice = parseFloat($(this).data('price'));
+                    var testName = $(this).next('label').find('strong').text();
+                    
+                    selectedTests.push({
+                        id: testId,
+                        name: testName,
+                        price: testPrice
+                    });
+                    testsSubtotal += testPrice;
+                });
+                
+                // Update tests count and list
+                $('#test-count').text(selectedTests.length);
+                
+                var testsList = $('#selected-tests-list');
+                if (selectedTests.length > 0) {
+                    var testsHtml = '';
+                    selectedTests.forEach(function(test) {
+                        testsHtml += '<div class="d-flex justify-content-between align-items-center mb-2 p-2" style="background: rgba(255,255,255,0.1); border-radius: 5px;">';
+                        testsHtml += '<span class="text-truncate">' + test.name + '</span>';
+                        testsHtml += '<span class="font-weight-bold">₹' + test.price + '</span>';
+                        testsHtml += '</div>';
+                    });
+                    testsList.html(testsHtml);
+                    $('#no-tests-selected').hide();
+                } else {
+                    testsList.html('<p class="text-center mb-0 text-muted">No tests selected</p>');
+                }
+                
+                // Update pricing
+                updatePricing();
+            }
+            
+            // Collection type selection
+            $('.collection-card').click(function() {
+                $('.collection-card').removeClass('selected');
+                $(this).addClass('selected');
+                $(this).find('.collection-radio').prop('checked', true);
+                
+                var collectionType = $(this).data('collection');
+                updatePricing();
+                
+                if (collectionType === 'home') {
+                    $('#home-collection-details').addClass('show');
+                    $('#home-collection-details input, #home-collection-details select, #home-collection-details textarea').prop('required', true);
+                } else {
+                    $('#home-collection-details').removeClass('show');
+                    $('#home-collection-details input, #home-collection-details select, #home-collection-details textarea').prop('required', false);
+                }
+            });
+            
+            // Update pricing based on selected tests and collection type (exact prices, no VAT)
+            function updatePricing() {
+                var testsSubtotal = 0;
+                selectedTests.forEach(function(test) {
+                    testsSubtotal += test.price;
+                });
+                
+                var collectionType = $('input[name="collection_type"]:checked').val() || 'center';
+                var totalAmount = testsSubtotal;
+                
+                // Update display
+                $('#tests-subtotal').text('₹' + testsSubtotal.toFixed(2));
+                
+                if (collectionType === 'home') {
+                    $('.collection-fee-row').show();
+                    totalAmount += homeCollectionFee;
+                } else {
+                    $('.collection-fee-row').hide();
+                }
+                
+                $('#total-amount').text('₹' + totalAmount.toFixed(2));
+                $('#final-amount').text(totalAmount.toFixed(2));
+            }
+            
+            // Set minimum date for collection (tomorrow)
+            var tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            var minDate = tomorrow.toISOString().split('T')[0];
+            $('input[name="preferred_collection_date"]').attr('min', minDate);
+            
+            // Form validation
+            $('#lab-booking-form').submit(function(e) {
+                // Check if tests are selected
+                if (selectedTests.length === 0) {
+                    e.preventDefault();
+                    $('#no-tests-selected').show();
+                    $('html, body').animate({
+                        scrollTop: $('#no-tests-selected').offset().top - 100
+                    }, 500);
+                    return false;
+                }
+                
+                var collectionType = $('input[name="collection_type"]:checked').val();
+                
+                if (collectionType === 'home') {
+                    var requiredFields = ['preferred_collection_date', 'preferred_collection_time', 'collection_address'];
+                    var isValid = true;
+                    
+                    requiredFields.forEach(function(field) {
+                        var value = $('[name="' + field + '"]').val();
+                        if (!value || value.trim() === '') {
+                            isValid = false;
+                            $('[name="' + field + '"]').addClass('is-invalid');
+                        } else {
+                            $('[name="' + field + '"]').removeClass('is-invalid');
+                        }
+                    });
+                    
+                    if (!isValid) {
+                        e.preventDefault();
+                        alert('Please fill all required fields for home collection.');
+                        return false;
+                    }
+                }
+                
+                if (!$('#terms-checkbox').prop('checked')) {
+                    e.preventDefault();
+                    alert('Please accept the terms and conditions to proceed.');
+                    return false;
+                }
+            });
+            
+            // Initialize
+            updatePricing();
+            
+            // Add some styling for test selection cards
+            $('.test-checkbox').change(function() {
+                if ($(this).is(':checked')) {
+                    $(this).closest('.test-selection-card').addClass('border-success bg-light');
+                } else {
+                    $(this).closest('.test-selection-card').removeClass('border-success bg-light');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,7 +1,8 @@
 from django.db import models
+from decimal import Decimal
 from doctor.models import Appointment, testOrder, Prescription
 from hospital.models import Patient
-from pharmacy.models import Order
+from pharmacy.models import Order, PrescriptionUpload
 
 # Create your models here.
 
@@ -19,6 +20,7 @@ class RazorpayPayment(models.Model):
         ('pharmacy', 'Pharmacy'),
         ('test', 'Test'),
         ('prescription', 'Prescription'),
+        ('prescription_order', 'Prescription Order'),
     ]
 
     payment_id = models.AutoField(primary_key=True)
@@ -32,7 +34,8 @@ class RazorpayPayment(models.Model):
     order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True)
     test_order = models.ForeignKey(testOrder, on_delete=models.SET_NULL, null=True, blank=True)
     prescription = models.ForeignKey(Prescription, on_delete=models.SET_NULL, null=True, blank=True)
-    
+    prescription_upload = models.ForeignKey(PrescriptionUpload, on_delete=models.SET_NULL, null=True, blank=True)
+
     # Payment Details
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -84,17 +87,18 @@ class Invoice(models.Model):
     customer_address = models.TextField(null=True, blank=True)
     
     # Business Details (fixed)
-    company_name = models.CharField(max_length=255, default='M/S MAHIMA MEDICARE')
-    company_address = models.TextField(default='ORTI, BAGHUNI, NEMALA, CUTTACK')
-    company_phone = models.CharField(max_length=20, default='9348221721')
+    company_name = models.CharField(max_length=255, default='MAHIMA MEDICARE')
+    company_address = models.TextField(default='ଆପଣଙ୍କ ସ୍ବାସ୍ଥ୍ୟ ର ସାଥୀ (Your Health Partner)\nBarkoliya Bajar, Orti, Cuttack, 754209\nWeb: mahimamedicare.co.in')
+    company_phone = models.CharField(max_length=20, default='+91 8763814619')
+    company_email = models.CharField(max_length=100, default='mahimamedicare01@gmail.com')
     license_no = models.CharField(max_length=100, default='CU-VI46219/R, 42220/RC, 20123RX')
     gstin = models.CharField(max_length=20, default='21AXRPN9340C1ZH')
     state_code = models.CharField(max_length=5, default='21')
     
     # Invoice Amounts
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
-    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     
     # Additional Info

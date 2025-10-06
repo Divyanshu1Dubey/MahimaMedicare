@@ -1,0 +1,442 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Lab Test Catalog - Mahima Medicare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/style.css' %}">
+    
+    <style>
+        .test-catalog-card {
+            border: 1px solid #e3e6f0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .test-catalog-card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-3px);
+            border-color: #667eea;
+        }
+        
+        .test-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .test-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+        
+        .test-description {
+            color: #6c757d;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .btn-add-to-cart {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn-add-to-cart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+        
+        .btn-add-to-cart:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .cart-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            position: sticky;
+            top: 100px;
+        }
+        
+        .cart-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        
+        .btn-proceed-booking {
+            background: white;
+            color: #667eea;
+            border: 2px solid white;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 700;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-proceed-booking:hover {
+            background: transparent;
+            color: white;
+        }
+        
+        .search-box {
+            background: white;
+            border-radius: 25px;
+            border: 2px solid #e9ecef;
+            padding: 12px 20px;
+            transition: border-color 0.3s ease;
+            margin-bottom: 30px;
+        }
+        
+        .search-box:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .category-filter {
+            margin-bottom: 30px;
+        }
+        
+        .category-btn {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            padding: 8px 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            color: #6c757d;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .category-btn.active,
+        .category-btn:hover {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+        
+        .test-icon {
+            font-size: 24px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <nav class="navbar navbar-expand-lg header-nav">
+                <div class="navbar-header">
+                    <a id="mobile_btn" href="javascript:void(0);">
+                        <span class="bar-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </a>
+                    <a href="{% url 'login' %}" class="navbar-brand logo">
+                        <img src="{% static 'HealthStack-System/images/Normal/logo.png' %}" class="img-fluid" alt="Logo">
+                    </a>
+                </div>
+                <div class="main-menu-wrapper">
+                    <div class="menu-header">
+                        <a href="{% url 'login' %}" class="menu-logo">
+                            <img src="{% static 'HealthStack-System/images/Normal/logo.png' %}" class="img-fluid" alt="Logo">
+                        </a>
+                        <a id="menu_close" class="menu-close" href="javascript:void(0);">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <ul class="nav header-navbar-rht">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown has-arrow logged-item">
+                            <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
+                                <span class="user-img">
+                                    <i class="fas fa-user-circle fa-2x"></i>
+                                </span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <div class="user-header">
+                                    <div class="avatar avatar-sm">
+                                        <i class="fas fa-user-circle fa-2x"></i>
+                                    </div>
+                                    <div class="user-text">
+                                        <h6>{{ user.get_full_name|default:user.username }}</h6>
+                                        <p class="text-muted mb-0">Patient</p>
+                                    </div>
+                                </div>
+                                <a class="dropdown-item" href="{% url 'patient-dashboard' %}">Dashboard</a>
+                                <a class="dropdown-item" href="{% url 'patient-lab-tests' %}">My Lab Tests</a>
+                                <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                            </div>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </header>
+        <!-- /Header -->
+
+        <!-- Page Content -->
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-8 col-lg-9">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title mb-4">
+                                    <i class="fas fa-flask mr-2"></i>Lab Test Catalog
+                                </h4>
+
+                                <!-- Search Box -->
+                                <input type="text" id="test-search" class="form-control search-box" 
+                                       placeholder="Search for tests (e.g., Blood Sugar, CBC, Thyroid)">
+
+                                <!-- Category Filter -->
+                                <div class="category-filter">
+                                    <button class="btn category-btn active" data-category="all">All Tests</button>
+                                    <button class="btn category-btn" data-category="blood">Blood Tests</button>
+                                    <button class="btn category-btn" data-category="urine">Urine Tests</button>
+                                    <button class="btn category-btn" data-category="thyroid">Thyroid</button>
+                                    <button class="btn category-btn" data-category="liver">Liver Function</button>
+                                    <button class="btn category-btn" data-category="kidney">Kidney Function</button>
+                                    <button class="btn category-btn" data-category="diabetes">Diabetes</button>
+                                </div>
+
+                                <!-- Test Catalog -->
+                                <div class="row" id="test-catalog">
+                                    {% for test in available_tests %}
+                                        <div class="col-md-6 col-lg-4 test-item" data-test-name="{{ test.test_name|lower }}">
+                                            <div class="test-catalog-card">
+                                                <div class="text-center">
+                                                    <i class="fas fa-vial test-icon"></i>
+                                                </div>
+                                                <div class="test-name">{{ test.test_name }}</div>
+                                                <div class="test-price">₹{{ test.test_price }}</div>
+                                                <div class="test-description">
+                                                    Professional lab test with accurate results and quick turnaround time.
+                                                </div>
+                                                
+                                                <form method="post" action="{% url 'add-test-to-cart' %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="test_id" value="{{ test.test_id }}">
+                                                    <button type="submit" class="btn btn-add-to-cart" 
+                                                            {% if test.test_name in cart_test_names %}disabled{% endif %}>
+                                                        {% if test.test_name in cart_test_names %}
+                                                            <i class="fas fa-check mr-2"></i>Added to Cart
+                                                        {% else %}
+                                                            <i class="fas fa-plus mr-2"></i>Add to Cart
+                                                        {% endif %}
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <div class="col-12">
+                                            <div class="alert alert-info text-center">
+                                                <i class="fas fa-info-circle mr-2"></i>
+                                                No tests available at the moment. Please contact our lab team.
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-lg-3">
+                        <!-- Cart Summary -->
+                        <div class="cart-summary">
+                            <h5><i class="fas fa-shopping-cart mr-2"></i>Test Cart</h5>
+                            <div class="mt-3" id="cart-summary">
+                                <div class="mb-3">
+                                    <strong>{{ cart_count }}</strong> Test(s) Selected
+                                </div>
+                                
+                                {% if cart_count > 0 %}
+                                    <div class="mb-3">
+                                        <a href="{% url 'enhanced-lab-test-booking' %}" class="btn btn-proceed-booking">
+                                            <i class="fas fa-arrow-right mr-2"></i>Proceed to Booking
+                                        </a>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <small>• Choose Home Collection or Center Visit</small><br>
+                                        <small>• Multiple Payment Options Available</small><br>
+                                        <small>• Home Collection: ₹99 Fee</small>
+                                    </div>
+                                {% else %}
+                                    <div class="mb-3">
+                                        <p class="mb-2">Your cart is empty</p>
+                                        <small>Select tests from the catalog to get started</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Features -->
+                        <div class="card mt-4">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-star text-warning mr-2"></i>Why Choose Us?
+                                </h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>NABL Accredited Lab</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>Home Sample Collection</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>Quick Results (24-48 hrs)</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>Digital Reports</li>
+                                    <li class="mb-0"><i class="fas fa-check text-success mr-2"></i>Expert Consultation</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Page Content -->
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-top">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="footer-widget footer-about">
+                                <div class="footer-logo">
+                                    <img src="{% static 'HealthStack-System/images/Normal/footer-logo.png' %}" alt="logo">
+                                </div>
+                                <div class="footer-about-content">
+                                    <p>Advanced healthcare solutions with professional lab testing services.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="container-fluid">
+                    <div class="copyright">
+                        <div class="row">
+                            <div class="col-md-6 col-lg-6">
+                                <div class="copyright-text">
+                                    <p class="mb-0">&copy; 2024 Mahima Medicare. All rights reserved.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- /Footer -->
+    </div>
+
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/Normal/jquery.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/script.js' %}"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Test search functionality
+            $('#test-search').on('keyup', function() {
+                var searchValue = $(this).val().toLowerCase();
+                $('.test-item').each(function() {
+                    var testName = $(this).data('test-name');
+                    if (testName.includes(searchValue)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+            
+            // Category filter functionality
+            $('.category-btn').click(function() {
+                $('.category-btn').removeClass('active');
+                $(this).addClass('active');
+                
+                var category = $(this).data('category');
+                
+                if (category === 'all') {
+                    $('.test-item').show();
+                } else {
+                    $('.test-item').each(function() {
+                        var testName = $(this).data('test-name');
+                        if (testName.includes(category)) {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    });
+                }
+            });
+            
+            // Form submission with loading state
+            $('.btn-add-to-cart').not(':disabled').click(function(e) {
+                var $btn = $(this);
+                $btn.prop('disabled', true);
+                $btn.html('<i class="fas fa-spinner fa-spin mr-2"></i>Adding...');
+                
+                // Allow form to submit normally
+                setTimeout(function() {
+                    $btn.closest('form').submit();
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>

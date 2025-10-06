@@ -1,7 +1,6 @@
 from django.db import models
 from django.conf import settings
 import uuid
-from doctor.models import Prescription
 from hospital.models import User, Patient
 
 
@@ -60,7 +59,8 @@ class Medicine(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
     composition = models.TextField(null=True, blank=True, help_text="Active ingredients and their quantities")
     hsn_code = models.CharField(max_length=20, null=True, blank=True, help_text="HSN code for tax classification")
-    weight = models.CharField(max_length=200, null=True, blank=True)
+    weight = models.CharField(max_length=200, null=True, blank=True)  # Keep for backward compatibility
+    batch_no = models.CharField(max_length=100, null=True, blank=True, help_text="Manufacturing batch number")
     quantity = models.IntegerField(null=True, blank=True, default=0)
     featured_image = models.ImageField(upload_to='medicines/', default='medicines/default.png', null=True, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -69,6 +69,42 @@ class Medicine(models.Model):
 
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0.00)
     stock_quantity = models.IntegerField(null=True, blank=True, default=0)
+
+    def get_medicine_image(self):
+        """Get the appropriate image for the medicine (uploaded or default based on type)"""
+        if self.featured_image and hasattr(self.featured_image, 'url'):
+            try:
+                # Check if file exists and is not the default placeholder
+                if self.featured_image.name and self.featured_image.name != 'medicines/default.png':
+                    url = self.featured_image.url
+                    # Ensure URL starts with /static/ for consistency
+                    if not url.startswith('/static/') and not url.startswith('http'):
+                        # If it's a relative path, prepend /static/
+                        if url.startswith('/'):
+                            url = '/static' + url
+                        else:
+                            url = '/static/' + url
+                    return url
+            except:
+                pass
+        
+        # Return default image based on medicine type
+        type_images = {
+            'tablets': '/static/HealthStack-System/images/medicine-types/tablets.png',
+            'syrup': '/static/HealthStack-System/images/medicine-types/syrup.png',
+            'capsule': '/static/HealthStack-System/images/medicine-types/capsules.png',
+            'capsules': '/static/HealthStack-System/images/medicine-types/capsules.png',
+            'injection': '/static/HealthStack-System/images/medicine-types/injection.png',
+            'ointment': '/static/HealthStack-System/images/medicine-types/ointment.png',
+            'lotion': '/static/HealthStack-System/images/medicine-types/ointment.png',  # Use ointment image for lotion
+            'drops': '/static/HealthStack-System/images/medicine-types/drops.png',
+            'general': '/static/HealthStack-System/images/medicine-types/general.png',
+        }
+        
+        medicine_type = getattr(self, 'medicine_type', 'general')
+        if medicine_type:
+            medicine_type = medicine_type.lower()
+        return type_images.get(medicine_type, type_images['general'])
     Prescription_reqiuired = models.CharField(max_length=200, choices=REQUIREMENT_TYPE, null=True, blank=True)
     expiry_date = models.DateField(null=True, blank=True)
 
@@ -230,3 +266,83 @@ class Order(models.Model):
             delivery_fee = 40 if self.delivery_method == 'delivery' else 0
             return cart_total + delivery_fee
         return 0
+
+
+class PrescriptionUpload(models.Model):
+    UPLOAD_STATUS_CHOICES = (
+        ('pending', 'Pending Review'),
+        ('reviewed', 'Reviewed by Pharmacist'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('paid_pending', 'Payment Received - Processing'),
+        ('fulfilled', 'Order Fulfilled'),
+    )
+
+    upload_id = models.AutoField(primary_key=True)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='prescription_uploads')
+    prescription_image = models.ImageField(
+        upload_to='prescriptions/%Y/%m/%d/',
+        help_text="Upload clear image of your prescription"
+    )
+    doctor_name = models.CharField(max_length=200, null=True, blank=True, help_text="Doctor's name from prescription")
+    prescription_date = models.DateField(null=True, blank=True, help_text="Date on the prescription")
+    patient_notes = models.TextField(null=True, blank=True, help_text="Any additional notes or specific requirements")
+
+    # Status and processing
+    status = models.CharField(max_length=20, choices=UPLOAD_STATUS_CHOICES, default='pending')
+    pharmacist = models.ForeignKey(Pharmacist, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_prescriptions')
+    pharmacist_notes = models.TextField(null=True, blank=True, help_text="Pharmacist's notes and recommendations")
+
+    # Estimated cost and delivery
+    estimated_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    delivery_method = models.CharField(max_length=20, choices=Order.DELIVERY_CHOICES, default='pickup')
+    delivery_address = models.TextField(null=True, blank=True)
+    delivery_phone = models.CharField(max_length=15, null=True, blank=True)
+
+    # Related order (created after approval)
+    related_order = models.OneToOneField(Order, on_delete=models.SET_NULL, null=True, blank=True, related_name='prescription_upload')
+
+    # Link to doctor's digital prescription if available
+    doctor_prescription = models.ForeignKey(
+        'doctor.Prescription',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='pharmacy_uploads',
+        help_text="Link to doctor's digital prescription if available"
+    )
+
+    # Timestamps
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Prescription #{self.upload_id} - {self.patient.name if self.patient else 'Unknown'} - {self.status}"
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+
+class PrescriptionMedicine(models.Model):
+    """Medicines identified from prescription by pharmacist"""
+    prescription_upload = models.ForeignKey(PrescriptionUpload, on_delete=models.CASCADE, related_name='medicines')
+    medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)
+    dosage = models.CharField(max_length=200, null=True, blank=True, help_text="e.g., 1 tablet twice daily")
+    days = models.IntegerField(null=True, blank=True, help_text="Number of days")
+
+    # Pricing
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.unit_price and self.quantity:
+            self.total_price = self.unit_price * self.quantity
+        elif self.medicine and self.medicine.price:
+            self.unit_price = self.medicine.price
+            self.total_price = self.medicine.price * self.quantity
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.medicine.name} x {self.quantity}"

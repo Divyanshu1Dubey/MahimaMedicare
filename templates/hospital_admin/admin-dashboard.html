@@ -279,6 +279,35 @@
             </div>
             
           </div>
+
+          <!-- Payment Management Quick Access -->
+          <div class="row">
+            <div class="col-12">
+              <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; margin-bottom: 30px;">
+                <div class="card-body text-center">
+                  <h4 class="text-white mb-3">💰 Payment Management System</h4>
+                  <p class="text-white-50 mb-4">Monitor and verify all payments across the healthcare system</p>
+                  <div class="row">
+                    <div class="col-md-4">
+                      <a href="{% url 'payment_management:dashboard' %}" class="btn btn-light btn-lg btn-block">
+                        <i class="fe fe-dollar-sign"></i> Payment Dashboard
+                      </a>
+                    </div>
+                    <div class="col-md-4">
+                      <a href="{% url 'payment_management:payment_reports' %}" class="btn btn-outline-light btn-lg btn-block">
+                        <i class="fe fe-bar-chart"></i> Payment Reports  
+                      </a>
+                    </div>
+                    <div class="col-md-4">
+                      <a href="{% url 'payment_management:export_payments' %}" class="btn btn-outline-light btn-lg btn-block">
+                        <i class="fe fe-download"></i> Export Data
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           
           <div class="row">
             <div class="col-md-6 d-flex">

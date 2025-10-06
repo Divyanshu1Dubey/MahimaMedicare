@@ -28,7 +28,8 @@ urlpatterns = [
     path('login/',views.admin_login,name='admin_login'),
     path('patient-list/',views.patient_list, name='patient-list'),
     # path('register/', views.register,name='register'),
-    path('admin_register/',views.admin_register,name='admin_register'),
+    # SECURITY: Admin registration disabled - only superuser can create admins
+    # path('admin_register/',views.admin_register,name='admin_register'),
     path('transactions-list/',views.transactions_list, name='transactions_list'),
     path('admin-logout/', views.logoutAdmin, name='admin-logout'),
     path('emergency/', views.emergency_details,name='emergency'),
@@ -116,6 +117,19 @@ urlpatterns = [
     path('lab-process-cod-payment/', views.lab_process_cod_payment, name='lab-process-cod-payment'),
     path('lab-complete-test-with-results/', views.lab_complete_test_with_results, name='lab-complete-test-with-results'),
     path('lab-handle-payment-failure/', views.lab_handle_payment_failure, name='lab-handle-payment-failure'),
+    
+    # Prescription Upload Management URLs
+    path('review-prescription/<int:upload_id>/', views.review_prescription_upload, name='review-prescription-upload'),
+    path('add-medicine-to-prescription/<int:upload_id>/', views.add_medicine_to_prescription, name='add-medicine-to-prescription'),
+    path('remove-medicine-from-prescription/<int:upload_id>/<int:medicine_id>/', views.remove_medicine_from_prescription, name='remove-medicine-from-prescription'),
+    
+    # Home Sample Collection Management URLs
+    path('home-collection-dashboard/', views.home_collection_dashboard, name='home-collection-dashboard'),
+    path('home-collection-schedule/', views.home_collection_schedule, name='home-collection-schedule'),
+    path('update-collection-status/<int:order_id>/', views.update_collection_status, name='update-collection-status'),
+    path('process-cod-collection/<int:order_id>/', views.process_cod_collection_payment, name='process-cod-collection'),
+    path('home-collection-details/<int:order_id>/', views.home_collection_details, name='home-collection-details'),
+    path('print-collection-receipt/<int:order_id>/', views.print_collection_receipt, name='print-collection-receipt'),
     
 ]
   

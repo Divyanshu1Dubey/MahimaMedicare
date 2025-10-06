@@ -1,0 +1,287 @@
+{% extends 'hospital_admin/base.html' %}
+{% load static %}
+
+{% block title %}Payment Details - {{ payment.payment_id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-detail-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .status-badge {
+        font-size: 1em;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    .status-verified { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+    .status-received { background: #d1ecf1; color: #0c5460; border: 2px solid #bee5eb; }
+    .status-pending { background: #fff3cd; color: #856404; border: 2px solid #ffeaa7; }
+    .status-failed { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 5px;
+    }
+    .info-value {
+        font-size: 1.1em;
+        margin-bottom: 15px;
+        padding: 8px;
+        background: #f8f9fa;
+        border-radius: 5px;
+    }
+    .verification-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+    .razorpay-details {
+        background: #e3f2fd;
+        border: 2px solid #2196f3;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    .log-entry {
+        border-left: 4px solid #007bff;
+        background: #f8f9fa;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        border-radius: 0 5px 5px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>💰 Payment Details: {{ payment.payment_id }}</h2>
+                <a href="{% url 'payment_management:dashboard' %}" class="btn btn-secondary">
+                    ← Back to Dashboard
+                </a>
+            </div>
+
+            <div class="row">
+                <!-- Main Payment Information -->
+                <div class="col-md-8">
+                    <div class="card payment-detail-card">
+                        <div class="card-header">
+                            <h5 class="mb-0">📋 Payment Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-label">Payment ID</div>
+                                    <div class="info-value">
+                                        <strong>{{ payment.payment_id }}</strong>
+                                        <span class="status-badge status-{{ payment.status }}">
+                                            {{ payment.get_status_display }}
+                                        </span>
+                                    </div>
+
+                                    <div class="info-label">Customer Information</div>
+                                    <div class="info-value">
+                                        <strong>{{ payment.customer_name }}</strong><br>
+                                        📱 {{ payment.customer_phone }}<br>
+                                        👤 {{ payment.user.username }}
+                                        {% if payment.customer_address %}
+                                            <br>📍 {{ payment.customer_address }}
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="info-label">Payment Type</div>
+                                    <div class="info-value">
+                                        <span class="badge bg-primary fs-6">{{ payment.get_payment_type_display }}</span>
+                                    </div>
+
+                                    <div class="info-label">Order Reference</div>
+                                    <div class="info-value">{{ payment.order_reference }}</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="info-label">Payment Method</div>
+                                    <div class="info-value">
+                                        {% if payment.payment_method == 'online' %}
+                                            💳 Online Payment (Razorpay)
+                                        {% elif payment.payment_method == 'cod' %}
+                                            💰 Cash on Delivery
+                                        {% elif payment.payment_method == 'cash' %}
+                                            💵 Direct Cash
+                                        {% else %}
+                                            {{ payment.get_payment_method_display }}
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="info-label">Amount Breakdown</div>
+                                    <div class="info-value">
+                                        Base Amount: <strong>₹{{ payment.base_amount }}</strong><br>
+                                        Additional Fees: <strong>₹{{ payment.additional_fees }}</strong><br>
+                                        <hr class="my-2">
+                                        <span style="font-size: 1.2em; color: #28a745;">
+                                            Total: <strong>₹{{ payment.total_amount }}</strong>
+                                        </span>
+                                    </div>
+
+                                    <div class="info-label">Timestamps</div>
+                                    <div class="info-value">
+                                        Created: {{ payment.created_at|date:"M d, Y H:i:s" }}<br>
+                                        {% if payment.payment_received_at %}
+                                            Received: {{ payment.payment_received_at|date:"M d, Y H:i:s" }}<br>
+                                        {% endif %}
+                                        {% if payment.admin_verification_date %}
+                                            Verified: {{ payment.admin_verification_date|date:"M d, Y H:i:s" }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Razorpay Details (if online payment) -->
+                    {% if payment.payment_method == 'online' %}
+                    <div class="card payment-detail-card">
+                        <div class="card-header">
+                            <h5 class="mb-0">💳 Razorpay Payment Details</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if payment.razorpay_payment_id %}
+                            <div class="razorpay-details">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Payment ID:</strong> {{ payment.razorpay_payment_id }}<br>
+                                        <strong>Order ID:</strong> {{ payment.razorpay_order_id|default:"N/A" }}<br>
+                                        <strong>Signature:</strong> 
+                                        {% if payment.razorpay_signature %}
+                                            <span class="text-success">✅ Verified</span>
+                                        {% else %}
+                                            <span class="text-warning">⚠️ Not Verified</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% if razorpay_details %}
+                                            <strong>Razorpay Status:</strong> {{ razorpay_details.status|upper }}<br>
+                                            <strong>Method:</strong> {{ razorpay_details.method|upper }}<br>
+                                            <strong>Razorpay Amount:</strong> ₹{{ razorpay_details.amount|floatformat:2 }}
+                                        {% else %}
+                                            <button class="btn btn-info btn-sm" onclick="verifyWithRazorpay()">
+                                                🔄 Verify with Razorpay
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-warning">
+                                ⚠️ No Razorpay payment ID found for this online payment
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Admin Notes -->
+                    {% if payment.admin_notes %}
+                    <div class="card payment-detail-card">
+                        <div class="card-header">
+                            <h5 class="mb-0">📝 Admin Notes</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                {{ payment.admin_notes|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Verification Panel -->
+                <div class="col-md-4">
+                    <div class="verification-section">
+                        <h5>🔐 Payment Verification</h5>
+                        
+                        {% if payment.is_admin_verified %}
+                            <div class="alert alert-success">
+                                ✅ <strong>Verified by Admin</strong><br>
+                                By: {{ payment.admin_verified_by.username }}<br>
+                                Date: {{ payment.admin_verification_date|date:"M d, Y H:i" }}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                ⏳ <strong>Verification Pending</strong><br>
+                                This payment needs admin review
+                            </div>
+                            
+                            <a href="{% url 'payment_management:verify_payment' payment.payment_id %}" 
+                               class="btn btn-light btn-lg w-100 mb-2">
+                                ✅ Verify Payment
+                            </a>
+                        {% endif %}
+                        
+                        <hr style="border-color: rgba(255,255,255,0.3);">
+                        
+                        <div class="text-center">
+                            <h6>Quick Actions</h6>
+                            {% if payment.status != 'verified' %}
+                                <form method="post" action="{% url 'payment_management:verify_payment' payment.payment_id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" name="action" value="mark_received" 
+                                            class="btn btn-info btn-sm mb-1">📝 Mark Received</button>
+                                </form>
+                            {% endif %}
+                            
+                            {% if payment.payment_method == 'online' and payment.razorpay_payment_id %}
+                                <button class="btn btn-warning btn-sm mb-1" onclick="checkRazorpayStatus()">
+                                    🔄 Check Razorpay
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Verification History -->
+                    {% if verification_logs %}
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">📋 Verification History</h6>
+                        </div>
+                        <div class="card-body">
+                            {% for log in verification_logs %}
+                            <div class="log-entry">
+                                <strong>{{ log.action_taken|title }}</strong><br>
+                                <small class="text-muted">
+                                    By: {{ log.admin_user.username }}<br>
+                                    {{ log.timestamp|date:"M d, Y H:i" }}
+                                </small>
+                                {% if log.notes %}
+                                    <div class="mt-2">
+                                        <em>{{ log.notes }}</em>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function verifyWithRazorpay() {
+    // AJAX call to verify payment with Razorpay API
+    alert('Verifying with Razorpay... (API integration needed)');
+}
+
+function checkRazorpayStatus() {
+    // Check current status from Razorpay
+    alert('Checking Razorpay status... (API integration needed)');
+}
+</script>
+{% endblock %}

@@ -1,7 +1,8 @@
 import email
 from email.mime import image
-from multiprocessing import context
 from unicodedata import name
+from decimal import Decimal
+from datetime import timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -9,6 +10,7 @@ from django.views.decorators.cache import cache_control
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
+from django.core.paginator import Paginator
 from hospital.models import Hospital_Information, User, Patient
 from django.db.models import Q
 from django.utils import timezone
@@ -119,7 +121,10 @@ def admin_dashboard(request):
     elif request.user.is_labworker:
         # messages.error(request, 'You are not authorized to access this page')
         return redirect('labworker-dashboard')
-    # return render(request, 'hospital_admin/admin-dashboard.html', context)
+    else:
+        # Handle unauthorized users
+        messages.error(request, 'You are not authorized to access this page')
+        return redirect('admin_login')
 
 @csrf_exempt
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -294,8 +299,12 @@ def lock_screen(request):
 @csrf_exempt
 @login_required(login_url='admin_login')
 def patient_list(request):
-    if request.user.is_hospital_admin:
-        user = Admin_Information.objects.get(user=request.user)
+    user = None
+    try:
+        if hasattr(request.user, 'is_hospital_admin') and request.user.is_hospital_admin:
+            user = Admin_Information.objects.get(user=request.user)
+    except Admin_Information.DoesNotExist:
+        pass
     patients = Patient.objects.all()
     return render(request, 'hospital_admin/patient-list.html', {'all': patients, 'admin': user})
 
@@ -568,8 +577,12 @@ def generate_random_invoice():
 @csrf_exempt
 @login_required(login_url='admin_login')
 def create_invoice(request, pk):
-    if  request.user.is_hospital_admin:
-        user = Admin_Information.objects.get(user=request.user)
+    user = None
+    try:
+        if hasattr(request.user, 'is_hospital_admin') and request.user.is_hospital_admin:
+            user = Admin_Information.objects.get(user=request.user)
+    except Admin_Information.DoesNotExist:
+        pass
 
     patient = Patient.objects.get(patient_id=pk)
 
@@ -835,10 +848,9 @@ def add_medicine(request):
         name = request.POST.get('name', '').strip()
         composition = request.POST.get('composition', '').strip()
         hsn_code = request.POST.get('hsn_code', '').strip()
-        weight = request.POST.get('weight', '').strip()
+        batch_no = request.POST.get('batch_no', '').strip()
         quantity_str = request.POST.get('quantity', '').strip()
         price_str = request.POST.get('price', '').strip()
-        stock_quantity_str = request.POST.get('stock_quantity', '').strip()
 
         requirement_type = request.POST.get('requirement_type', '')
         category_type = request.POST.get('category_type', '')
@@ -865,8 +877,8 @@ def add_medicine(request):
         if not name:
             errors.append('Medicine name is required.')
         
-        if not weight:
-            errors.append('Weight is required.')
+        if not batch_no:
+            errors.append('Batch number is required.')
         
         # Validate quantity
         try:
@@ -876,18 +888,6 @@ def add_medicine(request):
         except (ValueError, TypeError):
             errors.append('Quantity must be a valid number.')
             quantity = 0
-        
-        # Validate stock_quantity (use quantity if not provided)
-        if stock_quantity_str:
-            try:
-                stock_quantity = int(stock_quantity_str)
-                if stock_quantity < 0:
-                    errors.append('Stock quantity must be a positive number.')
-            except (ValueError, TypeError):
-                errors.append('Stock quantity must be a valid number.')
-                stock_quantity = quantity
-        else:
-            stock_quantity = quantity
         
         # Validate price
         try:
@@ -932,9 +932,8 @@ def add_medicine(request):
                     'name': name,
                     'composition': composition,
                     'hsn_code': hsn_code,
-                    'weight': weight,
+                    'batch_no': batch_no,
                     'quantity': quantity_str,
-                    'stock_quantity': stock_quantity_str,
                     'price': price_str,
                     'requirement_type': requirement_type,
                     'category_type': category_type,
@@ -957,10 +956,10 @@ def add_medicine(request):
                 name=name,
                 composition=composition,
                 hsn_code=hsn_code,
-                weight=weight,
+                batch_no=batch_no,
                 quantity=quantity,
                 price=price,
-                stock_quantity=stock_quantity,
+                stock_quantity=quantity,  # Set stock_quantity equal to quantity for backward compatibility
                 Prescription_reqiuired=requirement_type,
                 medicine_category=category_type,
                 medicine_type=medicine_type,
@@ -1826,7 +1825,7 @@ def pharmacist_order_management(request):
     pharmacist = Pharmacist.objects.get(user=request.user)
 
     # Get all orders with different payment statuses
-    from pharmacy.models import Order
+    from pharmacy.models import Order, PrescriptionUpload
     from django.db.models import Q
     
     # Online paid orders
@@ -1899,6 +1898,45 @@ def pharmacist_order_management(request):
     # Low stock medicines alert
     low_stock_medicines = Medicine.objects.filter(quantity__lte=10).order_by('quantity')[:10]
 
+    # PRESCRIPTION UPLOADS MANAGEMENT
+    # Pending prescription reviews
+    pending_prescriptions = (
+        PrescriptionUpload.objects.filter(status='pending')
+        .select_related('patient')
+        .order_by('-uploaded_at')
+    )
+    
+    # Approved prescriptions waiting for payment
+    approved_prescriptions = (
+        PrescriptionUpload.objects.filter(status='approved', related_order__isnull=True)
+        .select_related('patient', 'pharmacist')
+        .prefetch_related('medicines__medicine')
+        .order_by('-reviewed_at')
+    )
+    
+    # Paid prescriptions waiting for processing (NEW)
+    paid_pending_prescriptions = (
+        PrescriptionUpload.objects.filter(status='paid_pending')
+        .select_related('patient', 'pharmacist', 'related_order')
+        .prefetch_related('medicines__medicine')
+        .order_by('-updated_at')
+    )
+    
+    # Fulfilled prescription orders
+    fulfilled_prescriptions = (
+        PrescriptionUpload.objects.filter(status='fulfilled')
+        .select_related('patient', 'pharmacist', 'related_order')
+        .prefetch_related('medicines__medicine')
+        .order_by('-updated_at')[:20]  # Last 20 fulfilled prescriptions
+    )
+    
+    # Rejected prescriptions (for review)
+    rejected_prescriptions = (
+        PrescriptionUpload.objects.filter(status='rejected')
+        .select_related('patient', 'pharmacist')
+        .order_by('-reviewed_at')[:10]  # Last 10 rejected
+    )
+
     context = {
         'online_orders': online_orders,
         'cod_orders': cod_orders,
@@ -1909,6 +1947,12 @@ def pharmacist_order_management(request):
         'total_pending': total_pending,
         'total_revenue_today': round(total_revenue_today, 2),
         'low_stock_medicines': low_stock_medicines,
+        # Prescription management
+        'pending_prescriptions': pending_prescriptions,
+        'approved_prescriptions': approved_prescriptions,
+        'paid_pending_prescriptions': paid_pending_prescriptions,
+        'fulfilled_prescriptions': fulfilled_prescriptions,
+        'rejected_prescriptions': rejected_prescriptions,
     }
     return render(request, 'hospital_admin/pharmacist-order-management.html', context)
 
@@ -2367,10 +2411,23 @@ def direct_upload_pdf_report(request, patient_id):
 @login_required(login_url='admin-login')
 def lab_dashboard(request):
     """Comprehensive lab dashboard with complete doctor-patient-lab integration"""
-    if not request.user.is_labworker:
+    # Check if user has lab worker permissions
+    if not getattr(request.user, 'is_labworker', False) and not request.user.is_staff:
         return redirect('admin-logout')
     
-    lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+    # Get lab worker profile, create if doesn't exist
+    try:
+        lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+    except Clinical_Laboratory_Technician.DoesNotExist:
+        # Create a lab worker profile for this user
+        lab_worker = Clinical_Laboratory_Technician.objects.create(
+            user=request.user,
+            name=f'{request.user.first_name} {request.user.last_name}' or request.user.username,
+            username=request.user.username,
+            email=request.user.email,
+            phone_number=1234567890,
+            age=30
+        )
     
     # Get date ranges
     today = timezone.now().date()
@@ -4623,3 +4680,428 @@ Mahima Medicare Laboratory Team
         
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'Error handling payment failure: {str(e)}'})
+
+
+# PRESCRIPTION UPLOAD MANAGEMENT FUNCTIONS
+
+@csrf_exempt
+@login_required(login_url='admin_login')
+def review_prescription_upload(request, upload_id):
+    """Review and process prescription upload"""
+    if not request.user.is_pharmacist:
+        return redirect('admin-logout')
+    
+    from pharmacy.models import PrescriptionUpload, Medicine, PrescriptionMedicine
+    from django.utils import timezone
+    
+    pharmacist = Pharmacist.objects.get(user=request.user)
+    prescription = get_object_or_404(PrescriptionUpload, upload_id=upload_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        pharmacist_notes = request.POST.get('pharmacist_notes', '')
+        
+        if action == 'approve':
+            # Calculate total cost from added medicines
+            total_cost = sum(med.total_price or 0 for med in prescription.medicines.all())
+            
+            # Add delivery charges if applicable
+            if prescription.delivery_method == 'delivery':
+                total_cost += 40  # Delivery charge
+            
+            prescription.status = 'approved'
+            prescription.pharmacist = pharmacist
+            prescription.pharmacist_notes = pharmacist_notes
+            prescription.estimated_cost = total_cost
+            prescription.reviewed_at = timezone.now()
+            prescription.save()
+            
+            messages.success(request, f'Prescription #{upload_id} approved successfully!')
+            
+            # Send email notification
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                if prescription.patient.email:
+                    send_mail(
+                        'Prescription Approved - Mahima Medicare',
+                        f'Your prescription #{upload_id} has been approved. Total cost: ₹{total_cost}. You can now proceed with payment.',
+                        settings.EMAIL_HOST_USER,
+                        [prescription.patient.email],
+                        fail_silently=True
+                    )
+            except Exception:
+                pass
+                
+        elif action == 'reject':
+            prescription.status = 'rejected'
+            prescription.pharmacist = pharmacist
+            prescription.pharmacist_notes = pharmacist_notes
+            prescription.reviewed_at = timezone.now()
+            prescription.save()
+            
+            messages.info(request, f'Prescription #{upload_id} rejected.')
+            
+            # Send rejection notification
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                if prescription.patient.email:
+                    send_mail(
+                        'Prescription Review - Mahima Medicare',
+                        f'Your prescription #{upload_id} has been reviewed. Please check the pharmacist notes and contact us for assistance.',
+                        settings.EMAIL_HOST_USER,
+                        [prescription.patient.email],
+                        fail_silently=True
+                    )
+            except Exception:
+                pass
+        
+        return redirect('pharmacist-order-management')
+    
+    # GET request - show review form
+    available_medicines = Medicine.objects.filter(quantity__gt=0).order_by('name')
+    
+    context = {
+        'prescription': prescription,
+        'pharmacist': pharmacist,
+        'medicines': available_medicines,
+    }
+    return render(request, 'hospital_admin/review-prescription-upload.html', context)
+
+
+@csrf_exempt  
+@login_required(login_url='admin_login')
+def add_medicine_to_prescription(request, upload_id):
+    """Add or update medicine in prescription"""
+    if not request.user.is_pharmacist:
+        return JsonResponse({'success': False, 'message': 'Unauthorized'})
+    
+    from pharmacy.models import PrescriptionUpload, Medicine, PrescriptionMedicine
+    
+    if request.method == 'POST':
+        try:
+            prescription = get_object_or_404(PrescriptionUpload, upload_id=upload_id)
+            medicine_id = request.POST.get('medicine_id')
+            quantity = int(request.POST.get('quantity', 1))
+            dosage = request.POST.get('dosage', '')
+            days = request.POST.get('days')
+            
+            medicine = get_object_or_404(Medicine, serial_number=medicine_id)
+            
+            # Create or update prescription medicine
+            prescription_med, created = PrescriptionMedicine.objects.get_or_create(
+                prescription_upload=prescription,
+                medicine=medicine,
+                defaults={
+                    'quantity': quantity,
+                    'dosage': dosage,
+                    'days': int(days) if days else None,
+                    'unit_price': medicine.price,
+                    'total_price': medicine.price * quantity
+                }
+            )
+            
+            if not created:
+                prescription_med.quantity = quantity
+                prescription_med.dosage = dosage
+                prescription_med.days = int(days) if days else None
+                prescription_med.total_price = medicine.price * quantity
+                prescription_med.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Added {medicine.name} to prescription',
+                'medicine_name': medicine.name,
+                'quantity': quantity,
+                'price': float(medicine.price * quantity)
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+
+@csrf_exempt
+@login_required(login_url='admin_login')
+def remove_medicine_from_prescription(request, upload_id, medicine_id):
+    """Remove medicine from prescription"""
+    if not request.user.is_pharmacist:
+        return JsonResponse({'success': False, 'message': 'Unauthorized'})
+    
+    from pharmacy.models import PrescriptionUpload, PrescriptionMedicine
+    
+    try:
+        prescription = get_object_or_404(PrescriptionUpload, upload_id=upload_id)
+        prescription_med = get_object_or_404(
+            PrescriptionMedicine, 
+            prescription_upload=prescription,
+            medicine__serial_number=medicine_id
+        )
+        
+        medicine_name = prescription_med.medicine.name
+        prescription_med.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Removed {medicine_name} from prescription'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+
+# ==================== HOME SAMPLE COLLECTION MANAGEMENT ====================
+
+@login_required(login_url='admin-login')
+def home_collection_dashboard(request):
+    '''Comprehensive home sample collection management dashboard'''
+    if not request.user.is_labworker:
+        return redirect('admin-logout')
+    
+    from doctor.models import testOrder
+    from hospital_admin.models import Clinical_Laboratory_Technician
+    
+    lab_worker = Clinical_Laboratory_Technician.objects.get(user=request.user)
+    
+    # Get today's date
+    today = timezone.now().date()
+    tomorrow = today + timedelta(days=1)
+    
+    # Home collection orders
+    home_orders = testOrder.objects.filter(
+        collection_type='home',
+        ordered=True
+    ).select_related('user').order_by('-created')
+    
+    # Statistics
+    stats = {
+        'total_home_orders': home_orders.count(),
+        'pending_collections': home_orders.filter(collection_status='pending').count(),
+        'scheduled_today': home_orders.filter(
+            collection_status='scheduled',
+            preferred_collection_date=today
+        ).count(),
+        'scheduled_tomorrow': home_orders.filter(
+            collection_status='scheduled',
+            preferred_collection_date=tomorrow
+        ).count(),
+        'in_progress': home_orders.filter(collection_status='in_progress').count(),
+        'completed_today': home_orders.filter(
+            collection_status='collected',
+            preferred_collection_date=today
+        ).count(),
+        'cod_pending': home_orders.filter(payment_status='cod_pending').count(),
+        'cod_paid': home_orders.filter(payment_status='paid').count(),
+    }
+    
+    # Today's scheduled collections
+    todays_collections = home_orders.filter(
+        collection_status__in=['scheduled', 'in_progress'],
+        preferred_collection_date=today
+    )
+    
+    # Urgent collections (overdue)
+    urgent_collections = home_orders.filter(
+        collection_status__in=['pending', 'scheduled'],
+        preferred_collection_date__lt=today
+    )
+    
+    # Upcoming collections (next 3 days)
+    upcoming_collections = home_orders.filter(
+        collection_status='scheduled',
+        preferred_collection_date__gt=today,
+        preferred_collection_date__lte=today + timedelta(days=3)
+    )
+    
+    context = {
+        'stats': stats,
+        'todays_collections': todays_collections,
+        'urgent_collections': urgent_collections,
+        'upcoming_collections': upcoming_collections,
+        'lab_worker': lab_worker,
+        'today': today,
+    }
+    
+    return render(request, 'hospital_admin/home-collection-dashboard.html', context)
+
+
+@login_required(login_url='admin-login')
+def home_collection_schedule(request):
+    '''Schedule and manage home collections'''
+    if not request.user.is_labworker:
+        return redirect('admin-logout')
+    
+    from doctor.models import testOrder
+    
+    # Get filter parameters
+    date_filter = request.GET.get('date', '')
+    status_filter = request.GET.get('status', '')
+    
+    # Base queryset
+    orders = testOrder.objects.filter(
+        collection_type='home',
+        ordered=True
+    ).select_related('user').order_by('preferred_collection_date', 'preferred_collection_time')
+    
+    # Apply filters
+    if date_filter:
+        orders = orders.filter(preferred_collection_date=date_filter)
+    if status_filter:
+        orders = orders.filter(collection_status=status_filter)
+    
+    # Pagination
+    paginator = Paginator(orders, 20)
+    page_number = request.GET.get('page')
+    page_orders = paginator.get_page(page_number)
+    
+    context = {
+        'orders': page_orders,
+        'date_filter': date_filter,
+        'status_filter': status_filter,
+        'today': timezone.now().date(),
+    }
+    
+    return render(request, 'hospital_admin/home-collection-schedule.html', context)
+
+
+@login_required(login_url='admin-login')
+def update_collection_status(request, order_id):
+    '''Update home collection status'''
+    if not request.user.is_labworker:
+        return JsonResponse({'success': False, 'message': 'Unauthorized'})
+    
+    from doctor.models import testOrder
+    
+    if request.method == 'POST':
+        try:
+            order = get_object_or_404(testOrder, id=order_id, collection_type='home')
+            new_status = request.POST.get('status')
+            notes = request.POST.get('notes', '')
+            
+            if new_status in ['pending', 'scheduled', 'in_progress', 'collected', 'completed', 'cancelled']:
+                order.collection_status = new_status
+                order.save()
+                
+                # If collected, also update payment status for COD orders
+                if new_status == 'collected' and order.payment_status == 'cod_pending':
+                    # This will be updated when payment is received
+                    pass
+                
+                messages.success(request, f'Collection status updated to {new_status}')
+                return JsonResponse({'success': True, 'message': 'Status updated successfully'})
+            else:
+                return JsonResponse({'success': False, 'message': 'Invalid status'})
+                
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+
+@login_required(login_url='admin-login') 
+def process_cod_collection_payment(request, order_id):
+    '''Process COD payment for home collection'''
+    if not request.user.is_labworker:
+        return redirect('admin-logout')
+    
+    from doctor.models import testOrder
+    from razorpay_payment.models import Payment
+    
+    order = get_object_or_404(testOrder, id=order_id, collection_type='home')
+    
+    if request.method == 'POST':
+        try:
+            amount_received = Decimal(request.POST.get('amount_received', 0))
+            payment_method = request.POST.get('payment_method', 'cash')
+            
+            if amount_received >= order.final_bill:
+                # Create payment record
+                payment = Payment.objects.create(
+                    user=order.user,
+                    payment_id=f'COD_HC_{order.id}_{timezone.now().strftime("%Y%m%d%H%M%S")}',
+                    order_id=str(order.id),
+                    signature=f'home_collection_cod_{order.id}',
+                    amount=float(order.final_bill),
+                    status='paid'
+                )
+                
+                # Update order
+                order.payment_status = 'paid'
+                order.collection_status = 'completed'
+                order.save()
+                
+                # Update all associated test items
+                for cart_item in order.orderitems.all():
+                    cart_item.item.test_info_pay_status = 'paid'
+                    cart_item.item.test_status = 'collected'
+                    cart_item.item.save()
+                
+                messages.success(request, f'Payment of ₹{amount_received} received successfully!')
+                return redirect('home-collection-dashboard')
+            else:
+                messages.error(request, f'Amount received (₹{amount_received}) is less than required (₹{order.final_bill})')
+                
+        except Exception as e:
+            messages.error(request, f'Error processing payment: {str(e)}')
+    
+    context = {
+        'order': order,
+        'required_amount': order.final_bill,
+    }
+    
+    return render(request, 'hospital_admin/process-cod-collection.html', context)
+
+
+@login_required(login_url='admin-login')
+def home_collection_details(request, order_id):
+    '''View detailed information about a home collection order'''
+    if not request.user.is_labworker:
+        return redirect('admin-logout')
+    
+    from doctor.models import testOrder
+    
+    order = get_object_or_404(testOrder, id=order_id, collection_type='home')
+    
+    # Get patient information
+    patient_info = {
+        'name': f"{order.user.first_name} {order.user.last_name}".strip() or order.user.username,
+        'email': order.user.email,
+        'phone': getattr(order.user, 'phone', 'N/A'),
+    }
+    
+    # Get test details
+    test_items = order.orderitems.all()
+    
+    context = {
+        'order': order,
+        'patient_info': patient_info,
+        'test_items': test_items,
+        'collection_fee': order.home_collection_charge,
+        'total_amount': order.final_bill,
+    }
+    
+    return render(request, 'hospital_admin/home-collection-details.html', context)
+
+
+@login_required(login_url='admin-login')
+def print_collection_receipt(request, order_id):
+    '''Generate printable receipt for home collection'''
+    if not request.user.is_labworker:
+        return redirect('admin-logout')
+    
+    from doctor.models import testOrder
+    
+    order = get_object_or_404(testOrder, id=order_id, collection_type='home')
+    
+    context = {
+        'order': order,
+        'patient_name': f"{order.user.first_name} {order.user.last_name}".strip() or order.user.username,
+        'test_items': order.orderitems.all(),
+        'print_date': timezone.now(),
+    }
+    
+    return render(request, 'hospital_admin/collection-receipt.html', context)

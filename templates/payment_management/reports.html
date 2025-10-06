@@ -1,0 +1,297 @@
+{% extends 'hospital_admin/base.html' %}
+{% load static %}
+
+{% block title %}Payment Reports - Mahima Medicare{% endblock %}
+{% block page_title %}Payment Reports & Analytics{% endblock %}
+{% block breadcrumb %}Payment Reports{% endblock %}
+
+{% block extra_css %}
+<style>
+    .report-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        transition: transform 0.2s;
+    }
+    .report-card:hover {
+        transform: translateY(-2px);
+    }
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .chart-container {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card report-card">
+            <div class="card-header">
+                <h5 class="mb-0">📊 Generate Custom Reports</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row">
+                    <div class="col-md-3">
+                        <label for="start_date">Start Date:</label>
+                        <input type="date" name="start_date" id="start_date" class="form-control" 
+                               value="{{ start_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="end_date">End Date:</label>
+                        <input type="date" name="end_date" id="end_date" class="form-control" 
+                               value="{{ end_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary d-block">
+                            📈 Generate Report
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <label>&nbsp;</label>
+                        <a href="{% url 'payment_management:export_payments' %}?start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}" 
+                           class="btn btn-success d-block">
+                            📋 Export CSV
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h3>{{ report_data.total_payments }}</h3>
+            <p class="mb-0">Total Payments</p>
+            <small>{{ date_range }} days period</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+            <h3>₹{{ report_data.total_amount|floatformat:0 }}</h3>
+            <p class="mb-0">Total Amount</p>
+            <small>All payment types</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h3>₹{{ report_data.verified_amount|floatformat:0 }}</h3>
+            <p class="mb-0">Verified Amount</p>
+            <small>Admin approved</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <h3>₹{{ report_data.pending_amount|floatformat:0 }}</h3>
+            <p class="mb-0">Pending Amount</p>
+            <small>Awaiting verification</small>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Type Breakdown -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card report-card">
+            <div class="card-header">
+                <h5 class="mb-0">💊 Payment by Type</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Count</th>
+                                <th>Amount</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in report_data.by_type %}
+                            <tr>
+                                <td>
+                                    {% if item.payment_type == 'lab_test' %}🧪 Lab Tests
+                                    {% elif item.payment_type == 'medicine' %}💊 Medicines
+                                    {% elif item.payment_type == 'appointment' %}👨‍⚕️ Appointments
+                                    {% elif item.payment_type == 'home_collection' %}🏠 Home Collection
+                                    {% else %}📋 {{ item.payment_type|title }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.count }}</td>
+                                <td>₹{{ item.total|floatformat:0 }}</td>
+                                <td>
+                                    {% widthratio item.total report_data.total_amount 100 %}%
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted">No data available</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card report-card">
+            <div class="card-header">
+                <h5 class="mb-0">💳 Payment by Method</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Count</th>
+                                <th>Amount</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in report_data.by_method %}
+                            <tr>
+                                <td>
+                                    {% if item.payment_method == 'online' %}💳 Online
+                                    {% elif item.payment_method == 'cod' %}💰 COD
+                                    {% elif item.payment_method == 'cash' %}💵 Cash
+                                    {% else %}📋 {{ item.payment_method|title }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.count }}</td>
+                                <td>₹{{ item.total|floatformat:0 }}</td>
+                                <td>
+                                    {% widthratio item.total report_data.total_amount 100 %}%
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted">No data available</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Status Breakdown -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card report-card">
+            <div class="card-header">
+                <h5 class="mb-0">📊 Payment by Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Count</th>
+                                <th>Amount</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in report_data.by_status %}
+                            <tr>
+                                <td>
+                                    {% if item.status == 'verified' %}✅ Verified
+                                    {% elif item.status == 'received' %}📝 Received
+                                    {% elif item.status == 'pending' %}⏳ Pending
+                                    {% elif item.status == 'failed' %}❌ Failed
+                                    {% else %}📋 {{ item.status|title }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.count }}</td>
+                                <td>₹{{ item.total|floatformat:0 }}</td>
+                                <td>
+                                    {% widthratio item.total report_data.total_amount 100 %}%
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted">No data available</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card report-card">
+            <div class="card-header">
+                <h5 class="mb-0">📅 Daily Breakdown</h5>
+            </div>
+            <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Count</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in report_data.daily_breakdown %}
+                            <tr>
+                                <td>{{ item.day|date:"M d" }}</td>
+                                <td>{{ item.count }}</td>
+                                <td>₹{{ item.total|floatformat:0 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted">No data available</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row">
+    <div class="col-12">
+        <div class="text-center">
+            <a href="{% url 'payment_management:dashboard' %}" class="btn btn-secondary me-2">
+                ← Back to Dashboard
+            </a>
+            <a href="{% url 'payment_management:export_payments' %}" class="btn btn-success me-2">
+                📋 Export All Data
+            </a>
+            <button class="btn btn-primary" onclick="window.print()">
+                🖨️ Print Report
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh every 5 minutes
+setTimeout(function() {
+    window.location.reload();
+}, 300000);
+</script>
+{% endblock %}

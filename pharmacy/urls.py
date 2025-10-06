@@ -23,12 +23,30 @@ urlpatterns = [
     path('increase-item/<int:pk>/', views.increase_cart, name='increase-item'),
     path('decrease-item/<int:pk>/', views.decrease_cart, name='decrease-item'),
     
+    # Prescription upload URLs
+    path('upload-prescription/', views.upload_prescription, name='upload-prescription'),
+    path('prescription-status/<int:upload_id>/', views.prescription_status, name='prescription_status'),
+    path('my-prescriptions/', views.my_prescriptions, name='my-prescriptions'),
+    path('prescription-to-cart/<int:prescription_upload_id>/', views.prescription_to_cart, name='prescription-to-cart'),
+    
+    # AJAX endpoints
+    path('ajax/medicine-search/', views.ajax_medicine_search, name='ajax-medicine-search'),
+
+    # Doctor prescription integration URLs
+    path('doctor-prescriptions/', views.doctor_prescriptions, name='doctor-prescriptions'),
+    path('prescription-to-pharmacy/<int:prescription_id>/', views.prescription_to_pharmacy, name='prescription-to-pharmacy'),
+
+    # Pharmacist prescription management URLs
+    path('pharmacist/prescriptions/', views.pharmacist_prescriptions, name='pharmacist_prescriptions'),
+    path('pharmacist/review-prescription/<int:upload_id>/', views.review_prescription, name='review_prescription'),
+
     # API endpoints for medicine management
     path('api/fetch-hsn/', api_views.fetch_hsn_code_ajax, name='fetch-hsn-ajax'),
     path('api/composition-suggestions/', api_views.get_composition_suggestions_ajax, name='composition-suggestions'),
     path('api/search-medicines/', api_views.search_existing_medicines, name='search-medicines-ajax'),
     
-    # Old PayMongo URLs removed - now using Razorpay integration
+    # Prescription payment URLs (redirects to Razorpay)
+    path('prescription-payment/<int:prescription_upload_id>/', views.prescription_payment_redirect, name='prescription-payment-redirect'),
 ]
     
 

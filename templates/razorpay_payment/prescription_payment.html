@@ -1,0 +1,297 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+    <title>Prescription Payment - Mahima Medicare</title>
+
+    <!-- Favicons -->
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/Normal/bootstrap.min.css' %}" />
+
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}" />
+
+    <style>
+        :root {
+            --primary: #95C270;
+            --primary-dark: #7aa556;
+            --primary-light: #f0f7ea;
+        }
+
+        .payment-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .payment-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .payment-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .btn-pay {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .btn-pay:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(149, 194, 112, 0.4);
+            color: white;
+        }
+
+        .order-summary {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .prescription-image {
+            max-width: 200px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="payment-container">
+        <div class="payment-card">
+            <div class="payment-header">
+                <i class="fas fa-prescription-bottle-alt fa-3x mb-3"></i>
+                <h2>Prescription Payment</h2>
+                <p class="mb-0">Complete your prescription order payment</p>
+            </div>
+
+            <div class="card-body p-4">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-receipt text-primary"></i> Order Summary</h5>
+                        <div class="order-summary">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Prescription #{{ prescription_upload.upload_id }}</span>
+                                <strong>#{{ prescription_upload.upload_id }}</strong>
+                            </div>
+
+                            {% if prescription_upload.doctor_name %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Doctor:</span>
+                                <span>{{ prescription_upload.doctor_name }}</span>
+                            </div>
+                            {% endif %}
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Medicines Cost:</span>
+                                <span>₹{{ prescription_upload.estimated_cost }}</span>
+                            </div>
+
+                            {% if prescription_upload.delivery_method == 'delivery' %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Delivery Charges:</span>
+                                <span>₹40.00</span>
+                            </div>
+                            {% endif %}
+
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <strong>Total Amount:</strong>
+                                <strong class="text-success">₹{{ payment.amount }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6><i class="fas fa-truck text-primary"></i> Delivery Method:</h6>
+                            {% if prescription_upload.delivery_method == 'delivery' %}
+                                <p><i class="fas fa-truck text-success"></i> Home Delivery</p>
+                                {% if prescription_upload.delivery_address %}
+                                <small class="text-muted">{{ prescription_upload.delivery_address }}</small>
+                                {% endif %}
+                            {% else %}
+                                <p><i class="fas fa-store text-info"></i> Pickup at Pharmacy</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        {% if prescription_upload.prescription_image %}
+                        <h6><i class="fas fa-image text-primary"></i> Your Prescription:</h6>
+                        <div class="text-center mb-3">
+                            <img src="{{ prescription_upload.prescription_image.url }}"
+                                 alt="Prescription" class="prescription-image img-fluid">
+                        </div>
+                        {% endif %}
+
+                        {% if prescription_upload.medicines.all %}
+                        <h6><i class="fas fa-pills text-primary"></i> Prescribed Medicines:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Medicine</th>
+                                        <th>Qty</th>
+                                        <th>Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for med in prescription_upload.medicines.all %}
+                                    <tr>
+                                        <td>{{ med.medicine.name }}</td>
+                                        <td>{{ med.quantity }}</td>
+                                        <td>₹{{ med.total_price|default:med.medicine.price }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <h5 class="mb-3">Choose Payment Method</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <button type="button" class="btn btn-pay w-100" onclick="payWithRazorpay()">
+                                <i class="fas fa-credit-card me-2"></i>
+                                Pay Online - ₹{{ payment.amount }}
+                            </button>
+                            <small class="text-muted d-block mt-2">Secure payment via Razorpay</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <a href="{% url 'cod-prescription-payment' prescription_upload.upload_id %}"
+                               class="btn btn-outline-success w-100" style="padding: 15px 30px; border-radius: 50px;">
+                                <i class="fas fa-money-bill-wave me-2"></i>
+                                Cash on Delivery
+                            </a>
+                            <small class="text-muted d-block mt-2">Pay when you receive</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <a href="{% url 'prescription_status' prescription_upload.upload_id %}"
+                           class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-arrow-left"></i> Back to Prescription
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{% url 'my-prescriptions' %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-list"></i> My Prescriptions
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Razorpay Checkout -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        function payWithRazorpay() {
+            var options = {
+                "key": "{{ razorpay_key_id }}",
+                "amount": "{{ amount }}",
+                "currency": "{{ currency }}",
+                "name": "{{ name }}",
+                "description": "{{ description }}",
+                "order_id": "{{ razorpay_order_id }}",
+                "handler": function (response) {
+                    // Submit payment details to server
+                    var form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{% url "razorpay-payment-success" %}';
+
+                    // Add CSRF token
+                    var csrfToken = document.createElement('input');
+                    csrfToken.type = 'hidden';
+                    csrfToken.name = 'csrfmiddlewaretoken';
+                    csrfToken.value = '{{ csrf_token }}';
+                    form.appendChild(csrfToken);
+
+                    // Add payment details
+                    var paymentId = document.createElement('input');
+                    paymentId.type = 'hidden';
+                    paymentId.name = 'razorpay_payment_id';
+                    paymentId.value = response.razorpay_payment_id;
+                    form.appendChild(paymentId);
+
+                    var orderId = document.createElement('input');
+                    orderId.type = 'hidden';
+                    orderId.name = 'razorpay_order_id';
+                    orderId.value = response.razorpay_order_id;
+                    form.appendChild(orderId);
+
+                    var signature = document.createElement('input');
+                    signature.type = 'hidden';
+                    signature.name = 'razorpay_signature';
+                    signature.value = response.razorpay_signature;
+                    form.appendChild(signature);
+
+                    document.body.appendChild(form);
+                    form.submit();
+                },
+                "prefill": {
+                    "name": "{{ customer_name }}",
+                    "email": "{{ customer_email }}",
+                    "contact": "{{ customer_phone }}"
+                },
+                "notes": {
+                    "prescription_id": "{{ prescription_upload.upload_id }}",
+                    "patient_id": "{{ prescription_upload.patient.patient_id }}"
+                },
+                "theme": {
+                    "color": "#95C270"
+                },
+                "modal": {
+                    "ondismiss": function() {
+                        console.log('Payment modal closed');
+                    }
+                }
+            };
+
+            var rzp = new Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                alert('Payment failed: ' + response.error.description);
+                window.location.href = '{% url "razorpay-payment-failed" %}';
+            });
+
+            rzp.open();
+        }
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="{% static 'HealthStack-System/js/Normal/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>
+

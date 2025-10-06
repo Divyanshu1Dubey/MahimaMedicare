@@ -1,0 +1,289 @@
+{% extends 'hospital_admin/base.html' %}
+{% load static %}
+
+{% block title %}Payment Management Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-card {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    .payment-card:hover {
+        transform: translateY(-2px);
+    }
+    .status-badge {
+        font-size: 0.8em;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-weight: 500;
+    }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-received { background: #d1ecf1; color: #0c5460; }
+    .status-verified { background: #d4edda; color: #155724; }
+    .status-failed { background: #f8d7da; color: #721c24; }
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .payment-amount {
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+    .verification-needed {
+        border-left: 4px solid #dc3545;
+        background: #fff5f5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">💰 Payment Management Dashboard</h2>
+            
+            <!-- Today's Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card text-center">
+                        <h3>₹{{ today_stats.total_amount|floatformat:0 }}</h3>
+                        <p class="mb-0">Today's Total</p>
+                        <small>{{ today_stats.total_payments }} payments</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card text-center" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                        <h3>{{ today_stats.verified_payments }}</h3>
+                        <p class="mb-0">Verified Today</p>
+                        <small>Admin Approved</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <h3>{{ today_stats.pending_payments }}</h3>
+                        <p class="mb-0">Pending</p>
+                        <small>Need Review</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card text-center" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <h3>{{ today_stats.received_payments }}</h3>
+                        <p class="mb-0">Received</p>
+                        <small>Ready to Verify</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <a href="{% url 'payment_management:payment_reports' %}" class="btn btn-info me-2">
+                        📊 View Reports
+                    </a>
+                    <a href="{% url 'payment_management:export_payments' %}" class="btn btn-success me-2">
+                        📋 Export Data
+                    </a>
+                    <button class="btn btn-warning" onclick="refreshRazorpayStatus()">
+                        🔄 Sync Razorpay
+                    </button>
+                </div>
+            </div>
+
+            <!-- Payments Needing Verification -->
+            {% if pending_verifications %}
+            <div class="card mb-4 verification-needed">
+                <div class="card-header">
+                    <h5 class="mb-0">🚨 Payments Needing Verification ({{ pending_verifications.count }})</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'payment_management:bulk_verify' %}">
+                        {% csrf_token %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="selectAll"></th>
+                                        <th>Payment ID</th>
+                                        <th>Customer</th>
+                                        <th>Type</th>
+                                        <th>Method</th>
+                                        <th>Amount</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in pending_verifications %}
+                                    <tr>
+                                        <td><input type="checkbox" name="payment_ids" value="{{ payment.payment_id }}"></td>
+                                        <td><strong>{{ payment.payment_id }}</strong></td>
+                                        <td>
+                                            {{ payment.customer_name }}<br>
+                                            <small class="text-muted">{{ payment.customer_phone }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">
+                                            {% if payment.payment_type == 'lab_test' %}🧪 Lab Test
+                                            {% elif payment.payment_type == 'medicine' %}💊 Medicine
+                                            {% elif payment.payment_type == 'appointment' %}👨‍⚕️ Appointment
+                                            {% elif payment.payment_type == 'home_collection' %}🏠 Home Collection
+                                            {% else %}{{ payment.payment_type|title }}
+                                            {% endif %}
+                                        </span>
+                                        </td>
+                                        <td>
+                                            {% if payment.payment_method == 'online' %}
+                                                💳 Online
+                                                {% if payment.razorpay_payment_id %}
+                                                    <br><small class="text-muted">{{ payment.razorpay_payment_id }}</small>
+                                                {% endif %}
+                                            {% elif payment.payment_method == 'cod' %}
+                                                💰 COD
+                                            {% else %}
+                                                {{ payment.get_payment_method_display }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="payment-amount">₹{{ payment.total_amount }}</td>
+                                        <td>{{ payment.created_at|date:"M d, H:i" }}</td>
+                                        <td>
+                                            <a href="{% url 'payment_management:payment_detail' payment.payment_id %}" 
+                                               class="btn btn-sm btn-outline-primary">View</a>
+                                            <a href="{% url 'payment_management:verify_payment' payment.payment_id %}" 
+                                               class="btn btn-sm btn-success">Verify</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button type="submit" name="action" value="verify" class="btn btn-success">
+                                ✅ Bulk Verify Selected
+                            </button>
+                            <button type="submit" name="action" value="mark_received" class="btn btn-info">
+                                📝 Mark as Received
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Payments -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📋 Recent Payments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Payment ID</th>
+                                    <th>Customer</th>
+                                    <th>Type</th>
+                                    <th>Method</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_payments %}
+                                <tr>
+                                    <td><strong>{{ payment.payment_id }}</strong></td>
+                                    <td>
+                                        {{ payment.customer_name }}<br>
+                                        <small class="text-muted">{{ payment.user.username }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {% if payment.payment_type == 'lab_test' %}🧪 Lab Test
+                                            {% elif payment.payment_type == 'medicine' %}💊 Medicine
+                                            {% elif payment.payment_type == 'appointment' %}👨‍⚕️ Appointment
+                                            {% elif payment.payment_type == 'home_collection' %}🏠 Home Collection
+                                            {% else %}{{ payment.payment_type|title }}
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if payment.payment_method == 'online' %}
+                                            💳 Online
+                                        {% elif payment.payment_method == 'cod' %}
+                                            💰 COD
+                                        {% elif payment.payment_method == 'cash' %}
+                                            💵 Cash
+                                        {% elif payment.payment_method == 'card' %}
+                                            💳 Card
+                                        {% elif payment.payment_method == 'upi' %}
+                                            📱 UPI
+                                        {% else %}
+                                            {{ payment.payment_method|title }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="payment-amount">₹{{ payment.total_amount }}</td>
+                                    <td>
+                                        <span class="status-badge status-{{ payment.status }}">
+                                            {% if payment.status == 'verified' %}✅ Verified
+                                            {% elif payment.status == 'received' %}📝 Received
+                                            {% elif payment.status == 'pending' %}⏳ Pending
+                                            {% elif payment.status == 'failed' %}❌ Failed
+                                            {% elif payment.status == 'refunded' %}💸 Refunded
+                                            {% else %}{{ payment.status|title }}
+                                            {% endif %}
+                                        </span>
+                                        {% if payment.is_admin_verified %}
+                                            <br><small class="text-success">Admin Verified</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ payment.created_at|date:"M d, H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'payment_management:payment_detail' payment.payment_id %}" 
+                                           class="btn btn-sm btn-outline-primary">View</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">
+                                        No payments found
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+// Select All checkbox functionality
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('input[name="payment_ids"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+});
+
+// Refresh Razorpay status function
+function refreshRazorpayStatus() {
+    // This would make an AJAX call to sync with Razorpay
+    alert('Razorpay sync functionality will be implemented with proper API keys');
+}
+
+// Auto-refresh dashboard every 5 minutes
+setTimeout(function() {
+    window.location.reload();
+}, 300000); // 5 minutes
+</script>
+{% endblock %}
