@@ -1,0 +1,491 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Review Prescription - Mahima Medicare</title>
+    <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon" />
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css' %}">
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css' %}">
+    
+    <style>
+        :root {
+            --primary-color: #95C270;
+            --primary-dark: #7ea75d;
+        }
+        
+        .prescription-review-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .prescription-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .prescription-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .prescription-image {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .medicine-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        
+        .medicine-search {
+            position: relative;
+        }
+        
+        .medicine-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .suggestion-item:hover {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-wrapper">
+        {% include "hospital_admin/pharmacist-sidebar.html" %}
+
+        <div class="page-wrapper">
+            <div class="content container-fluid">
+                <div class="prescription-review-container">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Prescription Details Card -->
+                    <div class="prescription-card">
+                        <div class="prescription-header">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h3 class="mb-0">
+                                        <i class="fas fa-prescription-bottle-alt me-2"></i>
+                                        Review Prescription #{{ prescription.upload_id }}
+                                    </h3>
+                                    <p class="mb-0 mt-2">Uploaded by {{ prescription.patient.name }}</p>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <span class="badge bg-light text-dark px-3 py-2">
+                                        Status: {{ prescription.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <div class="row">
+                                <!-- Patient Information -->
+                                <div class="col-md-6">
+                                    <h5><i class="fas fa-user text-primary"></i> Patient Information</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>Name:</strong></td>
+                                                <td>{{ prescription.patient.name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Phone:</strong></td>
+                                                <td>{{ prescription.patient.phone_number }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Email:</strong></td>
+                                                <td>{{ prescription.patient.email }}</td>
+                                            </tr>
+                                            {% if prescription.doctor_name %}
+                                            <tr>
+                                                <td><strong>Doctor:</strong></td>
+                                                <td>{{ prescription.doctor_name }}</td>
+                                            </tr>
+                                            {% endif %}
+                                            {% if prescription.prescription_date %}
+                                            <tr>
+                                                <td><strong>Prescription Date:</strong></td>
+                                                <td>{{ prescription.prescription_date|date:"M d, Y" }}</td>
+                                            </tr>
+                                            {% endif %}
+                                            <tr>
+                                                <td><strong>Upload Date:</strong></td>
+                                                <td>{{ prescription.uploaded_at|date:"M d, Y g:i A" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Delivery Method:</strong></td>
+                                                <td>
+                                                    {% if prescription.delivery_method == 'delivery' %}
+                                                        <i class="fas fa-truck text-success"></i> Home Delivery (+₹40)
+                                                    {% else %}
+                                                        <i class="fas fa-store text-info"></i> Pickup at Pharmacy
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                    {% if prescription.patient_notes %}
+                                    <div class="mt-3">
+                                        <h6><i class="fas fa-sticky-note text-warning"></i> Patient Notes:</h6>
+                                        <p class="text-muted">{{ prescription.patient_notes }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Prescription Image -->
+                                <div class="col-md-6">
+                                    <h5><i class="fas fa-image text-primary"></i> Prescription Image</h5>
+                                    <div class="text-center">
+                                        <img src="{{ prescription.prescription_image.url }}" 
+                                             alt="Prescription" 
+                                             class="prescription-image"
+                                             onclick="openImageModal(this.src)">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Added Medicines -->
+                    <div class="prescription-card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-pills text-primary"></i> Prescribed Medicines</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="medicines-list">
+                                {% for med in prescription.medicines.all %}
+                                <div class="medicine-item" id="medicine-{{ med.id }}">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-4">
+                                            <strong>{{ med.medicine.name }}</strong>
+                                            <br><small class="text-muted">{{ med.medicine.composition|default:"" }}</small>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <strong>Qty:</strong> {{ med.quantity }}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Dosage:</strong> {{ med.dosage|default:"-" }}
+                                        </div>
+                                        <div class="col-md-2">
+                                            <strong>₹{{ med.total_price|default:med.medicine.price }}</strong>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <button class="btn btn-sm btn-danger" 
+                                                    onclick="removeMedicine({{ med.medicine.serial_number }}, '{{ med.medicine.name }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center text-muted py-3">
+                                    <i class="fas fa-pills fa-3x mb-3"></i>
+                                    <p>No medicines added yet. Use the form below to add medicines.</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Total Cost -->
+                            <div class="row mt-3">
+                                <div class="col-md-6"></div>
+                                <div class="col-md-6">
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>Medicines Total:</strong></td>
+                                                <td class="text-end">₹<span id="medicines-total">{{ prescription.medicines.all|length|default:0 }}</span></td>
+                                            </tr>
+                                            {% if prescription.delivery_method == 'delivery' %}
+                                            <tr>
+                                                <td><strong>Delivery Charge:</strong></td>
+                                                <td class="text-end">₹40</td>
+                                            </tr>
+                                            {% endif %}
+                                            <tr class="border-top">
+                                                <td><strong>Grand Total:</strong></td>
+                                                <td class="text-end"><strong>₹<span id="grand-total">0</span></strong></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Medicine Form -->
+                    <div class="prescription-card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-plus-circle text-success"></i> Add Medicine</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="add-medicine-form">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Select Medicine:</label>
+                                        <div class="medicine-search">
+                                            <input type="text" class="form-control" id="medicine-search" 
+                                                   placeholder="Search medicine..." autocomplete="off">
+                                            <div class="medicine-suggestions" id="medicine-suggestions"></div>
+                                            <input type="hidden" id="selected-medicine-id">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Quantity:</label>
+                                        <input type="number" class="form-control" id="medicine-quantity" 
+                                               min="1" value="1" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Dosage:</label>
+                                        <input type="text" class="form-control" id="medicine-dosage" 
+                                               placeholder="e.g., 1 tablet twice daily">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Days:</label>
+                                        <input type="number" class="form-control" id="medicine-days" 
+                                               min="1" placeholder="7">
+                                    </div>
+                                    <div class="col-md-1">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button type="button" class="btn btn-success w-100" onclick="addMedicine()">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="prescription-card">
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <label class="form-label">Pharmacist Notes:</label>
+                                        <textarea name="pharmacist_notes" class="form-control" rows="3" 
+                                                  placeholder="Add your notes about the prescription review...">{{ prescription.pharmacist_notes|default:"" }}</textarea>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Action:</label>
+                                        <div class="d-grid gap-2">
+                                            <button type="submit" name="action" value="approve" 
+                                                    class="btn btn-success btn-lg">
+                                                <i class="fas fa-check"></i> Approve Prescription
+                                            </button>
+                                            <button type="submit" name="action" value="reject" 
+                                                    class="btn btn-danger btn-lg">
+                                                <i class="fas fa-times"></i> Reject Prescription
+                                            </button>
+                                            <a href="{% url 'pharmacist-order-management' %}" 
+                                               class="btn btn-secondary">
+                                                <i class="fas fa-arrow-left"></i> Back to Orders
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div class="modal fade" id="imageModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Prescription Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImage" class="img-fluid" src="" alt="Prescription">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/bootstrap.bundle.min.js' %}"></script>
+    
+    <script>
+        let medicines = [];  // Will be populated below
+        let prescriptionId = {{ prescription.upload_id }};
+        
+        // Medicine search functionality
+        $('#medicine-search').on('input', function() {
+            const query = $(this).val().toLowerCase();
+            const suggestions = $('#medicine-suggestions');
+            
+            if (query.length < 2) {
+                suggestions.hide();
+                return;
+            }
+            
+            const filtered = medicines.filter(med => 
+                med.name.toLowerCase().includes(query) || 
+                (med.composition && med.composition.toLowerCase().includes(query))
+            );
+            
+            if (filtered.length > 0) {
+                let html = '';
+                filtered.slice(0, 10).forEach(med => {
+                    html += `<div class="suggestion-item" onclick="selectMedicine(${med.serial_number}, '${med.name}', ${med.price})">
+                        <strong>${med.name}</strong><br>
+                        <small class="text-muted">₹${med.price} - Stock: ${med.quantity}</small>
+                    </div>`;
+                });
+                suggestions.html(html).show();
+            } else {
+                suggestions.hide();
+            }
+        });
+        
+        // Hide suggestions when clicking outside
+        $(document).click(function(e) {
+            if (!$(e.target).closest('.medicine-search').length) {
+                $('#medicine-suggestions').hide();
+            }
+        });
+        
+        function selectMedicine(id, name, price) {
+            $('#medicine-search').val(name);
+            $('#selected-medicine-id').val(id);
+            $('#medicine-suggestions').hide();
+        }
+        
+        function addMedicine() {
+            const medicineId = $('#selected-medicine-id').val();
+            const quantity = $('#medicine-quantity').val();
+            const dosage = $('#medicine-dosage').val();
+            const days = $('#medicine-days').val();
+            
+            if (!medicineId) {
+                alert('Please select a medicine');
+                return;
+            }
+            
+            if (!quantity || quantity < 1) {
+                alert('Please enter valid quantity');
+                return;
+            }
+            
+            $.post(`/hospital_admin/add-medicine-to-prescription/${prescriptionId}/`, {
+                medicine_id: medicineId,
+                quantity: quantity,
+                dosage: dosage,
+                days: days,
+                csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
+            })
+            .done(function(response) {
+                if (response.success) {
+                    location.reload(); // Reload to show updated medicines
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            })
+            .fail(function() {
+                alert('Error adding medicine. Please try again.');
+            });
+        }
+        
+        function removeMedicine(medicineId, medicineName) {
+            if (confirm(`Remove ${medicineName} from prescription?`)) {
+                $.post(`/hospital_admin/remove-medicine-from-prescription/${prescriptionId}/${medicineId}/`, {
+                    csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
+                })
+                .done(function(response) {
+                    if (response.success) {
+                        location.reload(); // Reload to show updated medicines
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                })
+                .fail(function() {
+                    alert('Error removing medicine. Please try again.');
+                });
+            }
+        }
+        
+        function openImageModal(src) {
+            $('#modalImage').attr('src', src);
+            $('#imageModal').modal('show');
+        }
+        
+        // Calculate totals
+        function calculateTotals() {
+            // This would be implemented based on the medicines data
+            // For now, we'll reload the page to get updated totals
+        }
+        
+        // Convert medicines data to JSON for JavaScript
+        const medicinesData = [
+            {% for medicine in medicines %}
+            {
+                serial_number: {{ medicine.serial_number }},
+                name: "{{ medicine.name|escapejs }}",
+                price: {{ medicine.price|default:0 }},
+                quantity: {{ medicine.quantity|default:0 }},
+                composition: "{{ medicine.composition|default:""|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        medicines = medicinesData;
+    </script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+    <title>{% block title %}Payment Management - Mahima Medicare{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}"/>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css'%}" />
+
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css'%}" />
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/Normal/fontawesome/css/fontawesome.min.css' %}" />
+
+    <!-- Feathericon CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/feathericon.min.css'%}" />
+
+    <!-- Morris CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/admin/morris/morris.css'%}" />
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/admin_assets/css/style.css'%}" />
+
+    {% block extra_css %}{% endblock %}
+
+    <style>
+        :root {
+            --primary-color: #95C270;
+            --hover-bg-color: #e6f0c8;
+            --text-color: #2c3e50;
+            --bg-color: #ffffff;
+            --transition-speed: 0.3s;
+            --border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="header">{% include 'hospital_admin/hospital-admin-navbar.html' %}</header>            
+        <!-- /Header -->
+        
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            {% include 'hospital_admin/hospital-admin-sidebar.html' %}
+        </aside>
+        <!-- /Sidebar -->
+        
+        <!-- Page Wrapper -->
+        <div class="page-wrapper">
+            <div class="content container-fluid">
+                
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h3 class="page-title">{% block page_title %}Payment Management{% endblock %}</h3>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{% url 'admin-dashboard' %}">Dashboard</a></li>
+                                <li class="breadcrumb-item active">{% block breadcrumb %}Payment Management{% endblock %}</li>
+                            </ul>
+                            {% include 'message.html' %}
+                        </div>
+                    </div>
+                </div>
+                <!-- /Page Header -->
+
+                <!-- Main Content -->
+                {% block content %}{% endblock %}
+                
+            </div>
+        </div>
+        <!-- /Page Wrapper -->
+    </div>
+    <!-- /Main Wrapper -->
+
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/admin_assets/js/jquery-3.2.1.min.js'%}"></script>
+
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/admin_assets/js/popper.min.js'%}"></script>
+    <script src="{% static 'HealthStack-System/admin_assets/js/bootstrap.min.js'%}"></script>
+
+    <!-- Slimscroll JS -->
+    <script src="{% static 'HealthStack-System/admin_assets/plugins/slimscroll/jquery.slimscroll.min.js'%}"></script>
+
+    <!-- Morris JS -->
+    <script src="{% static 'HealthStack-System/plugins/admin/morris/morris.min.js'%}"></script>
+    <script src="{% static 'HealthStack-System/plugins/admin/raphael/raphael.min.js'%}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/admin_assets/js/script.js'%}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

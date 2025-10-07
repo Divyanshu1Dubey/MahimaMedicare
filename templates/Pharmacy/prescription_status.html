@@ -1,0 +1,285 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Prescription Status - Mahima Medicare</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}" rel="icon">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary: #95C270;
+      --primary-dark: #7aa556;
+      --primary-light: #f0f7ea;
+      --text-dark: #2d3748;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+    }
+
+    .status-container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .status-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .status-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .status-body {
+      padding: 2rem;
+    }
+
+    .status-badge {
+      font-size: 1.1rem;
+      padding: 8px 16px;
+      border-radius: 50px;
+    }
+
+    .prescription-image {
+      max-width: 100%;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .info-row {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border: none;
+      border-radius: 12px;
+      padding: 12px 30px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="status-container">
+    <div class="status-card">
+      <div class="status-header">
+        <i class="fas fa-clipboard-check fa-3x mb-3"></i>
+        <h2 class="mb-0">Prescription #{{ prescription.upload_id }}</h2>
+        <p class="mb-0 mt-2 opacity-90">Track your prescription status</p>
+      </div>
+
+      <div class="status-body">
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <h6 class="fw-semibold">Status:</h6>
+            {% if prescription.status == 'pending' %}
+              <span class="badge bg-warning text-dark status-badge">
+                <i class="fas fa-clock"></i> Pending Review
+              </span>
+            {% elif prescription.status == 'reviewed' %}
+              <span class="badge bg-info status-badge">
+                <i class="fas fa-eye"></i> Under Review
+              </span>
+            {% elif prescription.status == 'approved' %}
+              <span class="badge bg-success status-badge">
+                <i class="fas fa-check-circle"></i> Approved
+              </span>
+            {% elif prescription.status == 'rejected' %}
+              <span class="badge bg-danger status-badge">
+                <i class="fas fa-times-circle"></i> Rejected
+              </span>
+            {% elif prescription.status == 'fulfilled' %}
+              <span class="badge bg-primary status-badge">
+                <i class="fas fa-box"></i> Order Fulfilled
+              </span>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <h6 class="fw-semibold">Uploaded:</h6>
+            <p class="mb-0">{{ prescription.uploaded_at|date:"M d, Y g:i A" }}</p>
+          </div>
+        </div>
+
+        {% if prescription.doctor_name or prescription.prescription_date %}
+        <div class="info-row">
+          <div class="row">
+            {% if prescription.doctor_name %}
+            <div class="col-md-6">
+              <h6 class="fw-semibold mb-1"><i class="fas fa-user-md text-primary"></i> Doctor:</h6>
+              <p class="mb-0">{{ prescription.doctor_name }}</p>
+            </div>
+            {% endif %}
+            {% if prescription.prescription_date %}
+            <div class="col-md-6">
+              <h6 class="fw-semibold mb-1"><i class="fas fa-calendar text-primary"></i> Prescription Date:</h6>
+              <p class="mb-0">{{ prescription.prescription_date|date:"M d, Y" }}</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if prescription.patient_notes %}
+        <div class="info-row">
+          <h6 class="fw-semibold mb-2"><i class="fas fa-sticky-note text-primary"></i> Your Notes:</h6>
+          <p class="mb-0">{{ prescription.patient_notes }}</p>
+        </div>
+        {% endif %}
+
+        {% if prescription.pharmacist_notes %}
+        <div class="alert alert-info">
+          <h6 class="fw-semibold mb-2"><i class="fas fa-user-tie"></i> Pharmacist Notes:</h6>
+          <p class="mb-0">{{ prescription.pharmacist_notes }}</p>
+        </div>
+        {% endif %}
+
+        {% if prescription.estimated_cost %}
+        <div class="info-row text-center">
+          <h6 class="fw-semibold mb-2"><i class="fas fa-rupee-sign text-success"></i> Estimated Cost:</h6>
+          <h3 class="text-success mb-0">₹{{ prescription.estimated_cost }}</h3>
+        </div>
+        {% endif %}
+
+        {% if prescription.medicines.all %}
+        <div class="info-row">
+          <h6 class="fw-semibold mb-3"><i class="fas fa-pills text-primary"></i> Prescribed Medicines:</h6>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead class="table-light">
+                <tr>
+                  <th>Medicine</th>
+                  <th>Quantity</th>
+                  <th>Dosage</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for med in prescription.medicines.all %}
+                <tr>
+                  <td class="fw-semibold">{{ med.medicine.name }}</td>
+                  <td>{{ med.quantity }}</td>
+                  <td>{{ med.dosage|default:"-" }}</td>
+                  <td class="text-success fw-semibold">₹{{ med.total_price|default:med.medicine.price }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="info-row">
+          <h6 class="fw-semibold mb-2"><i class="fas fa-truck text-primary"></i> Delivery Method:</h6>
+          <p class="mb-0">
+            {% if prescription.delivery_method == 'delivery' %}
+              <i class="fas fa-truck text-success"></i> Home Delivery (+₹40)
+              {% if prescription.delivery_address %}
+                <br><small class="text-muted">{{ prescription.delivery_address }}</small>
+              {% endif %}
+            {% else %}
+              <i class="fas fa-store text-info"></i> Pickup at Pharmacy (Free)
+            {% endif %}
+          </p>
+        </div>
+
+        <div class="d-grid gap-2 mt-4">
+          {% if prescription.status == 'approved' and not prescription.related_order %}
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <a href="{% url 'razorpay-prescription-payment' prescription.upload_id %}"
+                   class="btn btn-success btn-lg w-100">
+                  <i class="fas fa-credit-card"></i> Pay Online - ₹{{ prescription.estimated_cost }}
+                </a>
+                <small class="text-muted d-block text-center mt-1">Secure payment via Razorpay</small>
+              </div>
+              <div class="col-md-6">
+                <a href="{% url 'cod-prescription-payment' prescription.upload_id %}"
+                   class="btn btn-outline-success btn-lg w-100">
+                  <i class="fas fa-money-bill-wave"></i> Cash on Delivery
+                </a>
+                <small class="text-muted d-block text-center mt-1">Pay when you receive</small>
+              </div>
+            </div>
+
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle"></i>
+              <strong>Ready for Payment:</strong> Your prescription has been approved and medicines are ready.
+              Choose your preferred payment method above.
+              {% if prescription.delivery_method == 'delivery' %}
+                <br><small>Delivery charges: ₹40 (included in total)</small>
+              {% endif %}
+            </div>
+          {% elif prescription.status == 'fulfilled' %}
+            <div class="alert alert-success">
+              <i class="fas fa-check-circle"></i>
+              <strong>Order Completed:</strong> Your prescription order has been processed successfully!
+              {% if prescription.related_order %}
+                <br><small>Order ID: #{{ prescription.related_order.id }}</small>
+              {% endif %}
+            </div>
+          {% elif prescription.status == 'rejected' %}
+            <div class="alert alert-danger">
+              <i class="fas fa-times-circle"></i>
+              <strong>Prescription Rejected:</strong> Please check the pharmacist notes above and consult with our pharmacist.
+            </div>
+          {% elif prescription.status == 'pending' %}
+            <div class="alert alert-warning">
+              <i class="fas fa-clock"></i>
+              <strong>Under Review:</strong> Our pharmacist is reviewing your prescription. You will be notified once it's ready.
+            </div>
+          {% endif %}
+
+          <div class="row">
+            <div class="col-md-4">
+              <a href="{% url 'my-prescriptions' %}" class="btn btn-outline-primary w-100">
+                <i class="fas fa-list"></i> All Prescriptions
+              </a>
+            </div>
+            <div class="col-md-4">
+              <a href="{% url 'pharmacy-shop' %}" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-store"></i> Medical Shop
+              </a>
+            </div>
+            <div class="col-md-4">
+              <a href="/patient-dashboard/" class="btn btn-outline-info w-100">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if prescription.prescription_image %}
+    <div class="status-card">
+      <div class="status-body text-center">
+        <h6 class="fw-semibold mb-3"><i class="fas fa-image text-primary"></i> Uploaded Prescription</h6>
+        <img src="{{ prescription.prescription_image.url }}" alt="Prescription" class="prescription-image">
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

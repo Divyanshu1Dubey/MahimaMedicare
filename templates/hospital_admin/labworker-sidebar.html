@@ -118,6 +118,46 @@
                 </li>
             </ul>
             
+            <!-- Home Collection Management -->
+            <li class="menu-title"> 
+                <span>Home Collections</span>
+            </li>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'home-collection-dashboard' %}"><i class="fe fe-home"></i> <span>Collection Dashboard</span></a>
+                </li>
+            </ul>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'home-collection-schedule' %}"><i class="fe fe-calendar"></i> <span>Collection Schedule</span></a>
+                </li>
+            </ul>
+            
+            <!-- Home Sample Collection -->
+            <li class="menu-title"> 
+                <span>🏠 Home Collection</span>
+            </li>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'home-collection-dashboard' %}"><i class="fe fe-home"></i> <span>Collection Dashboard</span></a>
+                </li>
+            </ul>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'home-collection-schedule' %}"><i class="fe fe-calendar"></i> <span>Collection Schedule</span></a>
+                </li>
+            </ul>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'home-collection-schedule' %}?status=scheduled&date={{ today|date:'Y-m-d' }}"><i class="fe fe-clock"></i> <span>Today's Collections</span></a>
+                </li>
+            </ul>
+            <ul>
+                <li class=""> 
+                    <a href="{%url 'home-collection-schedule' %}?status=cod_pending"><i class="fe fe-dollar-sign"></i> <span>COD Pending</span></a>
+                </li>
+            </ul>
+            
             <!-- Test Administration -->
             <li class="menu-title"> 
                 <span>Test Administration</span>

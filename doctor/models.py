@@ -352,22 +352,64 @@ class testCart(models.Model):
 
 
 class testOrder(models.Model):
+    COLLECTION_CHOICES = [
+        ('center', 'Collection at Center'),
+        ('home', 'Home Sample Collection'),
+    ]
+    
     orderitems = models.ManyToManyField(testCart)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     ordered = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     payment_status = models.CharField(max_length=200, blank=True, null=True)
     trans_ID = models.CharField(max_length=200, blank=True, null=True)
+    
+    # Home Sample Collection Fields
+    collection_type = models.CharField(max_length=20, choices=COLLECTION_CHOICES, default='center')
+    home_collection_fee = models.DecimalField(max_digits=10, decimal_places=2, default=99.00)
+    collection_address = models.TextField(blank=True, null=True)
+    preferred_collection_date = models.DateField(blank=True, null=True)
+    preferred_collection_time = models.TimeField(blank=True, null=True)
+    collection_status = models.CharField(max_length=50, default='pending', choices=[
+        ('pending', 'Pending'),
+        ('scheduled', 'Scheduled'),
+        ('in_progress', 'Collection in Progress'),
+        ('collected', 'Sample Collected'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ])
 
     @property
     def total_amount(self):
         return sum(cart.total for cart in self.orderitems.all())
+    
+    @property
+    def tests_subtotal(self):
+        """Get only tests total without home collection fee"""
+        return self.total_amount
+
+    @property
+    def home_collection_charge(self):
+        """Get home collection fee if applicable"""
+        if self.collection_type == 'home':
+            return self.home_collection_fee
+        return 0.0
 
     @property
     def final_bill(self):
-        from django.conf import settings
-        vat = getattr(settings, 'LAB_TEST_VAT_AMOUNT', 20.00)
-        return round(self.total_amount + vat, 2)
+        from decimal import Decimal
+        
+        # Convert all to Decimal for consistent calculation
+        total = Decimal(str(self.total_amount or 0))
+        home_charge = Decimal(str(self.home_collection_charge or 0))
+        
+        # No VAT for lab tests as per user request
+        base_total = total + home_charge
+        return float(base_total)
+    
+    def get_collection_display(self):
+        """Get human-readable collection type"""
+        return dict(self.COLLECTION_CHOICES).get(self.collection_type, 'Unknown')
 
 
 class Doctor_review(models.Model):

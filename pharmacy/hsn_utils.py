@@ -9,56 +9,164 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Common medicine HSN codes database (as fallback)
+# Comprehensive medicine HSN codes database (Updated for accurate Indian GST classification)
 MEDICINE_HSN_CODES = {
-    # Common medicines and their HSN codes
-    'paracetamol': '30049011',
-    'acetaminophen': '30049011', 
-    'aspirin': '30049013',
-    'acetylsalicylic acid': '30049013',
-    'ibuprofen': '30049019',
-    'diclofenac': '30049019',
-    'amoxicillin': '30049041',
-    'azithromycin': '30049043',
-    'ciprofloxacin': '30049045',
-    'metformin': '30049051',
-    'amlodipine': '30049061',
-    'atenolol': '30049063',
-    'losartan': '30049065',
-    'omeprazole': '30049071',
-    'pantoprazole': '30049071',
-    'ranitidine': '30049073',
-    'cetirizine': '30049081',
-    'loratadine': '30049081',
-    'dextromethorphan': '30049091',
-    'salbutamol': '30049093',
-    'insulin': '30049095',
-    'multivitamin': '30049097',
-    'vitamin d': '30049097',
-    'vitamin c': '30049097',
-    'calcium': '30049097',
-    'iron': '30049097',
-    'zinc': '30049097',
+    # Analgesics and Antipyretics (30042019)
+    'paracetamol': '30042019',
+    'acetaminophen': '30042019', 
+    'aspirin': '30042019',
+    'acetylsalicylic acid': '30042019',
+    'ibuprofen': '30042019',
+    'diclofenac': '30042019',
+    'nimesulide': '30042019',
+    'aceclofenac': '30042019',
+    'mefenamic acid': '30042019',
+    'piroxicam': '30042019',
+    
+    # Antibiotics and Antimicrobials (30042011)
+    'amoxicillin': '30042011',
+    'azithromycin': '30042011',
+    'ciprofloxacin': '30042011',
+    'doxycycline': '30042011',
+    'erythromycin': '30042011',
+    'cephalexin': '30042011',
+    'cloxacillin': '30042011',
+    'ampicillin': '30042011',
+    'norfloxacin': '30042011',
+    'ofloxacin': '30042011',
+    
+    # Antidiabetic Medicines (30049091)
+    'metformin': '30049091',
+    'glimepiride': '30049091',
+    'gliclazide': '30049091',
+    'glipizide': '30049091',
+    'pioglitazone': '30049091',
+    'sitagliptin': '30049091',
+    'insulin': '30042090',  # Injectable insulin
+    
+    # Cardiovascular Medicines (30049021)
+    'amlodipine': '30049021',
+    'atenolol': '30049021',
+    'losartan': '30049021',
+    'telmisartan': '30049021',
+    'enalapril': '30049021',
+    'ramipril': '30049021',
+    'carvedilol': '30049021',
+    'metoprolol': '30049021',
+    'nifedipine': '30049021',
+    'valsartan': '30049021',
+    
+    # Gastrointestinal Medicines (30049061)
+    'omeprazole': '30049061',
+    'pantoprazole': '30049061',
+    'ranitidine': '30049061',
+    'lansoprazole': '30049061',
+    'esomeprazole': '30049061',
+    'domperidone': '30049061',
+    'ondansetron': '30049061',
+    'loperamide': '30049061',
+    
+    # Antihistamines and Anti-allergic (30049051)
+    'cetirizine': '30049051',
+    'loratadine': '30049051',
+    'fexofenadine': '30049051',
+    'chlorpheniramine': '30049051',
+    'hydroxyzine': '30049051',
+    'desloratadine': '30049051',
+    
+    # Respiratory Medicines (30049031)
+    'salbutamol': '30049031',
+    'theophylline': '30049031',
+    'montelukast': '30049031',
+    'terbutaline': '30049031',
+    'bambuterol': '30049031',
+    
+    # Cough and Cold Preparations (30049041)
+    'dextromethorphan': '30049041',
+    'guaifenesin': '30049041',
+    'bromhexine': '30049041',
+    'ambroxol': '30049041',
+    'phenylephrine': '30049041',
+    
+    # Vitamins and Supplements (21069090)
+    'multivitamin': '21069090',
+    'vitamin d': '21069090',
+    'vitamin c': '21069090',
+    'vitamin b complex': '21069090',
+    'folic acid': '21069090',
+    'calcium': '21069090',
+    'iron': '21069090',
+    'zinc': '21069090',
+    'magnesium': '21069090',
+    'omega 3': '21069090',
+    
+    # Neurological Medicines (30049071)
+    'pregabalin': '30049071',
+    'gabapentin': '30049071',
+    'duloxetine': '30049071',
+    'fluoxetine': '30049071',
+    'sertraline': '30049071',
+    'alprazolam': '30049071',
+    'lorazepam': '30049071',
+    'clonazepam': '30049071',
 }
 
-# Medicine category to HSN mapping
+# Medicine category to HSN mapping (Updated with correct codes)
 CATEGORY_HSN_MAPPING = {
-    'fever': '30049011',  # Paracetamol family
-    'pain': '30049019',   # NSAIDs
-    'cough': '30049091',  # Cough syrups
-    'cold': '30049081',   # Antihistamines
-    'flu': '30049081',    # Antihistamines
-    'diabetes': '30049051', # Antidiabetic
-    'bloodpressure': '30049061', # Antihypertensives
-    'heartdisease': '30049061',  # Cardiovascular
-    'vitamins': '30049097',      # Vitamins/minerals
-    'digestivehealth': '30049071', # Antacids
-    'allergy': '30049081',       # Antihistamines
-    'asthma': '30049093',        # Bronchodilators
-    'infection': '30049041',     # Antibiotics
-    'eye': '30049099',           # Ophthalmic preparations
-    'ear': '30049099',           # Otic preparations
-    'skin': '30049099',          # Topical preparations
+    # Analgesics and Antipyretics
+    'fever': '30042019',                    # Paracetamol and fever reducers
+    'pain': '30042019',                     # NSAIDs and analgesics
+    
+    # Respiratory System
+    'cough': '30049041',                    # Cough preparations
+    'cold': '30049041',                     # Cold medicines  
+    'flu': '30049041',                      # Flu medicines
+    'Respiratory (Asthma, Bronchitis)': '30049031', # Bronchodilators
+    
+    # Endocrine System
+    'diabetes': '30049091',                 # Antidiabetic medicines
+    'Diabetes': '30049091',                 # Antidiabetic medicines
+    'Diabetic': '30049091',                 # Diabetic care medicines
+    
+    # Cardiovascular System
+    'bloodpressure': '30049021',            # Antihypertensives
+    'heartdisease': '30049021',             # Cardiovascular medicines
+    'Hypertension / Heart': '30049021',     # Heart medicines
+    
+    # Gastrointestinal System
+    'digestivehealth': '30049061',          # Digestive medicines
+    'Stomach / Digestion': '30049061',      # GI medicines
+    
+    # Immune System
+    'allergy': '30049051',                  # Antihistamines
+    'Allergy': '30049051',                  # Anti-allergic medicines
+    
+    # Respiratory Disorders
+    'asthma': '30049031',                   # Bronchodilators
+    
+    # Anti-infective
+    'infection': '30042011',                # Antibiotics
+    'Infection (Antibiotics)': '30042011',  # Antimicrobials
+    
+    # Nervous System
+    'Neuropathy': '30049071',               # Neurological medicines
+    
+    # Specialized Preparations
+    'eye': '30049081',                      # Ophthalmic preparations
+    'ear': '30049081',                      # Otic preparations
+    'Eye / Ear / Nose': '30049081',         # ENT preparations
+    'skin': '30051019',                     # Dermatological preparations
+    'Skin': '30051019',                     # Topical medicines
+    
+    # Nutritional Supplements
+    'vitamins': '21069090',                 # Vitamin preparations
+    'Vitamins & Supplements': '21069090',   # Supplements
+    
+    # Genitourinary System
+    'Urinary': '30049099',                  # Urological medicines
+    
+    # Emergency and First Aid
+    'First Aid': '30059090',                # External use medicaments
 }
 
 def clean_medicine_name(name: str) -> str:

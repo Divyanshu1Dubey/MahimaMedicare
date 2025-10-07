@@ -1,0 +1,392 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Process COD Payment - Mahima Medicare</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css' %}">
+    
+    <!-- Feathericon CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/feathericon.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css' %}">
+    
+    <style>
+        .payment-card {
+            border: 2px solid #28a745;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .amount-display {
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .patient-info-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .test-item {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .payment-method-card {
+            border: 2px solid #e3e6f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .payment-method-card:hover {
+            border-color: #007bff;
+            background: #f8f9fa;
+        }
+        
+        .payment-method-card.selected {
+            border-color: #28a745;
+            background: #e8f5e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        
+        <!-- Header -->
+        {% include 'hospital_admin/labworker-navbar.html' %}
+        <!-- /Header -->
+        
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            {% include 'hospital_admin/labworker-sidebar.html' %}
+        </div>
+        <!-- /Sidebar -->
+        
+        <!-- Page Wrapper -->
+        <div class="page-wrapper">
+            <div class="content container-fluid">
+                
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h3 class="page-title">💰 Process COD Payment</h3>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{% url 'labworker-dashboard' %}">Lab Dashboard</a></li>
+                                <li class="breadcrumb-item"><a href="{% url 'home-collection-dashboard' %}">Home Collection</a></li>
+                                <li class="breadcrumb-item active">COD Payment</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Page Header -->
+                
+                <!-- Payment Summary -->
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Order Details -->
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">📋 Order Details - #{{ order.id }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="patient-info-card">
+                                            <h6><i class="fa fa-user mr-2"></i>Patient Information</h6>
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <td><strong>Name:</strong></td>
+                                                    <td>{{ order.user.first_name }} {{ order.user.last_name }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Email:</strong></td>
+                                                    <td>{{ order.user.email }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Phone:</strong></td>
+                                                    <td>{{ order.user.phone|default:"N/A" }}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="patient-info-card">
+                                            <h6><i class="fa fa-map-marker mr-2"></i>Collection Details</h6>
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <td><strong>Date:</strong></td>
+                                                    <td>{{ order.preferred_collection_date|date:'M d, Y' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Time:</strong></td>
+                                                    <td>{{ order.preferred_collection_time|time:'g:i A' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Status:</strong></td>
+                                                    <td>
+                                                        <span class="badge badge-success">{{ order.get_collection_status_display }}</span>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Address -->
+                                <div class="mt-3">
+                                    <h6><i class="fa fa-home mr-2"></i>Collection Address</h6>
+                                    <div class="alert alert-info">
+                                        {{ order.collection_address }}
+                                    </div>
+                                </div>
+                                
+                                <!-- Test Items -->
+                                <div class="mt-3">
+                                    <h6><i class="fa fa-flask mr-2"></i>Tests Ordered ({{ order.orderitems.count }})</h6>
+                                    <div class="row">
+                                        {% for item in order.orderitems.all %}
+                                        <div class="col-md-6">
+                                            <div class="test-item">
+                                                <strong>{{ item.item.name }}</strong><br>
+                                                <span class="text-muted">Quantity: {{ item.quantity|default:1 }}</span>
+                                                <span class="float-right font-weight-bold">₹{{ item.item.amount }}</span>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Form -->
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">💳 Payment Collection</h5>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    
+                                    <!-- Payment Methods -->
+                                    <div class="form-group">
+                                        <label class="font-weight-bold">Payment Method:</label>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="payment-method-card" onclick="selectPaymentMethod('cash')">
+                                                    <input type="radio" name="payment_method" value="cash" id="cash" checked>
+                                                    <label for="cash" class="mb-0">
+                                                        <i class="fa fa-money fa-2x d-block mb-2 text-success"></i>
+                                                        <strong>Cash Payment</strong>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="payment-method-card" onclick="selectPaymentMethod('upi')">
+                                                    <input type="radio" name="payment_method" value="upi" id="upi">
+                                                    <label for="upi" class="mb-0">
+                                                        <i class="fa fa-mobile fa-2x d-block mb-2 text-primary"></i>
+                                                        <strong>UPI Payment</strong>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="payment-method-card" onclick="selectPaymentMethod('card')">
+                                                    <input type="radio" name="payment_method" value="card" id="card">
+                                                    <label for="card" class="mb-0">
+                                                        <i class="fa fa-credit-card fa-2x d-block mb-2 text-info"></i>
+                                                        <strong>Card Payment</strong>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Amount Input -->
+                                    <div class="form-group">
+                                        <label class="font-weight-bold">Amount Received (₹):</label>
+                                        <input type="number" name="amount_received" class="form-control form-control-lg" 
+                                               value="{{ required_amount }}" min="{{ required_amount }}" step="0.01" required>
+                                        <small class="text-muted">Minimum amount required: ₹{{ required_amount }}</small>
+                                    </div>
+                                    
+                                    <!-- Notes -->
+                                    <div class="form-group">
+                                        <label class="font-weight-bold">Payment Notes (Optional):</label>
+                                        <textarea name="payment_notes" class="form-control" rows="3" 
+                                                  placeholder="Add any notes about the payment collection..."></textarea>
+                                    </div>
+                                    
+                                    <!-- Confirmation -->
+                                    <div class="form-group">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="confirm-payment" required>
+                                            <label class="custom-control-label font-weight-bold" for="confirm-payment">
+                                                I confirm that I have received the payment from the patient
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group text-center">
+                                        <button type="submit" class="btn btn-success btn-lg px-5">
+                                            <i class="fa fa-check-circle mr-2"></i>Confirm Payment Received
+                                        </button>
+                                        <a href="{% url 'home-collection-dashboard' %}" class="btn btn-secondary btn-lg ml-3">
+                                            <i class="fa fa-arrow-left mr-2"></i>Back to Dashboard
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Summary Sidebar -->
+                    <div class="col-md-4">
+                        <div class="payment-card">
+                            <div class="card-body text-center">
+                                <h5 class="text-white mb-4">💰 Payment Summary</h5>
+                                
+                                <div class="mb-3">
+                                    <div class="amount-display">₹{{ required_amount }}</div>
+                                    <h6 class="text-white-50">Total Amount Due</h6>
+                                </div>
+                                
+                                <div class="row text-center mb-3">
+                                    <div class="col-6">
+                                        <h6 class="text-white">Tests Subtotal</h6>
+                                        <p class="mb-0">₹{{ order.tests_subtotal }}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <h6 class="text-white">Collection Fee</h6>
+                                        <p class="mb-0">₹{{ order.home_collection_charge }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="border-top border-white-50 pt-3">
+                                    <h6 class="text-white">Payment Status</h6>
+                                    <span class="badge badge-warning badge-pill px-3 py-2">
+                                        <i class="fa fa-clock-o mr-1"></i>COD PENDING
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Actions -->
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">Quick Actions</h6>
+                            </div>
+                            <div class="card-body">
+                                <a href="{% url 'home-collection-details' order.id %}" class="btn btn-info btn-block mb-2">
+                                    <i class="fa fa-eye mr-2"></i>View Full Details
+                                </a>
+                                <button class="btn btn-warning btn-block mb-2" onclick="updateCollectionStatus()">
+                                    <i class="fa fa-edit mr-2"></i>Update Status
+                                </button>
+                                {% if order.collection_status == 'completed' %}
+                                <a href="{% url 'print-collection-receipt' order.id %}" class="btn btn-secondary btn-block" target="_blank">
+                                    <i class="fa fa-print mr-2"></i>Print Receipt
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Important Notes -->
+                        <div class="card mt-4">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0">📝 Important Notes</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled mb-0">
+                                    <li><i class="fa fa-check text-success mr-2"></i>Verify patient identity</li>
+                                    <li><i class="fa fa-check text-success mr-2"></i>Check amount carefully</li>
+                                    <li><i class="fa fa-check text-success mr-2"></i>Provide payment receipt</li>
+                                    <li><i class="fa fa-check text-success mr-2"></i>Update collection status</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        <!-- /Page Wrapper -->
+        
+    </div>
+    <!-- /Main Wrapper -->
+    
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/admin/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
+    
+    <script>
+        function selectPaymentMethod(method) {
+            // Remove selected class from all cards
+            $('.payment-method-card').removeClass('selected');
+            
+            // Add selected class to clicked card
+            $(`input[value="${method}"]`).closest('.payment-method-card').addClass('selected');
+            
+            // Check the radio button
+            $(`input[value="${method}"]`).prop('checked', true);
+        }
+        
+        function updateCollectionStatus() {
+            // This would open a modal to update collection status
+            alert('Collection status update functionality would be implemented here');
+        }
+        
+        // Initialize first payment method as selected
+        $(document).ready(function() {
+            selectPaymentMethod('cash');
+        });
+        
+        // Form validation
+        $('form').on('submit', function(e) {
+            const amountReceived = parseFloat($('input[name="amount_received"]').val());
+            const requiredAmount = parseFloat('{{ required_amount }}');
+            
+            if (amountReceived < requiredAmount) {
+                e.preventDefault();
+                alert(`Amount received (₹${amountReceived}) is less than required (₹${requiredAmount})`);
+                return false;
+            }
+            
+            if (!$('#confirm-payment').is(':checked')) {
+                e.preventDefault();
+                alert('Please confirm that you have received the payment');
+                return false;
+            }
+            
+            return true;
+        });
+    </script>
+</body>
+</html>

@@ -337,7 +337,7 @@
                                                                     <thead>
                                                                         <tr>
                                                                             <th style="min-width: 300px">Medicine Name</th>
-                                                                            <th style="min-width: 300px">Weight (mg)</th>
+                                                                            <th style="min-width: 300px">Batch No.</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -350,10 +350,11 @@
                                                                                     {% endif %}
                                                                                 {% endfor %}
                                                                             </td>
-                                                                            <td data-label="Weight">
-                                                                                <input class="form-control" type="text" name="weight" value="{% if form_data %}{{ form_data.weight }}{% else %}{{ request.POST.weight }}{% endif %}" placeholder="Enter weight (e.g., 500mg, 10ml)">
+                                                                            <td data-label="Batch No.">
+                                                                                <input class="form-control" type="text" name="batch_no" value="{% if form_data %}{{ form_data.batch_no }}{% else %}{{ request.POST.batch_no }}{% endif %}" placeholder="Enter batch number (e.g., ABC123, MFG456)">
+                                                                                <small class="text-muted">Manufacturing batch number</small>
                                                                                 {% for message in messages %}
-                                                                                    {% if 'weight' in message.message %}
+                                                                                    {% if 'batch' in message.message %}
                                                                                         <small class="text-danger">{{ message }}</small>
                                                                                     {% endif %}
                                                                                 {% endfor %}
@@ -391,10 +392,16 @@
                                                                                 </div>
                                                                             </td>
                                                                             <td data-label="HSN Code">
-                                                                                <input class="form-control" type="text" name="hsn_code" id="hsn_code_field" value="{% if form_data %}{{ form_data.hsn_code }}{% else %}{{ request.POST.hsn_code }}{% endif %}" placeholder="HSN Code (auto-filled)" maxlength="20">
+                                                                                <input class="form-control" type="text" name="hsn_code" id="hsn_code_field" value="{% if form_data %}{{ form_data.hsn_code }}{% else %}{{ request.POST.hsn_code }}{% endif %}" placeholder="HSN Code (auto-filled or enter manually)" maxlength="20">
                                                                                 <small class="text-muted">For tax classification</small>
                                                                                 <div id="hsn_info" class="mt-2" style="display: none;">
                                                                                     <small id="hsn_source" class="text-info"></small>
+                                                                                </div>
+                                                                                <div id="hsn_manual_notice" class="mt-2" style="display: none;">
+                                                                                    <small class="text-warning">
+                                                                                        <i class="fa fa-exclamation-triangle"></i> 
+                                                                                        HSN code not found in database. Please enter manually or verify with GST portal.
+                                                                                    </small>
                                                                                 </div>
                                                                                 <div class="form-check mt-2">
                                                                                     <input class="form-check-input" type="checkbox" name="fetch_hsn" id="fetch_hsn_checkbox" checked>
@@ -417,9 +424,8 @@
                                                                 <table class="table table-hover table-center">
                                                                     <thead>
                                                                         <tr>
-                                                                            <th style="min-width: 150px">Available Stock</th>
-                                                                            <th style="min-width: 150px">Total Stock</th>
-                                                                            <th style="min-width: 150px">Price (₹)</th>
+                                                                            <th style="min-width: 200px">Available Stock</th>
+                                                                            <th style="min-width: 200px">Price (₹)</th>
                                                                             <th style="min-width: 200px">Expiry Date</th>
                                                                         </tr>
                                                                     </thead>
@@ -433,10 +439,6 @@
                                                                                         <small class="text-danger">{{ message }}</small>
                                                                                     {% endif %}
                                                                                 {% endfor %}
-                                                                            </td>
-                                                                            <td data-label="Total Stock">
-                                                                                <input class="form-control" type="number" name="stock_quantity" min="0" value="{% if form_data %}{{ form_data.stock_quantity }}{% else %}{{ request.POST.stock_quantity }}{% endif %}" placeholder="Total inventory">
-                                                                                <small class="text-muted">Total units in inventory</small>
                                                                             </td>
                                                                             <td data-label="Price">
                                                                                 <input class="form-control" type="number" step="0.01" min="0" name="price" value="{% if form_data %}{{ form_data.price }}{% else %}{{ request.POST.price }}{% endif %}" placeholder="Price per unit">
@@ -495,6 +497,8 @@
                                                                                     <option value="Stomach / Digestion" {% if request.POST.category_type == 'Stomach / Digestion' %}selected{% endif %}>Stomach / Digestion</option>
                                                                                     <option value="Hypertension / Heart" {% if request.POST.category_type == 'Hypertension / Heart' %}selected{% endif %}>Hypertension / Heart</option>
                                                                                     <option value="Diabetes" {% if request.POST.category_type == 'Diabetes' %}selected{% endif %}>Diabetes</option>
+                                                                                    <option value="Diabetic" {% if request.POST.category_type == 'Diabetic' %}selected{% endif %}>Diabetic</option>
+                                                                                    <option value="Neuropathy" {% if request.POST.category_type == 'Neuropathy' %}selected{% endif %}>Neuropathy</option>
                                                                                     <option value="Skin" {% if request.POST.category_type == 'Skin' %}selected{% endif %}>Skin</option>
                                                                                     <option value="Vitamins & Supplements" {% if request.POST.category_type == 'Vitamins & Supplements' %}selected{% endif %}>Vitamins & Supplements</option>
                                                                                     <option value="Eye / Ear / Nose" {% if request.POST.category_type == 'Eye / Ear / Nose' %}selected{% endif %}>Eye / Ear / Nose</option>
@@ -509,6 +513,10 @@
                                                                                     <option value="tablets" {% if request.POST.medicine_type == 'tablets' %}selected{% endif %}>Tablets</option>
                                                                                     <option value="syrup" {% if request.POST.medicine_type == 'syrup' %}selected{% endif %}>Syrup</option>
                                                                                     <option value="capsule" {% if request.POST.medicine_type == 'capsule' %}selected{% endif %}>Capsule</option>
+                                                                                    <option value="injection" {% if request.POST.medicine_type == 'injection' %}selected{% endif %}>Injection</option>
+                                                                                    <option value="ointment" {% if request.POST.medicine_type == 'ointment' %}selected{% endif %}>Ointment</option>
+                                                                                    <option value="lotion" {% if request.POST.medicine_type == 'lotion' %}selected{% endif %}>Lotion</option>
+                                                                                    <option value="drops" {% if request.POST.medicine_type == 'drops' %}selected{% endif %}>Drops</option>
                                                                                     <option value="general" {% if request.POST.medicine_type == 'general' %}selected{% endif %}>General</option>
                                                                                 </select>
                                                                             </td>
@@ -571,14 +579,6 @@
     <!-- Medicine HSN & Composition Auto-fetch -->
     <script>
         $(document).ready(function() {
-            // Auto-sync stock quantity with available quantity
-            $('input[name="quantity"]').on('input', function() {
-                var quantity = $(this).val();
-                var stockField = $('input[name="stock_quantity"]');
-                if (!stockField.val() || stockField.val() == '0') {
-                    stockField.val(quantity);
-                }
-            });
             
             // Auto-fetch HSN code when medicine name or composition changes
             function autoFetchHSN() {
@@ -594,50 +594,109 @@
                 // Show loading
                 $('#fetch_hsn_btn').html('<i class="fa fa-spinner fa-spin"></i> Fetching...');
                 $('#hsn_info').hide();
+                $('#hsn_manual_notice').hide();
                 
+                // First try to find HSN from similar medicines in database
                 $.ajax({
-                    url: '/pharmacy/api/fetch-hsn/',
-                    method: 'POST',
-                    data: JSON.stringify({
-                        name: name,
-                        composition: composition,
-                        category: category
-                    }),
-                    contentType: 'application/json',
-                    headers: {
-                        'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
-                    },
-                    success: function(response) {
-                        if (response.success && response.hsn_code) {
-                            $('#hsn_code_field').val(response.hsn_code);
+                    url: '/pharmacy/ajax/medicine-search/',
+                    method: 'GET',
+                    data: { q: name },
+                    success: function(searchResponse) {
+                        var foundHSN = false;
+                        
+                        if (searchResponse.medicines && searchResponse.medicines.length > 0) {
+                            // Look for similar medicines with HSN codes
+                            var similarMedicine = searchResponse.medicines.find(function(med) {
+                                return med.name.toLowerCase().includes(name.toLowerCase()) && med.hsn_code;
+                            });
                             
-                            // Show HSN info
-                            var sourceText = '';
-                            switch(response.source) {
-                                case 'database':
-                                    sourceText = '<i class="fa fa-check-circle text-success"></i> HSN code found in database';
-                                    break;
-                                case 'api':
-                                    sourceText = '<i class="fa fa-globe text-info"></i> HSN code fetched from external API';
-                                    break;
-                                case 'default':
-                                    sourceText = '<i class="fa fa-exclamation-triangle text-warning"></i> Default HSN code assigned - please verify';
-                                    break;
+                            if (similarMedicine && similarMedicine.hsn_code) {
+                                $('#hsn_code_field').val(similarMedicine.hsn_code);
+                                $('#hsn_source').html('<i class="fa fa-check-circle text-success"></i> HSN code found from similar medicine: ' + similarMedicine.name);
+                                $('#hsn_info').show();
+                                showNotification('HSN code auto-filled from similar medicine', 'success');
+                                foundHSN = true;
                             }
-                            $('#hsn_source').html(sourceText);
-                            $('#hsn_info').show();
-                            
-                            // Show success message
-                            showNotification('HSN code auto-filled: ' + response.hsn_code, 'success');
+                        }
+                        
+                        if (!foundHSN) {
+                            // Try category-based HSN mapping
+                            var categoryHSN = getCategoryBasedHSN(category);
+                            if (categoryHSN) {
+                                $('#hsn_code_field').val(categoryHSN);
+                                $('#hsn_source').html('<i class="fa fa-info-circle text-info"></i> HSN code assigned based on category');
+                                $('#hsn_info').show();
+                                showNotification('HSN code assigned based on medicine category', 'info');
+                                foundHSN = true;
+                            }
+                        }
+                        
+                        if (!foundHSN) {
+                            // Show manual entry notice
+                            $('#hsn_manual_notice').show();
+                            showNotification('HSN code not found. Please enter manually.', 'warning');
                         }
                     },
                     error: function() {
-                        showNotification('Failed to fetch HSN code', 'error');
+                        // Show manual entry notice on error
+                        $('#hsn_manual_notice').show();
+                        showNotification('Unable to fetch HSN code. Please enter manually.', 'warning');
                     },
                     complete: function() {
                         $('#fetch_hsn_btn').html('<i class="fa fa-search"></i> Auto-fetch');
                     }
                 });
+            }
+            
+            // Get HSN code based on medicine category with proper pharmaceutical codes
+            function getCategoryBasedHSN(category) {
+                var hsnMapping = {
+                    // Analgesics & Antipyretics
+                    'fever': '30042019',          // Paracetamol and similar fever medicines
+                    'pain': '30042019',           // Pain relievers
+                    
+                    // Respiratory medicines
+                    'cough': '30049041',          // Cough syrups and expectorants
+                    'cold': '30049041',           // Cold and flu medicines
+                    'flu': '30049041',            // Flu medicines
+                    'Respiratory (Asthma, Bronchitis)': '30049031', // Bronchodilators
+                    
+                    // Anti-allergic medicines
+                    'Allergy': '30049051',        // Antihistamines
+                    
+                    // Antibiotics and anti-infectives
+                    'Infection (Antibiotics)': '30042011', // Antibiotics
+                    
+                    // Gastrointestinal medicines
+                    'Stomach / Digestion': '30049061', // Digestive medicines
+                    
+                    // Cardiovascular medicines
+                    'Hypertension / Heart': '30049021', // Antihypertensives
+                    
+                    // Antidiabetic medicines
+                    'Diabetes': '30049091',       // Insulin and antidiabetic drugs
+                    'Diabetic': '30049091',       // Diabetic medicines
+                    
+                    // Neurological medicines
+                    'Neuropathy': '30049071',     // Neurological disorders
+                    
+                    // Dermatological preparations
+                    'Skin': '30051019',           // Topical medicines for skin
+                    
+                    // Vitamins and supplements
+                    'Vitamins & Supplements': '21069090', // Vitamin preparations
+                    
+                    // ENT medicines
+                    'Eye / Ear / Nose': '30049081', // Ophthalmological preparations
+                    
+                    // Genitourinary medicines
+                    'Urinary': '30049099',        // Urological medicines
+                    
+                    // First Aid and emergency medicines
+                    'First Aid': '30059090'       // Medicaments for external use
+                };
+                
+                return hsnMapping[category] || '30049099'; // Default pharmaceutical medicaments
             }
             
             // Get composition suggestions
@@ -722,15 +781,18 @@
             
             // Utility function for notifications
             function showNotification(message, type) {
-                var alertClass = type === 'success' ? 'alert-success' : 'alert-warning';
-                var icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+                // Clear existing notifications of same type to prevent duplicates
+                $('.alert').remove();
+                
+                var alertClass = type === 'success' ? 'alert-success' : (type === 'error' ? 'alert-danger' : 'alert-warning');
+                var icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-times-circle' : 'fa-exclamation-triangle');
                 
                 var notification = $('<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
                     '<i class="fa ' + icon + '"></i> ' + message +
                     '<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>' +
                     '</div>');
                 
-                $('.card-body').prepend(notification);
+                $('.card-body').first().prepend(notification);
                 
                 setTimeout(function() {
                     notification.fadeOut();

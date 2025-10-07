@@ -29,7 +29,7 @@ urlpatterns = [
     path('patient-list/',views.patient_list, name='patient-list'),
     # path('register/', views.register,name='register'),
     # SECURITY: Admin registration disabled - only superuser can create admins
-    # path('admin_register/',views.admin_register,name='admin_register'),
+    path('admin_register/',views.admin_register,name='admin_register'),
     path('transactions-list/',views.transactions_list, name='transactions_list'),
     path('admin-logout/', views.logoutAdmin, name='admin-logout'),
     path('emergency/', views.emergency_details,name='emergency'),

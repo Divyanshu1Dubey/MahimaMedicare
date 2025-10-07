@@ -158,11 +158,12 @@ class InvoicePDFGenerator:
                     logo,
                     Paragraph('''
                     <font size="18" color="#2E5CBA"><b>MAHIMA MEDICARE</b></font><br/>
-                    <font size="10" color="#666666">Healthcare Services & Medical Solutions</font><br/>
+                    <font size="10" color="#666666">ଆପଣଙ୍କ ସ୍ବାସ୍ଥ୍ୟ ର ସାଥୀ (Your Health Partner)</font><br/>
                     <font size="9" color="#333333">
-                    Address: Near Mani Residency Complex, Indore, MP<br/>
-                    Phone: +91-98765-43210 | Email: info@mahimamedicare.co.in<br/>
-                    <b>GSTIN: 23AAAAA0000A1Z5 | PAN: AAAAA0000A</b>
+                    Barkoliya Bajar, Orti, Cuttack, 754209<br/>
+                    Mobile: +91 8763814619 | Email: mahimamedicare01@gmail.com<br/>
+                    Web: mahimamedicare.co.in<br/>
+                    <b>GSTIN: 21AXRPN9340C1ZH</b>
                     </font>
                     ''', ParagraphStyle('CompanyInfo', parent=styles['Normal'], alignment=TA_LEFT))
                 ]
@@ -740,11 +741,12 @@ def generate_pharmacy_invoice_pdf(order):
                     logo,
                     Paragraph('''
                     <font size="18" color="#2E5CBA"><b>MAHIMA MEDICARE</b></font><br/>
-                    <font size="10" color="#666666">Healthcare Services & Medical Solutions</font><br/>
+                    <font size="10" color="#666666">ଆପଣଙ୍କ ସ୍ବାସ୍ଥ୍ୟ ର ସାଥୀ (Your Health Partner)</font><br/>
                     <font size="9" color="#333333">
-                    Address: Near Mani Residency Complex, Indore, MP<br/>
-                    Phone: +91-98765-43210 | Email: info@mahimamedicare.co.in<br/>
-                    <b>GSTIN: 23AAAAA0000A1Z5 | PAN: AAAAA0000A</b>
+                    Barkoliya Bajar, Orti, Cuttack, 754209<br/>
+                    Mobile: +91 8763814619 | Email: mahimamedicare01@gmail.com<br/>
+                    Web: mahimamedicare.co.in<br/>
+                    <b>GSTIN: 21AXRPN9340C1ZH</b>
                     </font>
                     ''', ParagraphStyle('CompanyInfo', parent=styles['Normal'], alignment=TA_LEFT))
                 ]
@@ -760,11 +762,12 @@ def generate_pharmacy_invoice_pdf(order):
         else:
             # Fallback header without logo
             elements.append(Paragraph("MAHIMA MEDICARE", title_style))
-            elements.append(Paragraph("Healthcare Services & Medical Solutions", subtitle_style))
+            elements.append(Paragraph("ଆପଣଙ୍କ ସ୍ବାସ୍ଥ୍ୟ ର ସାଥୀ (Your Health Partner)", subtitle_style))
             elements.append(Paragraph('''
-            Address: Near Mani Residency Complex, Indore, MP<br/>
-            Phone: +91-98765-43210 | Email: info@mahimamedicare.co.in<br/>
-            <b>GSTIN: 23AAAAA0000A1Z5 | PAN: AAAAA0000A</b>
+            Barkoliya Bajar, Orti, Cuttack, 754209<br/>
+            Mobile: +91 8763814619 | Email: mahimamedicare01@gmail.com<br/>
+            Web: mahimamedicare.co.in<br/>
+            <b>GSTIN: 21AXRPN9340C1ZH</b>
             ''', ParagraphStyle('CompanyAddress', parent=styles['Normal'], alignment=TA_CENTER, fontSize=9)))
         
         elements.append(Spacer(1, 10))

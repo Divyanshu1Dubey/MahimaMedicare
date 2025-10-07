@@ -229,27 +229,32 @@
                 <!-- Order Management Tabs -->
                 <ul class="nav nav-tabs" id="orderTabs" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link active" id="online-orders-tab" data-toggle="tab" href="#online-orders" role="tab">
+                        <a class="nav-link active" id="online-orders-tab" data-bs-toggle="tab" href="#online-orders" role="tab">
                             <i class="fas fa-credit-card"></i> Online Paid ({{ online_orders.count }})
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="cod-orders-tab" data-toggle="tab" href="#cod-orders" role="tab">
+                        <a class="nav-link" id="cod-orders-tab" data-bs-toggle="tab" href="#cod-orders" role="tab">
                             <i class="fas fa-money-bill-wave"></i> Cash on Delivery ({{ cod_orders.count }})
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="failed-orders-tab" data-toggle="tab" href="#failed-orders" role="tab">
+                        <a class="nav-link" id="failed-orders-tab" data-bs-toggle="tab" href="#failed-orders" role="tab">
                             <i class="fas fa-exclamation-circle"></i> Failed Payments ({{ failed_orders.count }})
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="ready-orders-tab" data-toggle="tab" href="#ready-orders" role="tab">
+                        <a class="nav-link" id="ready-orders-tab" data-bs-toggle="tab" href="#ready-orders" role="tab">
                             <i class="fas fa-check-circle"></i> Ready for Pickup ({{ ready_orders.count }})
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="delivery-orders-tab" data-toggle="tab" href="#delivery-orders" role="tab">
+                        <a class="nav-link" id="prescriptions-tab" data-bs-toggle="tab" href="#prescriptions" role="tab">
+                            <i class="fas fa-prescription-bottle-alt"></i> Prescriptions ({{ pending_prescriptions.count }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="delivery-orders-tab" data-bs-toggle="tab" href="#delivery-orders" role="tab">
                             <i class="fas fa-truck"></i> Out for Delivery ({{ delivery_orders.count }})
                         </a>
                     </li>
@@ -310,10 +315,228 @@
                             </div>
                         {% endfor %}
                     </div>
+
+                    <!-- Prescription Management Tab -->
+                    <div class="tab-pane fade" id="prescriptions" role="tabpanel">
+            <div class="row">
+                <!-- Pending Reviews -->
+                <div class="col-lg-6">
+                    <h5 class="mb-3"><i class="fas fa-clock text-warning"></i> Pending Reviews ({{ pending_prescriptions.count }})</h5>
+                    {% for prescription in pending_prescriptions %}
+                    <div class="order-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">Prescription #{{ prescription.upload_id }}</h6>
+                                    <small class="text-muted">{{ prescription.patient.name }} - {{ prescription.uploaded_at|date:"M d, Y g:i A" }}</small>
+                                </div>
+                                <span class="payment-status-badge status-pending">Pending</span>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <p class="mb-1"><i class="fas fa-user"></i> <strong>Patient:</strong> {{ prescription.patient.name }}</p>
+                                    <p class="mb-1"><i class="fas fa-phone"></i> <strong>Phone:</strong> {{ prescription.patient.phone_number }}</p>
+                                    {% if prescription.doctor_name %}
+                                    <p class="mb-1"><i class="fas fa-user-md"></i> <strong>Doctor:</strong> {{ prescription.doctor_name }}</p>
+                                    {% endif %}
+                                    <p class="mb-1">
+                                        <i class="fas fa-truck"></i> <strong>Method:</strong> 
+                                        {% if prescription.delivery_method == 'delivery' %}
+                                            Home Delivery (+₹40)
+                                        {% else %}
+                                            Pickup at Pharmacy
+                                        {% endif %}
+                                    </p>
+                                    {% if prescription.patient_notes %}
+                                    <p class="mb-0"><i class="fas fa-sticky-note"></i> <strong>Notes:</strong> {{ prescription.patient_notes|truncatechars:50 }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <img src="{{ prescription.prescription_image.url }}" 
+                                         alt="Prescription" 
+                                         style="width: 100px; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer;"
+                                         onclick="window.open('{{ prescription.prescription_image.url }}', '_blank')">
+                                </div>
+                            </div>
+                            <div class="order-actions mt-3">
+                                <a href="{% url 'review-prescription-upload' prescription.upload_id %}" 
+                                   class="btn btn-primary btn-sm">
+                                    <i class="fas fa-eye"></i> Review & Process
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-clipboard-check fa-3x mb-3"></i>
+                        <p>No pending prescription reviews</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Approved Prescriptions -->
+                <div class="col-lg-6">
+                    <h5 class="mb-3"><i class="fas fa-check text-success"></i> Approved & Waiting Payment ({{ approved_prescriptions.count }})</h5>
+                    {% for prescription in approved_prescriptions %}
+                    <div class="order-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">Prescription #{{ prescription.upload_id }}</h6>
+                                    <small class="text-muted">{{ prescription.patient.name }} - {{ prescription.reviewed_at|date:"M d, Y g:i A" }}</small>
+                                </div>
+                                <span class="payment-status-badge status-confirmed">Approved</span>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p class="mb-1"><i class="fas fa-user"></i> <strong>Patient:</strong> {{ prescription.patient.name }}</p>
+                                    <p class="mb-1"><i class="fas fa-pills"></i> <strong>Medicines:</strong> {{ prescription.medicines.count }} items</p>
+                                    <p class="mb-1"><i class="fas fa-rupee-sign"></i> <strong>Total Cost:</strong> ₹{{ prescription.estimated_cost }}</p>
+                                    <p class="mb-1">
+                                        <i class="fas fa-truck"></i> <strong>Method:</strong> 
+                                        {% if prescription.delivery_method == 'delivery' %}
+                                            Home Delivery
+                                        {% else %}
+                                            Pickup at Pharmacy
+                                        {% endif %}
+                                    </p>
+                                    {% if prescription.pharmacist_notes %}
+                                    <p class="mb-0"><i class="fas fa-comment"></i> <strong>Notes:</strong> {{ prescription.pharmacist_notes|truncatechars:50 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="order-actions mt-3">
+                                <a href="{% url 'review-prescription-upload' prescription.upload_id %}" 
+                                   class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                                <small class="text-muted ms-2">Waiting for patient payment</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-credit-card fa-3x mb-3"></i>
+                        <p>No approved prescriptions waiting for payment</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Paid & Processing Column -->
+                <div class="col-lg-6">
+                    <h5 class="mb-3"><i class="fas fa-clock text-success"></i> Payment Received - Processing ({{ paid_pending_prescriptions.count }})</h5>
+                    {% for prescription in paid_pending_prescriptions %}
+                    <div class="order-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">Prescription #{{ prescription.upload_id }}</h6>
+                                    <small class="text-muted">{{ prescription.patient.name }} - Order #{{ prescription.related_order.id }}</small>
+                                </div>
+                                <span class="payment-status-badge status-paid">Paid</span>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p class="mb-1"><i class="fas fa-user"></i> <strong>Patient:</strong> {{ prescription.patient.name }}</p>
+                                    <p class="mb-1"><i class="fas fa-pills"></i> <strong>Medicines:</strong> {{ prescription.medicines.count }} items</p>
+                                    <p class="mb-1"><i class="fas fa-rupee-sign"></i> <strong>Total Cost:</strong> ₹{{ prescription.estimated_cost }}</p>
+                                    <p class="mb-1"><i class="fas fa-credit-card"></i> <strong>Payment:</strong> {{ prescription.related_order.get_payment_status_display }}</p>
+                                    <p class="mb-1">
+                                        <i class="fas fa-truck"></i> <strong>Method:</strong> 
+                                        {% if prescription.delivery_method == 'delivery' %}
+                                            Home Delivery
+                                        {% else %}
+                                            Pickup at Pharmacy
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="order-actions mt-3">
+                                <form method="post" action="{% url 'update_order_status' prescription.related_order.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="order_status" value="preparing">
+                                    <button type="submit" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-cog"></i> Start Preparing
+                                    </button>
+                                </form>
+                                <a href="{% url 'review-prescription-upload' prescription.upload_id %}" 
+                                   class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-hourglass-half fa-3x mb-3"></i>
+                        <p>No paid prescriptions waiting for processing</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Recent Activity Section -->
+            <div class="row mt-4">
+                <div class="col-lg-6">
+                    <h5 class="mb-3"><i class="fas fa-box text-primary"></i> Recently Fulfilled ({{ fulfilled_prescriptions.count }})</h5>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        {% for prescription in fulfilled_prescriptions %}
+                        <div class="order-card mb-2">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Prescription #{{ prescription.upload_id }}</strong><br>
+                                        <small>{{ prescription.patient.name }} - ₹{{ prescription.estimated_cost }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="payment-status-badge status-completed">Fulfilled</span><br>
+                                        <small class="text-muted">{{ prescription.updated_at|date:"M d, g:i A" }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-3">
+                            <p>No recently fulfilled prescriptions</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <h5 class="mb-3"><i class="fas fa-times text-danger"></i> Recently Rejected ({{ rejected_prescriptions.count }})</h5>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        {% for prescription in rejected_prescriptions %}
+                        <div class="order-card mb-2">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Prescription #{{ prescription.upload_id }}</strong><br>
+                                        <small>{{ prescription.patient.name }}</small><br>
+                                        {% if prescription.pharmacist_notes %}
+                                        <small class="text-muted">Reason: {{ prescription.pharmacist_notes|truncatechars:40 }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="payment-status-badge status-cancelled">Rejected</span><br>
+                                        <small class="text-muted">{{ prescription.reviewed_at|date:"M d, g:i A" }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-3">
+                            <p>No recently rejected prescriptions</p>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+                    
+                </div> <!-- End tab-content -->
+            </div>
+        </div>
 
     <!-- Order Status Update Modal -->
     <div class="modal fade" id="statusUpdateModal" tabindex="-1" role="dialog">

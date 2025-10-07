@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
   <style>
     /* --- Modern Design System --- */
@@ -99,6 +100,60 @@
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(149, 194, 112, 0.2);
       background-color: var(--white);
+    }
+
+    /* --- Live Search Suggestions --- */
+    .search-suggestions-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 4px;
+    }
+    .search-suggestion-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f1f1f1;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .search-suggestion-item:hover {
+      background-color: var(--primary-light);
+    }
+    .search-suggestion-item:last-child {
+      border-bottom: none;
+    }
+    .suggestion-image {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+      background-color: var(--bg-body);
+    }
+    .suggestion-content {
+      flex: 1;
+    }
+    .suggestion-name {
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 2px;
+    }
+    .suggestion-details {
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+    .suggestion-price {
+      font-weight: 600;
+      color: var(--primary);
     }
 
     /* --- Category Tabs --- */
@@ -218,6 +273,26 @@
     .footer-modern .list-unstyled li {
       margin-bottom: 0.75rem;
     }
+
+    /* --- Prescription Upload Button --- */
+    .btn-upload-prescription {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 1030;
+      background: var(--primary);
+      color: white !important;
+      border-radius: 25px;
+      padding: 8px 16px;
+      font-weight: 600;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-upload-prescription:hover {
+      background: var(--primary-dark);
+    }
   </style>
 </head>
 
@@ -234,10 +309,16 @@
           <li class="nav-item">
             <a href="{% url 'patient-dashboard' %}" class="nav-link">Dashboard</a>
           </li>
+          <li class="nav-item">
+            <a href="{% url 'upload-prescription' %}" class="nav-link" style="background: var(--primary); color: white !important; border-radius: 25px; padding: 8px 16px; font-weight: 600;">
+              <i class="fas fa-prescription-bottle-alt"></i> Upload Rx
+            </a>
+          </li>
           <li class="nav-item d-lg-block">
-            <form action="{% url 'pharmacy_shop' %}" method="GET" class="top-nav-search">
-              <input type="search" name="search_query" value="{{ search_query }}" class="form-control" placeholder="Search medicine..." aria-label="Search medicine" />
-            </form>
+            <div class="top-nav-search position-relative">
+              <input type="search" id="live-search-input" class="form-control" placeholder="Search medicine..." aria-label="Search medicine" value="{{ search_query }}" />
+              <div id="search-suggestions" class="search-suggestions-dropdown" style="display: none;"></div>
+            </div>
           </li>
           <li class="nav-item">
             <a href="{% url 'pharmacy-cart' %}" class="nav-link cart-link" aria-label="Cart">
@@ -259,6 +340,28 @@
   </nav>
 
   <main class="main-content">
+      <!-- Prescription Upload Banner Section -->
+      <section class="py-4" style="background: linear-gradient(135deg, #95C270 0%, #7aa556 100%);">
+        <div class="container">
+          <div class="row align-items-center">
+            <div class="col-lg-8">
+              <div class="text-white">
+                <h3 class="mb-2"><i class="fas fa-prescription-bottle-alt me-2"></i>Have a Prescription?</h3>
+                <p class="mb-0 opacity-90">Upload your prescription and get medicines delivered to your doorstep. Our pharmacist will review and prepare your order.</p>
+              </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+              <a href="{% url 'upload-prescription' %}" class="btn btn-light btn-lg me-2 mb-2" style="font-weight: 600;">
+                <i class="fas fa-cloud-upload-alt me-2"></i>Upload Prescription
+              </a>
+              <a href="{% url 'my-prescriptions' %}" class="btn btn-outline-light mb-2" style="font-weight: 500;">
+                <i class="fas fa-list me-2"></i>My Prescriptions
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="py-5">
         <div class="container">
           <ul class="nav nav-pills justify-content-center mb-5 flex-wrap gap-2" id="medicineTabs" role="tablist">
@@ -319,7 +422,7 @@
             {% for medicine in medicines %}
               <div class="product-card" data-category="{{ medicine.normalized_category }}">
                 <a href="{% url 'product-single' pk=medicine.serial_number %}" class="product-image-wrapper">
-                  <img src="{{ medicine.featured_image.url }}" alt="{{ medicine.name }}" class="product-image" loading="lazy" />
+                  <img src="{{ medicine.get_medicine_image }}" alt="{{ medicine.name }}" class="product-image" loading="lazy" />
                 </a>
                 <div class="product-info">
                   <div>
@@ -479,6 +582,185 @@
     });
   </script>
   {% endif %}
+
+  <!-- Live Medicine Search JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('live-search-input');
+        const suggestionsContainer = document.getElementById('search-suggestions');
+        let searchTimeout;
+        let currentSuggestions = [];
+
+        // Live search functionality
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            // Clear existing timeout
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+            
+            // Hide suggestions if query is too short
+            if (query.length < 1) {
+                hideSuggestions();
+                return;
+            }
+
+            // Debounce search requests (wait 300ms after user stops typing)
+            searchTimeout = setTimeout(function() {
+                performSearch(query);
+            }, 300);
+        });
+
+        // Perform AJAX search
+        function performSearch(query) {
+            fetch(`/pharmacy/ajax/medicine-search/?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    displaySuggestions(data.medicines || []);
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                    hideSuggestions();
+                });
+        }
+
+        // Display search suggestions
+        function displaySuggestions(medicines) {
+            if (medicines.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            currentSuggestions = medicines;
+            let html = '';
+
+            medicines.forEach((medicine, index) => {
+                html += `
+                    <div class="search-suggestion-item" onclick="selectMedicine(${index})">
+                        <img src="${medicine.image_url}" alt="${medicine.name}" class="suggestion-image" 
+                             onerror="this.src='/static/HealthStack-System/images/Normal/medicine-placeholder.png'">
+                        <div class="suggestion-content">
+                            <div class="suggestion-name">${medicine.name}</div>
+                            <div class="suggestion-details">
+                                ${medicine.category ? medicine.category + ' • ' : ''}Stock: ${medicine.stock}
+                            </div>
+                        </div>
+                        <div class="suggestion-price">₹${medicine.price.toFixed(2)}</div>
+                    </div>
+                `;
+            });
+
+            suggestionsContainer.innerHTML = html;
+            suggestionsContainer.style.display = 'block';
+        }
+
+        // Hide suggestions
+        function hideSuggestions() {
+            suggestionsContainer.style.display = 'none';
+            suggestionsContainer.innerHTML = '';
+        }
+
+        // Select a medicine from suggestions
+        window.selectMedicine = function(index) {
+            const medicine = currentSuggestions[index];
+            if (medicine) {
+                // First try to find and highlight the medicine on current page
+                const medicineCard = findMedicineCard(medicine.name);
+                if (medicineCard) {
+                    // Hide suggestions first
+                    hideSuggestions();
+                    
+                    // Scroll to and highlight the medicine
+                    scrollToAndHighlight(medicineCard);
+                    
+                    // Set search input to selected medicine name
+                    searchInput.value = medicine.name;
+                } else {
+                    // If not found on current page, go to product page
+                    window.location.href = `/pharmacy/product-single/${medicine.id}/`;
+                }
+            }
+        };
+
+        // Find medicine card on current page
+        function findMedicineCard(medicineName) {
+            const medicineCards = document.querySelectorAll('.medicine-card');
+            for (let card of medicineCards) {
+                const nameElement = card.querySelector('.medicine-name, h6, .card-title');
+                if (nameElement && nameElement.textContent.trim().toLowerCase().includes(medicineName.toLowerCase())) {
+                    return card;
+                }
+            }
+            return null;
+        }
+
+        // Scroll to and highlight medicine card
+        function scrollToAndHighlight(card) {
+            // Scroll to the card with smooth animation
+            card.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+            
+            // Add highlight effect
+            card.style.transition = 'all 0.5s ease';
+            card.style.transform = 'scale(1.02)';
+            card.style.boxShadow = '0 8px 25px rgba(149, 194, 112, 0.3)';
+            card.style.border = '2px solid var(--primary)';
+            
+            // Remove highlight after 3 seconds
+            setTimeout(() => {
+                card.style.transform = '';
+                card.style.boxShadow = '';
+                card.style.border = '';
+            }, 3000);
+        }
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.top-nav-search')) {
+                hideSuggestions();
+            }
+        });
+
+        // Keyboard navigation
+        let selectedIndex = -1;
+        
+        searchInput.addEventListener('keydown', function(event) {
+            const suggestions = suggestionsContainer.querySelectorAll('.search-suggestion-item');
+            
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, suggestions.length - 1);
+                updateSelection(suggestions);
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateSelection(suggestions);
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                if (selectedIndex >= 0 && currentSuggestions[selectedIndex]) {
+                    selectMedicine(selectedIndex);
+                }
+            } else if (event.key === 'Escape') {
+                hideSuggestions();
+                selectedIndex = -1;
+            }
+        });
+
+        // Update visual selection
+        function updateSelection(suggestions) {
+            suggestions.forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.style.backgroundColor = 'var(--primary-light)';
+                } else {
+                    item.style.backgroundColor = '';
+                }
+            });
+        }
+    });
+  </script>
 
 </body>
 </html>

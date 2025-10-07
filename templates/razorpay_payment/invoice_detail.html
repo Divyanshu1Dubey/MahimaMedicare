@@ -205,8 +205,9 @@
                     <div class="invoice-header">
                         <div class="company-name">{{ invoice.company_name }}</div>
                         <div class="company-details">
-                            {{ invoice.company_address }}<br>
-                            Phone: {{ invoice.company_phone }}<br>
+                            {{ invoice.company_address|linebreaksbr }}<br>
+                            Mobile: {{ invoice.company_phone }}<br>
+                            Email: {{ invoice.company_email }}<br>
                             License No: {{ invoice.license_no }}<br>
                             GSTIN: {{ invoice.gstin }} | State Code: {{ invoice.state_code }}
                         </div>

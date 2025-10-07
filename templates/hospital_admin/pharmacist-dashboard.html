@@ -321,7 +321,7 @@
                           {% for med in expiring_medicines %}
                           <li class="list-group-item d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center">
-                              <img src="{{ med.featured_image.url }}" class="avatar-img rounded-circle mr-2" style="width:36px;height:36px;object-fit:cover;" alt=""/>
+                              <img src="{{ med.get_medicine_image }}" class="avatar-img rounded-circle mr-2" style="width:36px;height:36px;object-fit:cover;" alt=""/>
                               <div>
                                 <div class="font-weight-600">{{ med.name }}</div>
                                 <small class="text-muted">Exp: {{ med.expiry_date }}</small>
@@ -410,7 +410,7 @@
                             <td>
                               <h2 class="table-avatar">
                                 <a href="" class="avatar avatar-sm mr-2">
-                                  <img class="avatar-img rounded-circle" src="{{medicine.featured_image.url}}" alt="Medicine Image">
+                                  <img class="avatar-img rounded-circle" src="{{medicine.get_medicine_image}}" alt="Medicine Image">
                                 </a>
                                 <a href="" title="{{medicine.name}}{% if medicine.composition %} - {{medicine.composition|truncatechars:50}}{% endif %}">
                                   {{medicine.name}}

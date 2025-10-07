@@ -1,4 +1,3 @@
-from multiprocessing import context
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib import messages
@@ -159,8 +158,11 @@ def home(request, pk):
             }
         print(request.GET['u'] if request.method == 'GET' and 'u' in request.GET else 0)
         return render(request, "chat-doctor.html", context)
-
-
+    
+    # Fallback for users who are neither patient nor doctor
+    else:
+        messages.error(request, 'Access denied. You must be a registered patient or doctor to access chat.')
+        return redirect('login')
 
 
 @csrf_exempt

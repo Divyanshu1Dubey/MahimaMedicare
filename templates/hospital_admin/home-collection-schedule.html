@@ -1,0 +1,434 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <title>Home Collection Schedule - Mahima Medicare</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'HealthStack-System/images/Normal/favicon.png' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/bootstrap.min.css' %}">
+    
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/font-awesome.min.css' %}">
+    
+    <!-- Feathericon CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/feathericon.min.css' %}">
+    
+    <!-- Datatables CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/plugins/admin/datatables/datatables.min.css' %}">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'HealthStack-System/css/admin/style.css' %}">
+    
+    <style>
+        .schedule-card {
+            border: 1px solid #e3e6f0;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .schedule-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .schedule-card .card-header {
+            border-radius: 10px 10px 0 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+        
+        .status-pending {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .status-scheduled {
+            border-left: 4px solid #007bff;
+        }
+        
+        .status-in-progress {
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .status-collected {
+            border-left: 4px solid #28a745;
+        }
+        
+        .status-completed {
+            border-left: 4px solid #6f42c1;
+        }
+        
+        .status-cancelled {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .patient-info {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .collection-time {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .payment-info {
+            font-size: 0.9rem;
+        }
+        
+        .filter-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        
+        <!-- Header -->
+        {% include 'hospital_admin/labworker-navbar.html' %}
+        <!-- /Header -->
+        
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            {% include 'hospital_admin/labworker-sidebar.html' %}
+        </div>
+        <!-- /Sidebar -->
+        
+        <!-- Page Wrapper -->
+        <div class="page-wrapper">
+            <div class="content container-fluid">
+                
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h3 class="page-title">📅 Home Collection Schedule</h3>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{% url 'labworker-dashboard' %}">Lab Dashboard</a></li>
+                                <li class="breadcrumb-item"><a href="{% url 'home-collection-dashboard' %}">Home Collection</a></li>
+                                <li class="breadcrumb-item active">Schedule</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Page Header -->
+                
+                <!-- Filters -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card filter-card">
+                            <div class="card-body">
+                                <h5 class="card-title text-white mb-3">🔍 Filter Collections</h5>
+                                <form method="GET" class="row">
+                                    <div class="col-md-4">
+                                        <label class="text-white">Filter by Date:</label>
+                                        <input type="date" name="date" class="form-control" value="{{ date_filter }}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="text-white">Filter by Status:</label>
+                                        <select name="status" class="form-control">
+                                            <option value="">All Status</option>
+                                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                                            <option value="scheduled" {% if status_filter == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                                            <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                            <option value="collected" {% if status_filter == 'collected' %}selected{% endif %}>Collected</option>
+                                            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                                            <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="text-white">&nbsp;</label>
+                                        <div class="form-group">
+                                            <button type="submit" class="btn btn-light mr-2">
+                                                <i class="fa fa-filter"></i> Apply Filter
+                                            </button>
+                                            <a href="{% url 'home-collection-schedule' %}" class="btn btn-outline-light">
+                                                <i class="fa fa-refresh"></i> Clear
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Collections List -->
+                <div class="row">
+                    <div class="col-12">
+                        {% if orders %}
+                            {% for order in orders %}
+                            <div class="schedule-card status-{{ order.collection_status|lower }}">
+                                <div class="card-header">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-8">
+                                            <h5 class="mb-0">
+                                                <i class="fa fa-home mr-2"></i>
+                                                Collection #{{ order.id }} - {{ order.user.first_name }} {{ order.user.last_name }}
+                                            </h5>
+                                        </div>
+                                        <div class="col-md-4 text-right">
+                                            <span class="badge badge-{% if order.collection_status == 'pending' %}warning{% elif order.collection_status == 'scheduled' %}primary{% elif order.collection_status == 'in_progress' %}info{% elif order.collection_status == 'collected' %}success{% elif order.collection_status == 'completed' %}dark{% else %}danger{% endif %} px-3 py-2">
+                                                {{ order.get_collection_status_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <h6><i class="fa fa-user mr-2"></i>Patient Information</h6>
+                                            <div class="patient-info">{{ order.user.first_name }} {{ order.user.last_name }}</div>
+                                            <div class="text-muted">{{ order.user.email }}</div>
+                                            {% if order.user.phone %}
+                                            <div class="text-muted">📱 {{ order.user.phone }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-md-2">
+                                            <h6><i class="fa fa-calendar mr-2"></i>Collection Time</h6>
+                                            <div class="collection-time">
+                                                {{ order.preferred_collection_date|date:'M d, Y' }}<br>
+                                                {{ order.preferred_collection_time|time:'g:i A' }}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-3">
+                                            <h6><i class="fa fa-map-marker mr-2"></i>Address</h6>
+                                            <div class="text-muted">{{ order.collection_address|truncatechars:80 }}</div>
+                                        </div>
+                                        
+                                        <div class="col-md-2">
+                                            <h6><i class="fa fa-money mr-2"></i>Payment</h6>
+                                            <div class="font-weight-bold">₹{{ order.final_bill }}</div>
+                                            <div class="payment-info {% if order.payment_status == 'cod_pending' %}text-warning{% else %}text-success{% endif %}">
+                                                {% if order.payment_status == 'cod_pending' %}
+                                                    <i class="fa fa-clock-o"></i> COD Pending
+                                                {% elif order.payment_status == 'paid' %}
+                                                    <i class="fa fa-check-circle"></i> Paid
+                                                {% else %}
+                                                    <i class="fa fa-credit-card"></i> {{ order.payment_status|title }}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-2">
+                                            <h6><i class="fa fa-cogs mr-2"></i>Actions</h6>
+                                            <div class="btn-group-vertical btn-group-sm w-100">
+                                                <a href="{% url 'home-collection-details' order.id %}" class="btn btn-info btn-sm mb-1">
+                                                    <i class="fa fa-eye"></i> View Details
+                                                </a>
+                                                
+                                                {% if order.collection_status != 'completed' and order.collection_status != 'cancelled' %}
+                                                <button class="btn btn-primary btn-sm mb-1" onclick="updateStatus({{ order.id }}, '{{ order.collection_status }}')">
+                                                    <i class="fa fa-edit"></i> Update Status
+                                                </button>
+                                                {% endif %}
+                                                
+                                                {% if order.payment_status == 'cod_pending' and order.collection_status == 'collected' %}
+                                                <a href="{% url 'process-cod-collection' order.id %}" class="btn btn-success btn-sm mb-1">
+                                                    <i class="fa fa-money"></i> Collect Payment
+                                                </a>
+                                                {% endif %}
+                                                
+                                                {% if order.collection_status == 'completed' %}
+                                                <a href="{% url 'print-collection-receipt' order.id %}" class="btn btn-secondary btn-sm" target="_blank">
+                                                    <i class="fa fa-print"></i> Receipt
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Test Items -->
+                                    <div class="mt-3">
+                                        <h6><i class="fa fa-flask mr-2"></i>Tests Ordered ({{ order.orderitems.count }})</h6>
+                                        <div class="row">
+                                            {% for item in order.orderitems.all %}
+                                            <div class="col-md-4">
+                                                <div class="border p-2 rounded mb-2">
+                                                    <strong>{{ item.item.name }}</strong><br>
+                                                    <small class="text-muted">₹{{ item.item.amount }}</small>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Timeline -->
+                                <div class="card-footer bg-light">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <i class="fa fa-calendar-plus-o mr-1"></i>
+                                                Ordered: {{ order.created|date:'M d, Y g:i A' }}
+                                            </small>
+                                        </div>
+                                        <div class="col-md-6 text-right">
+                                            <small class="text-muted">
+                                                Collection Fee: ₹{{ order.home_collection_charge }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                            <!-- Pagination -->
+                            {% if orders.has_other_pages %}
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center">
+                                    {% if orders.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ orders.previous_page_number }}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Previous</a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    <li class="page-item active">
+                                        <span class="page-link">Page {{ orders.number }} of {{ orders.paginator.num_pages }}</span>
+                                    </li>
+                                    
+                                    {% if orders.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ orders.next_page_number }}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Next</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            {% endif %}
+                            
+                        {% else %}
+                            <div class="card">
+                                <div class="card-body text-center py-5">
+                                    <i class="fa fa-home fa-3x text-muted mb-3"></i>
+                                    <h4 class="text-muted">No Home Collections Found</h4>
+                                    <p class="text-muted">No home collection orders match your current filters.</p>
+                                    <a href="{% url 'home-collection-schedule' %}" class="btn btn-primary">
+                                        <i class="fa fa-refresh mr-2"></i>View All Collections
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        <!-- /Page Wrapper -->
+        
+    </div>
+    <!-- /Main Wrapper -->
+    
+    <!-- Status Update Modal -->
+    <div class="modal fade" id="statusModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Collection Status</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="statusForm">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Current Status: <span id="currentStatus" class="badge badge-info"></span></label>
+                        </div>
+                        <div class="form-group">
+                            <label>New Status:</label>
+                            <select name="status" class="form-control" required>
+                                <option value="">Select Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="scheduled">Scheduled</option>
+                                <option value="in_progress">Collection in Progress</option>
+                                <option value="collected">Sample Collected</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Notes (Optional):</label>
+                            <textarea name="notes" class="form-control" rows="3" placeholder="Add any notes about the status change..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- jQuery -->
+    <script src="{% static 'HealthStack-System/js/admin/jquery-3.2.1.min.js' %}"></script>
+    
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'HealthStack-System/js/admin/popper.min.js' %}"></script>
+    <script src="{% static 'HealthStack-System/js/admin/bootstrap.min.js' %}"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'HealthStack-System/js/admin/script.js' %}"></script>
+    
+    <script>
+        let currentOrderId = null;
+        
+        function updateStatus(orderId, currentStatus) {
+            currentOrderId = orderId;
+            $('#currentStatus').text(currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1).replace('_', ' '));
+            $('#statusModal').modal('show');
+        }
+        
+        $('#statusForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            if (!currentOrderId) return;
+            
+            const formData = new FormData(this);
+            
+            $.ajax({
+                url: `/hospital_admin/update-collection-status/${currentOrderId}/`,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#statusModal').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error updating status. Please try again.');
+                }
+            });
+        });
+        
+        // Add CSRF token to all AJAX requests
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                    xhr.setRequestHeader("X-CSRFToken", $('[name=csrfmiddlewaretoken]').val());
+                }
+            }
+        });
+    </script>
+    
+    {% csrf_token %}
+</body>
+</html>
