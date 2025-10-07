@@ -46,13 +46,10 @@ except:
     print("Warning: Using fallback SECRET_KEY. Create .env file for production!")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-try:
-    DEBUG = env.bool('DEBUG')
-except:
-    DEBUG = True  # Default to True for development
+DEBUG = False
 
 # ALLOWED_HOSTS Configuration - Production ready for Render.com
-ALLOWED_HOSTS = [
+ALLOWED_HOSTS = ['mahimamedicare.co.in',
     'mahimamedicare.onrender.com',
     'localhost',
     '127.0.0.1',
@@ -70,6 +67,12 @@ except:
 
 # Remove duplicates and empty strings
 ALLOWED_HOSTS = list(filter(None, set(ALLOWED_HOSTS)))
+
+# Allowed hosts
+ALLOWED_HOSTS = ['mahimamedicare.co.in']
+
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = ['https://mahimamedicare.co.in']
 
 # Application definition
 
@@ -234,8 +237,8 @@ DEFAULT_FROM_EMAIL = 'marklegend029@gmail.com'
 SERVER_EMAIL = 'marklegend029@gmail.com'
 
 # Admin notification settings - All important emails go to admin
-ADMIN_EMAIL = 'marklegend029@gmail.com'  # Main admin email for notifications
-ADMINS = [('Mahima Medicare Admin', 'marklegend029@gmail.com')]
+ADMIN_EMAIL = 'mahimamedicare.web@gmail.com'  # Main admin email for notifications
+ADMINS = [('Mahima Medicare Admin', 'mahimamedicare.web@gmail.com')]
 MANAGERS = ADMINS
 
 # Lab Test VAT Configuration
