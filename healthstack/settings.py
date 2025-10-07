@@ -46,17 +46,21 @@ except:
     print("Warning: Using fallback SECRET_KEY. Create .env file for production!")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Set DEBUG based on environment - True for development, False for production
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-# ALLOWED_HOSTS Configuration - Production ready for Render.com
-ALLOWED_HOSTS = ['mahimamedicare.co.in',
+# ALLOWED_HOSTS Configuration - Works for both local and production
+ALLOWED_HOSTS = [
+    'mahimamedicare.co.in',
+    'www.mahimamedicare.co.in',
     'mahimamedicare.onrender.com',
     'localhost',
     '127.0.0.1',
+    '0.0.0.0',
     'testserver',  # For Django testing
 ]
 
-# Try to read from environment variable as well, but fallback to hardcoded values
+# Try to read from environment variable as well
 try:
     env_allowed_hosts = os.environ.get('ALLOWED_HOSTS', '')
     if env_allowed_hosts:
@@ -68,11 +72,14 @@ except:
 # Remove duplicates and empty strings
 ALLOWED_HOSTS = list(filter(None, set(ALLOWED_HOSTS)))
 
-# Allowed hosts
-ALLOWED_HOSTS = ['mahimamedicare.co.in']
-
-# CSRF settings
-CSRF_TRUSTED_ORIGINS = ['https://mahimamedicare.co.in']
+# CSRF settings - Updated for both local and production
+CSRF_TRUSTED_ORIGINS = [
+    'https://mahimamedicare.co.in',
+    'https://www.mahimamedicare.co.in',
+    'https://mahimamedicare.onrender.com',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
 
 # Application definition
 
@@ -274,8 +281,12 @@ ssl._create_default_https_context = ssl._create_unverified_context
 # Additional email SSL settings
 EMAIL_SSL_CONTEXT = unverified_context
 
-# Production Security Settings
-if not DEBUG:
+# Production Security Settings - Fixed for proper deployment
+# Only enable strict security on production (when not in DEBUG mode and on HTTPS)
+PRODUCTION_DOMAINS = ['mahimamedicare.co.in', 'www.mahimamedicare.co.in', 'mahimamedicare.onrender.com']
+IS_PRODUCTION = not DEBUG and any(domain in os.environ.get('HTTP_HOST', '') for domain in PRODUCTION_DOMAINS)
+
+if IS_PRODUCTION:
     # Security settings for production
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -284,7 +295,6 @@ if not DEBUG:
     SECURE_REDIRECT_EXEMPT = []
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    USE_TZ = True
     
     # Session security
     SESSION_COOKIE_SECURE = True
@@ -299,3 +309,4 @@ else:
     CSRF_COOKIE_SECURE = False
     SECURE_BROWSER_XSS_FILTER = False
     SECURE_CONTENT_TYPE_NOSNIFF = False
+    X_FRAME_OPTIONS = 'SAMEORIGIN'
