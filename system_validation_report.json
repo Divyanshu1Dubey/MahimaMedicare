@@ -1,0 +1,160 @@
+{
+  "timestamp": "2025-10-05T16:51:34.820083",
+  "summary": {
+    "total_tests": 18,
+    "passed": 14,
+    "failed": 3,
+    "warnings": 0,
+    "fixed": 1,
+    "success_rate": 83.33333333333334
+  },
+  "results": [
+    {
+      "timestamp": "2025-10-05 16:51:32",
+      "category": "MODELS",
+      "test": "Patient Model",
+      "status": "PASS",
+      "details": "15 patients, 15 with user accounts",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:32",
+      "category": "MODELS",
+      "test": "Doctor Model",
+      "status": "PASS",
+      "details": "3 doctors, 2 with user accounts",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:32",
+      "category": "MODELS",
+      "test": "Medicine Pricing",
+      "status": "PASS",
+      "details": "All 8 medicines have valid pricing",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:32",
+      "category": "MODELS",
+      "test": "Test Information",
+      "status": "PASS",
+      "details": "13 tests, 13 with pricing",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:32",
+      "category": "MODELS",
+      "test": "Invoice Company Info",
+      "status": "PASS",
+      "details": "All 7 invoices have correct company info",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:34",
+      "category": "URL",
+      "test": "Home Page",
+      "status": "PASS",
+      "details": "Status: 200",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:34",
+      "category": "URL",
+      "test": "Patient Login",
+      "status": "PASS",
+      "details": "Status: 200",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:34",
+      "category": "URL",
+      "test": "Doctor Login",
+      "status": "PASS",
+      "details": "Status: 200",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:34",
+      "category": "URL",
+      "test": "Doctor Search",
+      "status": "PASS",
+      "details": "Status: 302",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:34",
+      "category": "URL",
+      "test": "Pharmacy Shop",
+      "status": "PASS",
+      "details": "Status: 302",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:34",
+      "category": "URL",
+      "test": "Lab Test Booking",
+      "status": "PASS",
+      "details": "Status: 200",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:34",
+      "category": "URL",
+      "test": "Hospital Listings",
+      "status": "PASS",
+      "details": "Status: 302",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:34",
+      "category": "AUTH",
+      "test": "User Accounts",
+      "status": "PASS",
+      "details": "39 total, 15 patients, 2 doctors",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:34",
+      "category": "WORKFLOW",
+      "test": "Prescription System",
+      "status": "FAIL",
+      "details": "Cannot resolve keyword 'testcart' into field. Choices are: create_date, days, doctor, doctor_id, extra_information, medicine_description, medicine_name, patient, patient_id, pharmacy_uploads, prescription_id, prescription_medicine, prescription_test, quantity, razorpaypayment, relation_with_meal, test_description, test_name, time",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:34",
+      "category": "WORKFLOW",
+      "test": "Pharmacy System",
+      "status": "PASS",
+      "details": "10 orders, 12 cart items",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:34",
+      "category": "WORKFLOW",
+      "test": "Payment System",
+      "status": "FAIL",
+      "details": "name 'Payment' is not defined",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:34",
+      "category": "FIX",
+      "test": "Invoice Company Info",
+      "status": "FAIL",
+      "details": "Invoice has no field named 'company_website'",
+      "fix_applied": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:51:34",
+      "category": "FIX",
+      "test": "Media Directories",
+      "status": "FIXED",
+      "details": "Created directories: reports",
+      "fix_applied": ""
+    }
+  ],
+  "fixes_applied": [
+    "Applied 1 automatic fixes"
+  ]
+}

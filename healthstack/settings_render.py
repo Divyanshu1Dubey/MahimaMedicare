@@ -33,9 +33,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'mahima-medicare-render-fallback-key-2
 # Database configuration for Render.com
 if 'DATABASE_URL' in os.environ:
     import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
-    }
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url:
+        DATABASES = {
+            'default': dj_database_url.parse(database_url)
+        }
 
 # Security settings for production
 SECURE_BROWSER_XSS_FILTER = True

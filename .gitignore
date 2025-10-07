@@ -1,6 +1,7 @@
 # Environment files
 .env
 *.env
+.env.production
 
 # Python cache
 __pycache__/
@@ -20,3 +21,84 @@ venv/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Database files (keep local db.sqlite3 but don't push to production)
+db.sqlite3
+
+# Static files (will be collected on server)
+staticfiles/
+static/admin/
+static/rest_framework/
+
+# Media files uploaded by users
+media/
+
+# Test files and documentation
+*test*.py
+*TEST*.py
+comprehensive_*.py
+systematic_*.py
+simple_*.py
+final_*.py
+validate_*.py
+check_*.py
+*_test.py
+*_TEST.py
+
+# Documentation and guide files
+*.md
+!README.md
+AUTHENTICATION_*.md
+BUTTON_FIX_*.md
+CICD_*.md
+CODE_OF_CONDUCT.md
+CORRECT_URLS_*.md
+DEPLOYMENT_*.md
+DOCTOR_PROFILE_*.md
+DUPLICATE_INVOICE_*.md
+FEATURE_TESTING_*.md
+FORGOT_PASSWORD_*.md
+IMPORT_FIXES_*.md
+INVOICE_SYSTEM_*.md
+LAB_*.md
+PHARMACY_*.md
+PRODUCTION_*.md
+PROJECT_*.md
+REGISTRATION_*.md
+RENDER_*.md
+VULTR_*.md
+
+# Python files that are not part of main application
+DUPLICATE_INVOICE_FIX_SUMMARY.py
+INDIA_LOCALIZATION_UPDATE.py
+INVOICE_SYSTEM_FIXES.py
+INVOICE_SYSTEM_FIX_COMPLETE.py
+webhook_server.py
+
+# Build and deployment scripts (keep only essential ones)
+build.sh
+deploy_script.sh
+deploy_vultr.sh
+setup_*.bat
+install_*.bat
+fix_*.bat
+update_*.bat
+*.ps1
+
+# HTML test files
+test-*.html
+
+# Build directories
+build/
+dist/
+
+# Docker files (if not using Docker in production)
+docker-compose.yml
+Dockerfile
+docker/
+
+# Root certificate files
+roots.sst
+
+# Configuration files that should be server-specific
+pyproject.toml

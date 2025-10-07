@@ -1,0 +1,399 @@
+{
+  "timestamp": "2025-10-05T16:46:28.583323",
+  "base_url": "http://127.0.0.1:8000",
+  "summary": {
+    "total_tests": 46,
+    "passed": 0,
+    "failed": 0,
+    "warnings": 0,
+    "errors": 44,
+    "info": 2,
+    "success_rate": 0.0
+  },
+  "categories": {
+    "URL_ACCESS": {
+      "PASS": 0,
+      "FAIL": 0,
+      "WARN": 0,
+      "ERROR": 44,
+      "INFO": 0
+    },
+    "WORKFLOW": {
+      "PASS": 0,
+      "FAIL": 0,
+      "WARN": 0,
+      "ERROR": 0,
+      "INFO": 2
+    }
+  },
+  "results": [
+    {
+      "timestamp": "2025-10-05 16:45:01",
+      "category": "URL_ACCESS",
+      "test": "Home Page",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AB9BA10>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:03",
+      "category": "URL_ACCESS",
+      "test": "Patient Login",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /login/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51ABB7250>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/login/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:05",
+      "category": "URL_ACCESS",
+      "test": "Patient Registration",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /signup/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51ABB7750>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/signup/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:07",
+      "category": "URL_ACCESS",
+      "test": "Doctor Login",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /doctor/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AB8F5C0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/doctor/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:09",
+      "category": "URL_ACCESS",
+      "test": "Doctor Registration",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /doctor/doctor-register/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AB8F950>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/doctor/doctor-register/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:11",
+      "category": "URL_ACCESS",
+      "test": "Admin Panel",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /admin/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC52210>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/admin/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:13",
+      "category": "URL_ACCESS",
+      "test": "Doctor Search",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /search/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC61150>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/search/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:15",
+      "category": "URL_ACCESS",
+      "test": "Hospital Listings",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /multiple-hospital/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC61040>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/multiple-hospital/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:17",
+      "category": "URL_ACCESS",
+      "test": "About Us Page",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /about-us/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC617B0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/about-us/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:19",
+      "category": "URL_ACCESS",
+      "test": "Privacy Policy",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /privacy-policy/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC619D0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/privacy-policy/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:21",
+      "category": "URL_ACCESS",
+      "test": "Pharmacy Main Page",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /pharmacy/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC61BF0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/pharmacy/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:23",
+      "category": "URL_ACCESS",
+      "test": "Medicine Shop",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /pharmacy/shop/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC61E10>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/pharmacy/shop/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:25",
+      "category": "URL_ACCESS",
+      "test": "Shopping Cart",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /pharmacy/cart/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC62030>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/pharmacy/cart/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:27",
+      "category": "URL_ACCESS",
+      "test": "Checkout Page",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /pharmacy/checkout/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC62250>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/pharmacy/checkout/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:29",
+      "category": "URL_ACCESS",
+      "test": "My Orders",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /pharmacy/my-orders/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC62470>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/pharmacy/my-orders/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:31",
+      "category": "URL_ACCESS",
+      "test": "Upload Prescription",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /pharmacy/upload-prescription/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC62690>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/pharmacy/upload-prescription/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:33",
+      "category": "URL_ACCESS",
+      "test": "My Prescriptions",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /pharmacy/my-prescriptions/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC628B0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/pharmacy/my-prescriptions/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:35",
+      "category": "URL_ACCESS",
+      "test": "Standalone Test Booking",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /razorpay/book-test/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC62AD0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/razorpay/book-test/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:37",
+      "category": "URL_ACCESS",
+      "test": "Lab Test Catalog",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /razorpay/lab-tests/catalog/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC62CF0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/razorpay/lab-tests/catalog/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:39",
+      "category": "URL_ACCESS",
+      "test": "Enhanced Lab Booking",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /razorpay/lab-tests/booking/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC62F10>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/razorpay/lab-tests/booking/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:41",
+      "category": "URL_ACCESS",
+      "test": "Patient Lab Tests",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /patient-lab-tests/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC63130>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/patient-lab-tests/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:43",
+      "category": "URL_ACCESS",
+      "test": "Doctor Test List",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /doctor/doctor-test-list/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC63350>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/doctor/doctor-test-list/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:45",
+      "category": "URL_ACCESS",
+      "test": "Payment Success Page",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /razorpay/success/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC63570>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/razorpay/success/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:47",
+      "category": "URL_ACCESS",
+      "test": "Payment Failed Page",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /razorpay/failed/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC63790>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/razorpay/failed/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:49",
+      "category": "URL_ACCESS",
+      "test": "Doctor Login Page",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /doctor/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC639B0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/doctor/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:51",
+      "category": "URL_ACCESS",
+      "test": "Doctor Dashboard",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /doctor/doctor-dashboard/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC63CE0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/doctor/doctor-dashboard/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:53",
+      "category": "URL_ACCESS",
+      "test": "My Patients",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /doctor/my-patients/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC63F00>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/doctor/my-patients/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:56",
+      "category": "URL_ACCESS",
+      "test": "Doctor Appointments",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /doctor/appointments/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51ACF0160>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/doctor/appointments/"
+    },
+    {
+      "timestamp": "2025-10-05 16:45:58",
+      "category": "URL_ACCESS",
+      "test": "Schedule Timings",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /doctor/schedule-timings/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51ACF0380>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/doctor/schedule-timings/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:00",
+      "category": "URL_ACCESS",
+      "test": "Doctor Profile Settings",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /doctor/doctor-profile-settings/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51ACF05A0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/doctor/doctor-profile-settings/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:02",
+      "category": "URL_ACCESS",
+      "test": "Patient Dashboard",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /patient-dashboard/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC63F00>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/patient-dashboard/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:04",
+      "category": "URL_ACCESS",
+      "test": "Patient Appointments",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /appointments/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC63DF0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/appointments/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:06",
+      "category": "URL_ACCESS",
+      "test": "Profile Settings",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /profile-settings/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC63AC0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/profile-settings/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:08",
+      "category": "URL_ACCESS",
+      "test": "Django Admin",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /admin/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC638A0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/admin/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:10",
+      "category": "URL_ACCESS",
+      "test": "Hospital Admin",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /hospital_admin/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC63680>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/hospital_admin/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:12",
+      "category": "URL_ACCESS",
+      "test": "404 Page Test",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /nonexistent-page/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC63460>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/nonexistent-page/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:14",
+      "category": "URL_ACCESS",
+      "test": "404 URL Test",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /invalid/url/test/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC63240>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/invalid/url/test/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:16",
+      "category": "URL_ACCESS",
+      "test": "Static Files Directory",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /static/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC63020>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/static/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:18",
+      "category": "URL_ACCESS",
+      "test": "Media Files Directory",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /media/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC62E00>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/media/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:20",
+      "category": "URL_ACCESS",
+      "test": "API Base",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC62BE0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/api/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:22",
+      "category": "URL_ACCESS",
+      "test": "Medicine Search API",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /pharmacy/ajax/medicine-search/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC629C0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/pharmacy/ajax/medicine-search/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:24",
+      "category": "URL_ACCESS",
+      "test": "HSN Code API",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /pharmacy/api/fetch-hsn/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC627A0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/pharmacy/api/fetch-hsn/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:24",
+      "category": "WORKFLOW",
+      "test": "Home -> Search Navigation",
+      "status": "INFO",
+      "details": "Testing navigation from home to search",
+      "url": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:46:26",
+      "category": "URL_ACCESS",
+      "test": "Home Page Load",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC62580>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/"
+    },
+    {
+      "timestamp": "2025-10-05 16:46:26",
+      "category": "WORKFLOW",
+      "test": "Pharmacy Complete Flow",
+      "status": "INFO",
+      "details": "Testing pharmacy from shop to checkout",
+      "url": ""
+    },
+    {
+      "timestamp": "2025-10-05 16:46:28",
+      "category": "URL_ACCESS",
+      "test": "Pharmacy Shop",
+      "status": "ERROR",
+      "details": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /pharmacy/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001A51AC62360>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "url": "/pharmacy/"
+    }
+  ]
+}

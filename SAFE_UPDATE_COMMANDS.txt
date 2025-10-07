@@ -1,0 +1,59 @@
+# 🏥 MAHIMA MEDICARE - SAFE PRODUCTION UPDATE COMMANDS
+# ===================================================
+# Follow these commands EXACTLY to update without data loss
+
+# STEP 1: Connect to your server
+ssh root@139.84.155.25
+
+# STEP 2: Navigate to project directory  
+cd /var/www/mahima-medicare
+
+# STEP 3: BACKUP EVERYTHING FIRST (CRITICAL!)
+source venv/bin/activate
+python manage.py dumpdata --natural-foreign --natural-primary > backup_$(date +%Y%m%d_%H%M%S).json
+cp db.sqlite3 db_backup_$(date +%Y%m%d_%H%M%S).sqlite3 2>/dev/null || echo "No SQLite file found"
+
+# STEP 4: Upload your updated files (OPTION A - Git)
+git stash  # Save any local changes
+git pull origin main
+
+# STEP 4 ALTERNATIVE: Upload files directly (OPTION B - if not using Git)
+# Use SCP/SFTP to upload these specific files:
+# - hospital_admin/urls.py (admin registration removed)
+# - templates/hospital_admin/login.html (registration link removed)
+
+# STEP 5: Install any new dependencies
+pip install -r requirements.txt --upgrade
+
+# STEP 6: Run migrations (adds new features, keeps existing data)
+python manage.py makemigrations
+python manage.py migrate --run-syncdb
+
+# STEP 7: Collect static files
+python manage.py collectstatic --noinput
+
+# STEP 8: Restart Gunicorn gracefully
+pkill -f gunicorn
+sleep 3
+gunicorn --config gunicorn.conf.py healthstack.wsgi:application &
+
+# STEP 9: Verify everything is working
+curl -I https://mahimamedicare.co.in
+
+echo "✅ UPDATE COMPLETED - All client data preserved!"
+echo "🔒 Admin registration security vulnerability fixed!"
+
+# ===================================================
+# WHAT THIS DOES:
+# ✅ Preserves ALL existing client data
+# ✅ Fixes admin registration security issue
+# ✅ Updates code with new features
+# ✅ Maintains database integrity
+# ===================================================
+
+# WHAT THIS DOES NOT DO:
+# ❌ Does not delete any existing data
+# ❌ Does not affect patient records
+# ❌ Does not remove medicine data
+# ❌ Does not impact lab test records
+# ===================================================

@@ -1,0 +1,54 @@
+{
+  "test_timestamp": "2025-10-07T04:34:10.858885",
+  "money_success_rate": 100.0,
+  "workflow_success_rate": 0.0,
+  "system_ready": false,
+  "detailed_results": {
+    "payment_system": {
+      "cod_payments": "5/5 successful",
+      "online_payments": "3/3 successful",
+      "home_collection_99": "Correct \u20b999 fee"
+    },
+    "user_workflows": {
+      "patient": {
+        "login": "Failed"
+      },
+      "admin": {
+        "login": "Failed"
+      },
+      "lab_tech": {
+        "login": "Failed"
+      }
+    },
+    "security": {
+      "audit_logs": "Total: 18, Admin: 15",
+      "access_protection": "Protected"
+    },
+    "database_stats": {
+      "Total Users": 42,
+      "Admin Users": 8,
+      "Patient Users": 16,
+      "Lab Workers": 8,
+      "Payment Records": 54,
+      "Verified Payments": 19,
+      "COD Payments": 31,
+      "Online Payments": 12,
+      "Audit Logs": 18
+    }
+  },
+  "money_features": {
+    "COD Payments (All Services)": true,
+    "Online Payments (Razorpay)": true,
+    "\u20b999 Home Collection Fee": true,
+    "Admin Payment Verification": true,
+    "Payment Status Tracking": true,
+    "Audit Trail Logging": true
+  },
+  "workflow_checks": {
+    "Patient Login & Access": false,
+    "Admin Dashboard & Payment Management": false,
+    "Lab Technician Access": false,
+    "Payment Options for Patients": false,
+    "Admin Payment Verification Interface": false
+  }
+}
