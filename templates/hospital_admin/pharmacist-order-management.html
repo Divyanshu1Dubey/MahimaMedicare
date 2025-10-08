@@ -229,32 +229,32 @@
                 <!-- Order Management Tabs -->
                 <ul class="nav nav-tabs" id="orderTabs" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link active" id="online-orders-tab" data-bs-toggle="tab" href="#online-orders" role="tab">
+                        <a class="nav-link active" id="online-orders-tab" data-toggle="tab" href="#online-orders" role="tab">
                             <i class="fas fa-credit-card"></i> Online Paid ({{ online_orders.count }})
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="cod-orders-tab" data-bs-toggle="tab" href="#cod-orders" role="tab">
+                        <a class="nav-link" id="cod-orders-tab" data-toggle="tab" href="#cod-orders" role="tab">
                             <i class="fas fa-money-bill-wave"></i> Cash on Delivery ({{ cod_orders.count }})
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="failed-orders-tab" data-bs-toggle="tab" href="#failed-orders" role="tab">
+                        <a class="nav-link" id="failed-orders-tab" data-toggle="tab" href="#failed-orders" role="tab">
                             <i class="fas fa-exclamation-circle"></i> Failed Payments ({{ failed_orders.count }})
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="ready-orders-tab" data-bs-toggle="tab" href="#ready-orders" role="tab">
+                        <a class="nav-link" id="ready-orders-tab" data-toggle="tab" href="#ready-orders" role="tab">
                             <i class="fas fa-check-circle"></i> Ready for Pickup ({{ ready_orders.count }})
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="prescriptions-tab" data-bs-toggle="tab" href="#prescriptions" role="tab">
+                        <a class="nav-link" id="prescriptions-tab" data-toggle="tab" href="#prescriptions" role="tab">
                             <i class="fas fa-prescription-bottle-alt"></i> Prescriptions ({{ pending_prescriptions.count }})
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="delivery-orders-tab" data-bs-toggle="tab" href="#delivery-orders" role="tab">
+                        <a class="nav-link" id="delivery-orders-tab" data-toggle="tab" href="#delivery-orders" role="tab">
                             <i class="fas fa-truck"></i> Out for Delivery ({{ delivery_orders.count }})
                         </a>
                     </li>
@@ -452,7 +452,7 @@
                                 </div>
                             </div>
                             <div class="order-actions mt-3">
-                                <form method="post" action="{% url 'update_order_status' prescription.related_order.id %}" style="display: inline;">
+                                <form method="post" action="{% url 'update-order-status' prescription.related_order.id %}" style="display: inline;">
                                     {% csrf_token %}
                                     <input type="hidden" name="order_status" value="preparing">
                                     <button type="submit" class="btn btn-warning btn-sm">
@@ -752,6 +752,22 @@
             $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
                 localStorage.setItem('activeOrderTab', $(e.target).attr('href'));
             });
+
+            // Handle hash navigation for direct tab access
+            if (window.location.hash) {
+                const hash = window.location.hash;
+                if (hash === '#ready-orders') {
+                    $('#ready-orders-tab').tab('show');
+                } else if (hash === '#cod-orders') {
+                    $('#cod-orders-tab').tab('show');
+                } else if (hash === '#failed-orders') {
+                    $('#failed-orders-tab').tab('show');
+                } else if (hash === '#prescriptions') {
+                    $('#prescriptions-tab').tab('show');
+                } else if (hash === '#delivery-orders') {
+                    $('#delivery-orders-tab').tab('show');
+                }
+            }
         });
     </script>
 </body>

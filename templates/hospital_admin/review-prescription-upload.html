@@ -246,7 +246,7 @@
                                         <table class="table table-borderless">
                                             <tr>
                                                 <td><strong>Medicines Total:</strong></td>
-                                                <td class="text-end">₹<span id="medicines-total">{{ prescription.medicines.all|length|default:0 }}</span></td>
+                                                <td class="text-end">₹<span id="medicines-total">{{ prescription.estimated_cost|default:0 }}</span></td>
                                             </tr>
                                             {% if prescription.delivery_method == 'delivery' %}
                                             <tr>
@@ -256,7 +256,17 @@
                                             {% endif %}
                                             <tr class="border-top">
                                                 <td><strong>Grand Total:</strong></td>
-                                                <td class="text-end"><strong>₹<span id="grand-total">0</span></strong></td>
+                                                <td class="text-end"><strong>₹<span id="grand-total">
+                                                    {% if prescription.estimated_cost %}
+                                                        {% if prescription.delivery_method == 'delivery' %}
+                                                            {{ prescription.estimated_cost|add:40 }}
+                                                        {% else %}
+                                                            {{ prescription.estimated_cost }}
+                                                        {% endif %}
+                                                    {% else %}
+                                                        0
+                                                    {% endif %}
+                                                </span></strong></td>
                                             </tr>
                                         </table>
                                     </div>
@@ -416,7 +426,7 @@
             const days = $('#medicine-days').val();
             
             if (!medicineId) {
-                alert('Please select a medicine');
+                alert('Please select a medicine from the suggestions');
                 return;
             }
             
@@ -424,6 +434,11 @@
                 alert('Please enter valid quantity');
                 return;
             }
+            
+            // Show loading state
+            const addBtn = $('button[onclick="addMedicine()"]');
+            const originalText = addBtn.html();
+            addBtn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
             
             $.post(`/hospital_admin/add-medicine-to-prescription/${prescriptionId}/`, {
                 medicine_id: medicineId,
@@ -434,13 +449,27 @@
             })
             .done(function(response) {
                 if (response.success) {
-                    location.reload(); // Reload to show updated medicines
+                    // Clear form
+                    $('#medicine-search').val('');
+                    $('#selected-medicine-id').val('');
+                    $('#medicine-quantity').val(1);
+                    $('#medicine-dosage').val('');
+                    $('#medicine-days').val('');
+                    $('#medicine-suggestions').hide();
+                    
+                    // Reload to show updated medicines and recalculate totals
+                    location.reload();
                 } else {
-                    alert('Error: ' + response.message);
+                    alert('Error: ' + (response.message || 'Unknown error'));
                 }
             })
-            .fail(function() {
+            .fail(function(xhr) {
+                console.error('AJAX Error:', xhr);
                 alert('Error adding medicine. Please try again.');
+            })
+            .always(function() {
+                // Restore button state
+                addBtn.html(originalText).prop('disabled', false);
             });
         }
         
@@ -469,9 +498,36 @@
         
         // Calculate totals
         function calculateTotals() {
-            // This would be implemented based on the medicines data
-            // For now, we'll reload the page to get updated totals
+            let medicinesTotal = 0;
+            
+            // Calculate total from displayed medicines
+            $('.prescription-medicine-item').each(function() {
+                const totalText = $(this).find('.medicine-total').text();
+                const total = parseFloat(totalText.replace('₹', '').replace(',', '')) || 0;
+                medicinesTotal += total;
+            });
+            
+            // Update medicines total
+            $('#medicines-total').text(medicinesTotal.toFixed(2));
+            
+            // Calculate grand total (medicines + delivery if applicable)
+            let grandTotal = medicinesTotal;
+            {% if prescription.delivery_method == 'delivery' %}
+                grandTotal += 40; // Add delivery charge
+            {% endif %}
+            
+            $('#grand-total').text(grandTotal.toFixed(2));
+            
+            return {
+                medicinesTotal: medicinesTotal,
+                grandTotal: grandTotal
+            };
         }
+        
+        // Initialize totals on page load
+        $(document).ready(function() {
+            calculateTotals();
+        });
         
         // Convert medicines data to JSON for JavaScript
         const medicinesData = [

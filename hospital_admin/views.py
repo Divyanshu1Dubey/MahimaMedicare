@@ -1610,20 +1610,40 @@ def pharmacist_dashboard(request):
             page_number = request.GET.get('page')
             page_obj = paginator.get_page(page_number)
             
-            # Prepare JSON data for JavaScript charts
+            # Prepare JSON data for JavaScript charts and search
             import json
             medicines_for_chart = Medicine.objects.all()[:20]  # Top 20 for chart
-            medicines_json = json.dumps([
+            all_medicines_for_search = Medicine.objects.all()  # All medicines for search functionality
+            
+            # Chart data (limited to 20)
+            chart_json = json.dumps([
                 {
                     'name': medicine.name,
-                    'stock': medicine.quantity if medicine.quantity else 0
+                    'stock': medicine.quantity if medicine.quantity else 0,
                 }
                 for medicine in medicines_for_chart
             ])
             
+            # All medicines data for search and modal functionality
+            medicines_json = json.dumps([
+                {
+                    'id': medicine.serial_number,
+                    'serial_number': medicine.serial_number,
+                    'name': medicine.name,
+                    'stock': medicine.quantity if medicine.quantity else 0,
+                    'price': float(medicine.price) if medicine.price else 0.0,
+                    'category': medicine.medicine_category or '',
+                    'type': medicine.medicine_type or '',
+                    'composition': medicine.composition or '',
+                    'hsn_code': medicine.hsn_code or ''
+                }
+                for medicine in all_medicines_for_search
+            ])
+            
             context = {'pharmacist':pharmacist, 'medicine':page_obj,
                        'medicines': medicine_list,  # All medicines for template
-                       'medicines_json': medicines_json,  # JSON data for charts
+                       'medicines_json': medicines_json,  # All medicines data for search/modal
+                       'chart_json': chart_json,  # Limited data for charts
                        'total_pharmacist_count':total_pharmacist_count, 
                        'total_medicine_count':total_medicine_count, 
                        'total_order_count':total_order_count,
@@ -4808,15 +4828,25 @@ def add_medicine_to_prescription(request, upload_id):
                 prescription_med.quantity = quantity
                 prescription_med.dosage = dosage
                 prescription_med.days = int(days) if days else None
+                prescription_med.unit_price = medicine.price
                 prescription_med.total_price = medicine.price * quantity
                 prescription_med.save()
+            
+            # Recalculate prescription estimated cost
+            from decimal import Decimal
+            prescription_medicines = PrescriptionMedicine.objects.filter(prescription_upload=prescription)
+            total_cost = sum(Decimal(str(med.total_price or 0)) for med in prescription_medicines)
+            prescription.estimated_cost = total_cost
+            prescription.save()
             
             return JsonResponse({
                 'success': True,
                 'message': f'Added {medicine.name} to prescription',
                 'medicine_name': medicine.name,
                 'quantity': quantity,
-                'price': float(medicine.price * quantity)
+                'price': float(medicine.price * quantity),
+                'estimated_cost': float(total_cost),
+                'medicine_count': prescription_medicines.count()
             })
             
         except Exception as e:

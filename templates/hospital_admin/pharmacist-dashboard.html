@@ -110,6 +110,43 @@
     .pagination .page-item.disabled .page-link {
       color: #6c757d;
     }
+
+    /* Admin Live Search Suggestions */
+    .admin-search-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      z-index: 1000;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 2px;
+    }
+    .admin-suggestion-item {
+      padding: 10px 15px;
+      border-bottom: 1px solid #f1f1f1;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .admin-suggestion-item:hover {
+      background-color: #f8f9fa;
+    }
+    .admin-suggestion-item:last-child {
+      border-bottom: none;
+    }
+    .admin-suggestion-name {
+      font-weight: 600;
+      color: #333;
+    }
+    .admin-suggestion-details {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 2px;
+    }
   </style>
 </head>
 
@@ -377,12 +414,28 @@
               <!-- Medicine List -->
               <div class="page-header mt-4">
                 <div class="row">
-                  <div class="col-sm-12">
+                  <div class="col-sm-8">
                     <h3 class="page-title">List of Medicine</h3>
                     <ul class="breadcrumb">
                       <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
                       <li class="breadcrumb-item active">Medicine</li>
                     </ul>
+                  </div>
+                  <div class="col-sm-4">
+                    <!-- Dashboard Medicine Search -->
+                    <div class="top-nav-search position-relative">
+                      <form method="get" action="{% url 'medicine-list' %}">
+                        <div class="input-group">
+                          <input type="text" class="form-control" id="dashboard-medicine-search" placeholder="Search medicines..." name="search_query" value="">
+                          <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">
+                              <i class="fa fa-search"></i> Search
+                            </button>
+                          </div>
+                        </div>
+                      </form>
+                      <div id="dashboard-search-suggestions" class="admin-search-suggestions" style="display: none;"></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -441,6 +494,9 @@
                             <td>{{medicine.medicine_category}}</td>
                             <td>₹{{medicine.price}}</td>
                             <td>
+                              <a href="{% url 'medicine-list' %}?search_query={{ medicine.name }}" class="btn btn-sm btn-info mr-1" title="Edit Medicine">
+                                <i class="fe fe-edit"></i>
+                              </a>
                               <form method="post" action="{% url 'decrease-medicine-stock' medicine.serial_number %}" class="inline-form d-inline">
                                 {% csrf_token %}
                                 <input type="hidden" name="count" value="1" />
@@ -559,19 +615,21 @@
       
       // Get medicine data from JSON script
       const medicinesDataElement = document.getElementById('medicines-data');
-      let medicineData = [];
+      let chartData = [];
       
       if (medicinesDataElement) {
         try {
-          medicineData = JSON.parse(medicinesDataElement.textContent);
+          const allMedicineData = JSON.parse(medicinesDataElement.textContent);
+          // Use first 20 medicines for chart display
+          chartData = allMedicineData.slice(0, 20);
         } catch (e) {
           console.error('Error parsing medicine data:', e);
-          medicineData = [];
+          chartData = [];
         }
       }
       
-      // Filter to show top medicines or all if few
-      const displayData = medicineData.slice(0, 20);
+      // Chart display data
+      const displayData = chartData;
       
       const labels = [];
       const stockValues = [];
@@ -686,6 +744,137 @@
         const stockQuantity = parseInt(row.dataset.stock);
         if (stockQuantity <= LOW_STOCK_THRESHOLD) {
           row.classList.add('low-stock-row');
+        }
+      });
+
+      // Dashboard Medicine Search Implementation
+      let dashboardSearchTimeout;
+      const dashboardSearchInput = $('#dashboard-medicine-search');
+      const dashboardSuggestions = $('#dashboard-search-suggestions');
+
+      dashboardSearchInput.on('input', function() {
+        const query = $(this).val().trim();
+        
+        // Clear existing timeout
+        if (dashboardSearchTimeout) {
+          clearTimeout(dashboardSearchTimeout);
+        }
+        
+        // Hide suggestions if query is too short
+        if (query.length < 2) {
+          dashboardSuggestions.hide();
+          return;
+        }
+
+        // Debounce search requests
+        dashboardSearchTimeout = setTimeout(function() {
+          performDashboardLiveSearch(query);
+        }, 300);
+      });
+
+      function performDashboardLiveSearch(query) {
+        $.get('/pharmacy/ajax/medicine-search/', { q: query })
+          .done(function(data) {
+            displayDashboardSuggestions(data.medicines || []);
+          })
+          .fail(function() {
+            dashboardSuggestions.hide();
+          });
+      }
+
+      function displayDashboardSuggestions(medicines) {
+        if (medicines.length === 0) {
+          dashboardSuggestions.hide();
+          return;
+        }
+
+        let html = '';
+        medicines.forEach(function(medicine) {
+          html += `
+            <div class="admin-suggestion-item" onclick="navigateToMedicine('${medicine.name}')">
+              <div class="admin-suggestion-name">${medicine.name}</div>
+              <div class="admin-suggestion-details">
+                Stock: ${medicine.stock} • Price: ₹${medicine.price.toFixed(2)}
+                ${medicine.category ? ' • ' + medicine.category : ''}
+              </div>
+            </div>
+          `;
+        });
+
+        dashboardSuggestions.html(html).show();
+      }
+
+      // Function to show medicine edit modal instead of navigating
+      window.navigateToMedicine = function(medicineName) {
+        console.log('Navigating to medicine:', medicineName);
+        
+        // Hide search suggestions first
+        dashboardSuggestions.hide();
+        
+        // Get all medicines data from the script tag
+        const medicinesDataElement = document.getElementById('medicines-data');
+        let allMedicines = [];
+        
+        if (medicinesDataElement) {
+          try {
+            allMedicines = JSON.parse(medicinesDataElement.textContent);
+            console.log('Available medicines:', allMedicines.length);
+          } catch (e) {
+            console.error('Error parsing medicine data:', e);
+          }
+        }
+        
+        // Find the medicine by name
+        const medicine = allMedicines.find(med => 
+          med.name.toLowerCase() === medicineName.toLowerCase()
+        );
+        
+        console.log('Found medicine:', medicine);
+        
+        if (medicine) {
+          showMedicineEditModal(medicine);
+        } else {
+          console.log('Medicine not found in data, redirecting to list');
+          // Fallback to search if not found in current list
+          window.location.href = `/hospital_admin/medicine-list/?search_query=${encodeURIComponent(medicineName)}`;
+        }
+      };
+
+      // Function to show medicine edit modal
+      function showMedicineEditModal(medicine) {
+        console.log('Showing modal for medicine:', medicine);
+        
+        // Set modal data
+        $('#edit-medicine-name').text(medicine.name);
+        $('#edit-medicine-id').val(medicine.serial_number || medicine.id);
+        $('#edit-current-stock').text(medicine.stock || 0);
+        $('#edit-medicine-price').text('₹' + (parseFloat(medicine.price) || 0).toFixed(2));
+        
+        // Reset quantity inputs
+        $('#stock-decrease-qty').val(1);
+        $('#stock-increase-qty').val(1);
+        
+        // Update edit link
+        const medicineId = medicine.serial_number || medicine.id;
+        $('#edit-medicine-link').attr('href', `/hospital_admin/edit-medicine/${medicineId}/`);
+        
+        // Show the modal
+        $('#medicineEditModal').modal('show');
+        
+        console.log('Modal should be displayed now');
+      }
+
+      // Hide suggestions when clicking outside
+      $(document).on('click', function(e) {
+        if (!$(e.target).closest('.top-nav-search').length) {
+          dashboardSuggestions.hide();
+        }
+      });
+
+      // Keyboard navigation for dashboard search
+      dashboardSearchInput.on('keydown', function(e) {
+        if (e.key === 'Escape') {
+          dashboardSuggestions.hide();
         }
       });
     });
@@ -834,4 +1023,174 @@
       });
     });
   })();
+</script>
+
+<!-- Medicine Edit Modal -->
+<div class="modal fade" id="medicineEditModal" tabindex="-1" aria-labelledby="medicineEditModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: var(--accent-color); color: white;">
+        <h5 class="modal-title" id="medicineEditModalLabel">
+          <i class="fas fa-pills mr-2"></i>
+          <span id="edit-medicine-name">Medicine Name</span>
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        {% csrf_token %}
+        <input type="hidden" id="edit-medicine-id">
+        
+        <!-- Medicine Info -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <div class="info-box text-center p-3" style="background-color: #f8f9fa; border-radius: 8px;">
+              <h6 class="text-muted mb-1">Current Stock</h6>
+              <h4 class="mb-0" id="edit-current-stock">0</h4>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="info-box text-center p-3" style="background-color: #f8f9fa; border-radius: 8px;">
+              <h6 class="text-muted mb-1">Price</h6>
+              <h4 class="mb-0 text-success" id="edit-medicine-price">₹0</h4>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stock Management -->
+        <div class="row">
+          <div class="col-md-12">
+            <h6 class="mb-3"><i class="fas fa-box mr-2"></i>Stock Management</h6>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="stock-decrease-qty">Decrease Stock</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="stock-decrease-qty" min="1" value="1">
+                <div class="input-group-append">
+                  <button class="btn btn-outline-danger" type="button" onclick="adjustStock('decrease')">
+                    <i class="fas fa-minus"></i> Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="stock-increase-qty">Increase Stock</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="stock-increase-qty" min="1" value="1">
+                <div class="input-group-append">
+                  <button class="btn btn-outline-success" type="button" onclick="adjustStock('increase')">
+                    <i class="fas fa-plus"></i> Add
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mt-3">
+          <div class="col-md-12">
+            <h6 class="mb-3"><i class="fas fa-tools mr-2"></i>Quick Actions</h6>
+            <div class="btn-group btn-group-sm d-flex" role="group">
+              <a href="#" class="btn btn-info" id="edit-medicine-link" target="_blank">
+                <i class="fas fa-edit"></i> Edit Details
+              </a>
+              <button type="button" class="btn btn-warning" onclick="viewMedicineInList()">
+                <i class="fas fa-list"></i> View in List
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Stock adjustment function
+function adjustStock(action) {
+  const medicineId = $('#edit-medicine-id').val();
+  let quantity;
+  
+  if (action === 'increase') {
+    quantity = $('#stock-increase-qty').val();
+    if (!quantity || quantity < 1) {
+      alert('Please enter valid quantity to add');
+      return;
+    }
+  } else {
+    quantity = $('#stock-decrease-qty').val();
+    if (!quantity || quantity < 1) {
+      alert('Please enter valid quantity to remove');
+      return;
+    }
+  }
+
+  const url = `/hospital_admin/medicine/${medicineId}/${action}/`;
+  
+  // Show loading state
+  const btn = event.target.closest('button');
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  btn.disabled = true;
+  
+  $.post(url, {
+    count: quantity,
+    csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
+  })
+  .done(function(response) {
+    // Update the displayed stock
+    const currentStock = parseInt($('#edit-current-stock').text());
+    let newStock;
+    
+    if (action === 'increase') {
+      newStock = currentStock + parseInt(quantity);
+      $('#stock-increase-qty').val(1);
+    } else {
+      newStock = Math.max(0, currentStock - parseInt(quantity));
+      $('#stock-decrease-qty').val(1);
+    }
+    
+    $('#edit-current-stock').text(newStock);
+    
+    // Show success message
+    const actionText = action === 'increase' ? 'added to' : 'removed from';
+    alert(`${quantity} units ${actionText} stock successfully!`);
+  })
+  .fail(function() {
+    alert('Error updating stock. Please try again.');
+  })
+  .always(function() {
+    // Restore button state
+    btn.innerHTML = originalHtml;
+    btn.disabled = false;
+  });
+}
+
+// View medicine in list function
+function viewMedicineInList() {
+  const medicineName = $('#edit-medicine-name').text();
+  $('#medicineEditModal').modal('hide');
+  setTimeout(() => {
+    window.location.href = `/hospital_admin/medicine-list/?search_query=${encodeURIComponent(medicineName)}`;
+  }, 300);
+}
+
+// Update edit link when modal is shown
+$('#medicineEditModal').on('show.bs.modal', function() {
+  const medicineId = $('#edit-medicine-id').val();
+  $('#edit-medicine-link').attr('href', `/hospital_admin/edit-medicine/${medicineId}/`);
+});
 </script>
