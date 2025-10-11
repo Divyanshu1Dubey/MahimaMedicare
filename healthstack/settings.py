@@ -226,13 +226,15 @@ except:
 ### Gmail SMTP Configuration
 # For production, use custom backend with SSL bypass
 EMAIL_BACKEND = 'healthstack.email_backend.UnverifiedEmailBackend'
+# Fallback email backend for when SMTP fails
+EMAIL_BACKEND_FALLBACK = 'django.core.mail.backends.console.EmailBackend'
 # For testing/development, uncomment the line below to use console backend
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'marklegend029@gmail.com'
-EMAIL_HOST_PASSWORD = 'lkkvkybyhftvppvc'
+EMAIL_HOST_USER = 'mahimamedicare.web@gmail.com'
+EMAIL_HOST_PASSWORD = 'oihugpheeygqoikp'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_TIMEOUT = 30  # Increase timeout for slow connections
@@ -240,8 +242,8 @@ EMAIL_TIMEOUT = 30  # Increase timeout for slow connections
 EMAIL_SSL_CERTFILE = None
 EMAIL_SSL_KEYFILE = None
 # Fallback email configuration
-DEFAULT_FROM_EMAIL = 'marklegend029@gmail.com'
-SERVER_EMAIL = 'marklegend029@gmail.com'
+DEFAULT_FROM_EMAIL = 'mahimamedicare.web@gmail.com'
+SERVER_EMAIL = 'mahimamedicare.web@gmail.com'
 
 # Admin notification settings - All important emails go to admin
 ADMIN_EMAIL = 'mahimamedicare.web@gmail.com'  # Main admin email for notifications
@@ -280,6 +282,33 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 # Additional email SSL settings
 EMAIL_SSL_CONTEXT = unverified_context
+
+# Logging configuration for email debugging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'email_debug.log'),
+        },
+    },
+    'loggers': {
+        'healthstack.email_backend': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'healthstack.email_utils': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
 
 # Production Security Settings - Fixed for proper deployment
 # Only enable strict security on production (when not in DEBUG mode and on HTTPS)

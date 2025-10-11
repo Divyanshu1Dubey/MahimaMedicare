@@ -718,7 +718,7 @@ def create_report(request, pk):
             plain_message = strip_tags(html_message)
 
             try:
-                send_mail(subject, plain_message, 'hospital_admin@gmail.com',  [patient_email], html_message=html_message, fail_silently=False)
+                send_mail(subject, plain_message, 'mahimamedicare.web@gmail.com',  [patient_email], html_message=html_message, fail_silently=False)
             except BadHeaderError:
                 return HttpResponse('Invalid header found')
             
@@ -1290,15 +1290,32 @@ def accept_doctor(request,pk):
             "doctor_specialization":doctor_specialization,
         }
 
-    html_message = render_to_string('hospital_admin/accept-doctor-mail.html', {'values': values})
-    plain_message = strip_tags(html_message)
-
+    # Send email using the robust email utility with fallback
+    from healthstack.email_utils import send_doctor_acceptance_email
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
     try:
-        send_mail(subject, plain_message, 'hospital_admin@gmail.com',  [doctor_email], html_message=html_message, fail_silently=False)
-    except BadHeaderError:
-        return HttpResponse('Invalid header found')
+        email_sent = send_doctor_acceptance_email(
+            doctor_name=doctor_name,
+            doctor_email=doctor_email,
+            doctor_department=doctor_department,
+            doctor_specialization=doctor_specialization
+        )
 
-    messages.success(request, 'Doctor Accepted!')
+        if email_sent:
+            messages.success(request, 'Doctor Accepted and email notification sent!')
+        else:
+            # Log the email failure but don't crash the process
+            logger.warning(f"Email notification failed for doctor acceptance: {doctor_email}")
+            messages.success(request, 'Doctor Accepted! (Note: Email notification could not be sent)')
+            
+    except Exception as e:
+        # Ultimate fallback - log error but continue with success
+        logger.error(f"Critical email error during doctor acceptance: {str(e)}")
+        messages.success(request, 'Doctor Accepted! (Note: Email system temporarily unavailable)')
+    
     return redirect('register-doctor-list')
 
 
@@ -1330,7 +1347,7 @@ def reject_doctor(request,pk):
     plain_message = strip_tags(html_message)
 
     try:
-        send_mail(subject, plain_message, 'hospital_admin@gmail.com',  [doctor_email], html_message=html_message, fail_silently=False)
+        send_mail(subject, plain_message, 'mahimamedicare.web@gmail.com',  [doctor_email], html_message=html_message, fail_silently=False)
     except BadHeaderError:
         return HttpResponse('Invalid header found')
     

@@ -1,0 +1,422 @@
+Email sending returned 0 for recipients: marklegend029@gmail.com
+Email sending returned 0 for recipients: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:465
+Connection attempt 1: Failed
+Failed to open connection on attempt 1
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:465
+Connection attempt 2: Failed
+Failed to open connection on attempt 2
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:465
+Connection attempt 3: Failed
+Failed to open connection on attempt 3
+All connection attempts failed
+Email sending returned 0 for recipients: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:465
+Connection attempt 1: Failed
+Failed to open connection on attempt 1
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:465
+Connection attempt 2: Failed
+Failed to open connection on attempt 2
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:465
+Connection attempt 3: Failed
+Failed to open connection on attempt 3
+All connection attempts failed
+Email sending returned 0 for recipients: marklegend029@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-29034f8f72esm89605035ad.118 - gsmtp')
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-7992d5b820asm6481778b3a.67 - gsmtp')
+Attempting connection to smtp.gmail.com:465
+Connection failed for smtp.gmail.com:465 - Connection unexpectedly closed
+All connection configurations failed. Last error: Connection unexpectedly closed
+SMTP server disconnected on attempt 1: Connection unexpectedly closed
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-29045239eb2sm50042545ad.95 - gsmtp')
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-7992d993340sm6484095b3a.72 - gsmtp')
+Attempting connection to smtp.gmail.com:465
+Connection failed for smtp.gmail.com:465 - Connection unexpectedly closed
+All connection configurations failed. Last error: Connection unexpectedly closed
+SMTP server disconnected on attempt 2: Connection unexpectedly closed
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+Connection failed for smtp.gmail.com:587 - Connection unexpectedly closed
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+Connection failed for smtp.gmail.com:587 - Connection unexpectedly closed
+Attempting connection to smtp.gmail.com:465
+Connection failed for smtp.gmail.com:465 - Connection unexpectedly closed
+All connection configurations failed. Last error: Connection unexpectedly closed
+SMTP server disconnected on attempt 3: Connection unexpectedly closed
+Primary email backend failed: Connection unexpectedly closed
+Attempting to use fallback email backend (console)
+
+=== EMAIL NOTIFICATION ===
+To: marklegend029@gmail.com
+From: hospital_admin@gmail.com
+Subject: Test Email - Email Configuration Check
+
+This is a test email to verify the email configuration is working properly.
+
+HTML Content: No
+===========================
+
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-29034f36116sm90199745ad.93 - gsmtp')
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-29034f3ab2fsm89328615ad.105 - gsmtp')
+Attempting connection to smtp.gmail.com:465
+Connection failed for smtp.gmail.com:465 - Connection unexpectedly closed
+All connection configurations failed. Last error: Connection unexpectedly closed
+SMTP server disconnected on attempt 1: Connection unexpectedly closed
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-29034de56desm90791185ad.19 - gsmtp')
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-29034e2062fsm89859845ad.48 - gsmtp')
+Attempting connection to smtp.gmail.com:465
+Connection failed for smtp.gmail.com:465 - Connection unexpectedly closed
+All connection configurations failed. Last error: Connection unexpectedly closed
+SMTP server disconnected on attempt 2: Connection unexpectedly closed
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-29034f99fbfsm89672595ad.128 - gsmtp')
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials 41be03b00d2f7-b678df4ba7fsm5146138a12.32 - gsmtp')
+Attempting connection to smtp.gmail.com:465
+Connection failed for smtp.gmail.com:465 - Connection unexpectedly closed
+All connection configurations failed. Last error: Connection unexpectedly closed
+SMTP server disconnected on attempt 3: Connection unexpectedly closed
+Primary email backend failed: Connection unexpectedly closed
+Attempting to use fallback email backend (console)
+
+=== EMAIL NOTIFICATION ===
+To: marklegend029@gmail.com
+From: hospital_admin@gmail.com
+Subject: Acceptance of Doctor Registration
+
+
+
+Dear Dr. Test Doctor,
+
+Your registration has been accepted. Below are your appointment details.
+
+
+Doctor Registration
+
+    
+        
+            
+                Title
+                Details
+            
+        
+        
+
+            
+                Doctor Name
+                Test Doctor
+            
+
+            
+                Email
+                marklegend029@gmail.com
+            
+
+
+
+            
+                Hospital Department
+                Cardiology
+            
+
+            
+                Specialization
+                Heart Surgery
+            
+
+        
+    
+     
+
+
+Feel free to contact us for any inquiries.
+
+Sincerely,
+Admin
+
+
+
+HTML Content: Yes
+===========================
+
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-7992dd85317sm6540325b3a.79 - gsmtp')
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-7992db82007sm6602535b3a.77 - gsmtp')
+Attempting connection to smtp.gmail.com:465
+Connection failed for smtp.gmail.com:465 - Connection unexpectedly closed
+All connection configurations failed. Last error: Connection unexpectedly closed
+SMTP server disconnected on attempt 1: Connection unexpectedly closed
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-7992b06076asm6703787b3a.4 - gsmtp')
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials 41be03b00d2f7-b678df4c40esm5120788a12.33 - gsmtp')
+Attempting connection to smtp.gmail.com:465
+Connection failed for smtp.gmail.com:465 - Connection unexpectedly closed
+All connection configurations failed. Last error: Connection unexpectedly closed
+SMTP server disconnected on attempt 2: Connection unexpectedly closed
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-29034e1d56esm89700855ad.28 - gsmtp')
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: marklegend029@gmail.com
+Connection failed for smtp.gmail.com:587 - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-29034f06c82sm90070465ad.81 - gsmtp')
+Attempting connection to smtp.gmail.com:465
+Connection failed for smtp.gmail.com:465 - Connection unexpectedly closed
+All connection configurations failed. Last error: Connection unexpectedly closed
+SMTP server disconnected on attempt 3: Connection unexpectedly closed
+Primary email backend failed: Connection unexpectedly closed
+Attempting to use fallback email backend (console)
+
+=== EMAIL NOTIFICATION ===
+To: divyanshudubey2712@gmail.com
+From: hospital_admin@gmail.com
+Subject: Acceptance of Doctor Registration
+
+
+
+Dear Dr. DR,
+
+Your registration has been accepted. Below are your appointment details.
+
+
+Doctor Registration
+
+    
+        
+            
+                Title
+                Details
+            
+        
+        
+
+            
+                Doctor Name
+                DR
+            
+
+            
+                Email
+                divyanshudubey2712@gmail.com
+            
+
+
+
+            
+                Hospital Department
+                Dermatology
+            
+
+            
+                Specialization
+                dermatology
+            
+
+        
+    
+     
+
+
+Feel free to contact us for any inquiries.
+
+Sincerely,
+Admin
+
+
+
+HTML Content: Yes
+===========================
+
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: mahimamedicare.web@gmail.com
+Login successful
+Email connection established successfully
+Connection attempt 1: Success
+Email send result: 1 messages sent
+Email sent successfully via SMTP to mahimamedicare.web@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: mahimamedicare.web@gmail.com
+Login successful
+Email connection established successfully
+Connection attempt 1: Success
+Email send result: 1 messages sent
+Email sent successfully via SMTP to mahimamedicare.web@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: mahimamedicare.web@gmail.com
+Login successful
+Email connection established successfully
+Connection attempt 1: Success
+Email send result: 1 messages sent
+Email sent successfully via SMTP to divyanshudubey2712@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: mahimamedicare.web@gmail.com
+Login successful
+Email connection established successfully
+Connection attempt 1: Success
+Email send result: 1 messages sent
+Email sent successfully via SMTP to mahimamedicare.web@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: mahimamedicare.web@gmail.com
+Login successful
+Email connection established successfully
+Connection attempt 1: Success
+Email send result: 1 messages sent
+Email sent successfully via SMTP to mahimamedicare.web@gmail.com
+Attempting connection to smtp.gmail.com:587
+Connected to smtp.gmail.com:587
+Starting TLS connection
+TLS connection established
+Attempting login for user: mahimamedicare.web@gmail.com
+Login successful
+Email connection established successfully
+Connection attempt 1: Success
+Email send result: 1 messages sent

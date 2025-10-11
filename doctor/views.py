@@ -240,7 +240,7 @@ def accept_appointment(request, pk):
     plain_message = strip_tags(html_message)
     
     try:
-        send_mail(subject, plain_message, 'hospital_admin@gmail.com',  [patient_email], html_message=html_message, fail_silently=False)
+        send_mail(subject, plain_message, 'mahimamedicare.web@gmail.com',  [patient_email], html_message=html_message, fail_silently=False)
         messages.success(request, 'Appointment Accepted and email sent successfully!')
     except BadHeaderError:
         messages.error(request, 'Invalid email header found')
@@ -281,7 +281,7 @@ def reject_appointment(request, pk):
     plain_message = strip_tags(html_message)
     
     try:
-        send_mail(subject, plain_message, 'hospital_admin@gmail.com',  [patient_email], html_message=html_message, fail_silently=False)
+        send_mail(subject, plain_message, 'mahimamedicare.web@gmail.com',  [patient_email], html_message=html_message, fail_silently=False)
     except BadHeaderError:
         return HttpResponse('Invalid header found')
     
@@ -470,7 +470,7 @@ def booking(request, pk):
             plain_message = strip_tags(html_message)
             
             try:
-                send_mail(subject, plain_message, 'hospital_admin@gmail.com',  [patient_email], html_message=html_message, fail_silently=False)
+                send_mail(subject, plain_message, 'mahimamedicare.web@gmail.com',  [patient_email], html_message=html_message, fail_silently=False)
             except BadHeaderError:
                 return HttpResponse('Invalid header found')
         
