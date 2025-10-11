@@ -696,7 +696,10 @@ def razorpay_webhook(request):
 
 @login_required
 def download_invoice(request, invoice_id):
-    """Download invoice PDF"""
+    """Production-ready invoice download with enhanced error handling"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
         invoice = get_object_or_404(Invoice, id=invoice_id)
         
@@ -704,38 +707,88 @@ def download_invoice(request, invoice_id):
         if hasattr(request.user, 'patient'):
             patient = request.user.patient
             if invoice.payment.patient != patient:
+                logger.warning(f"Unauthorized invoice access attempt by user {request.user.id}")
                 messages.error(request, 'You do not have permission to access this invoice.')
                 return redirect('patient-dashboard')
         else:
             messages.error(request, 'Access denied.')
             return redirect('patient-dashboard')
         
-        # Check if PDF exists
-        if not invoice.pdf_file:
-            # Generate PDF if it doesn't exist
-            pdf_generator = InvoicePDFGenerator(invoice)
-            pdf_content = pdf_generator.generate_pdf()
-            
-            # Save PDF to invoice
-            from django.core.files.base import ContentFile
-            pdf_file = ContentFile(pdf_content)
-            invoice.pdf_file.save(
-                f"invoice_{invoice.invoice_number}.pdf",
-                pdf_file,
-                save=True
-            )
+        # Try multiple methods for PDF generation (production-safe)
+        pdf_content = None
         
-        # Serve the PDF file
-        from django.http import FileResponse
-        response = FileResponse(
-            invoice.pdf_file.open('rb'),
-            as_attachment=True,
-            filename=f"Invoice_{invoice.invoice_number}.pdf"
-        )
-        response['Content-Type'] = 'application/pdf'
-        return response
+        # Method 1: Check if PDF file already exists
+        if hasattr(invoice, 'pdf_file') and invoice.pdf_file:
+            try:
+                with invoice.pdf_file.open('rb') as pdf_file:
+                    pdf_content = pdf_file.read()
+                logger.info(f"Served existing PDF for invoice {invoice_id}")
+            except Exception as e:
+                logger.warning(f"Failed to read existing PDF: {str(e)}")
+        
+        # Method 2: Generate PDF using existing generator
+        if not pdf_content:
+            try:
+                pdf_generator = InvoicePDFGenerator(invoice)
+                pdf_content = pdf_generator.generate_pdf()
+                logger.info(f"Generated new PDF for invoice {invoice_id}")
+                
+                # Try to save for future use (optional, may fail on some servers)
+                try:
+                    if hasattr(invoice, 'pdf_file'):
+                        from django.core.files.base import ContentFile
+                        pdf_file = ContentFile(pdf_content)
+                        invoice.pdf_file.save(
+                            f"invoice_{invoice.invoice_number}.pdf",
+                            pdf_file,
+                            save=True
+                        )
+                except Exception as save_error:
+                    logger.warning(f"Could not save PDF file: {str(save_error)}")
+                    # Continue anyway, we have the content
+                    
+            except Exception as e:
+                logger.error(f"InvoicePDFGenerator failed: {str(e)}")
+        
+        # Method 3: Generate simple PDF fallback
+        if not pdf_content:
+            try:
+                pdf_content = generate_simple_invoice_pdf(invoice)
+                logger.info(f"Generated simple PDF for invoice {invoice_id}")
+            except Exception as e:
+                logger.error(f"Simple PDF generation failed: {str(e)}")
+        
+        # Method 4: Generate text invoice (absolute fallback)
+        if not pdf_content:
+            try:
+                text_content = generate_invoice_text(invoice)
+                response = HttpResponse(text_content, content_type='text/plain')
+                response['Content-Disposition'] = f'attachment; filename="invoice_{invoice.invoice_number}.txt"'
+                logger.warning(f"Serving text invoice for {invoice_id} due to PDF generation failures")
+                return response
+            except Exception as e:
+                logger.error(f"Text invoice generation failed: {str(e)}")
+        
+        # Serve the PDF if we have it
+        if pdf_content:
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="invoice_{invoice.invoice_number}.pdf"'
+            response['Content-Length'] = len(pdf_content)
+            
+            # Add security headers
+            response['X-Content-Type-Options'] = 'nosniff'
+            response['X-Frame-Options'] = 'DENY'
+            
+            logger.info(f"Successfully served PDF for invoice {invoice_id}")
+            return response
+        
+        # If all methods failed
+        logger.error(f"All invoice generation methods failed for invoice {invoice_id}")
+        messages.error(request, 'Unable to generate invoice at this time. Please try again later or contact support.')
+        return redirect('patient-dashboard')
         
     except Exception as e:
+        logger.error(f"Critical error in invoice download: {str(e)}")
         messages.error(request, f'Error downloading invoice: {str(e)}')
         return redirect('patient-dashboard')
 
@@ -796,29 +849,71 @@ def regenerate_invoice(request, payment_id):
 @csrf_exempt
 @login_required(login_url='login')
 def download_pharmacy_invoice(request, order_id):
-    """Download pharmacy invoice PDF"""
+    """Production-ready pharmacy invoice download with enhanced error handling"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
         from pharmacy.models import Order
         order = get_object_or_404(Order, id=order_id)
         
         # Check permissions - only the patient who made the order can download
         if request.user != order.user:
+            logger.warning(f"Unauthorized pharmacy invoice access attempt by user {request.user.id}")
             messages.error(request, 'You do not have permission to access this invoice.')
             return redirect('patient-dashboard')
         
-        # Generate invoice PDF
-        from .invoice_utils import generate_pharmacy_invoice_pdf
-        pdf_content = generate_pharmacy_invoice_pdf(order)
+        # Try multiple methods for PDF generation (production-safe)
+        pdf_content = None
         
+        # Method 1: Try to generate PDF using ReportLab
+        try:
+            from .invoice_utils import generate_pharmacy_invoice_pdf
+            pdf_content = generate_pharmacy_invoice_pdf(order)
+            if pdf_content:
+                logger.info(f"Generated pharmacy PDF for order {order_id}")
+        except Exception as e:
+            logger.error(f"Pharmacy PDF generation failed: {str(e)}")
+        
+        # Method 2: Generate simple PDF fallback
+        if not pdf_content:
+            try:
+                pdf_content = generate_simple_pharmacy_pdf(order)
+                logger.info(f"Generated simple pharmacy PDF for order {order_id}")
+            except Exception as e:
+                logger.error(f"Simple pharmacy PDF generation failed: {str(e)}")
+        
+        # Method 3: Generate text invoice (last resort)
+        if not pdf_content:
+            try:
+                text_content = generate_pharmacy_text_invoice(order)
+                response = HttpResponse(text_content, content_type='text/plain')
+                response['Content-Disposition'] = f'attachment; filename="pharmacy_invoice_{order.id}.txt"'
+                logger.warning(f"Serving text pharmacy invoice for {order_id} due to PDF failures")
+                return response
+            except Exception as e:
+                logger.error(f"Text pharmacy invoice generation failed: {str(e)}")
+        
+        # Serve the PDF if we have it
         if pdf_content:
             response = HttpResponse(pdf_content, content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="pharmacy_invoice_{order.id}.pdf"'
-            return response
-        else:
-            messages.error(request, 'Failed to generate invoice PDF.')
-            return redirect('patient-dashboard')
+            response['Content-Length'] = len(pdf_content)
             
+            # Add security headers
+            response['X-Content-Type-Options'] = 'nosniff'
+            response['X-Frame-Options'] = 'DENY'
+            
+            logger.info(f"Successfully served pharmacy PDF for order {order_id}")
+            return response
+        
+        # If all methods failed
+        logger.error(f"All pharmacy invoice generation methods failed for order {order_id}")
+        messages.error(request, 'Unable to generate invoice at this time. Please try again later or contact support.')
+        return redirect('patient-dashboard')
+        
     except Exception as e:
+        logger.error(f"Critical error in pharmacy invoice download: {str(e)}")
         messages.error(request, f'Error downloading invoice: {str(e)}')
         return redirect('patient-dashboard')
 
@@ -875,6 +970,7 @@ def cod_prescription_payment(request, prescription_upload_id):
         # Send notification
         try:
             from django.core.mail import send_mail
+            from healthstack.email_utils import send_email_safely
             from django.conf import settings
 
             # Notify admin
@@ -883,9 +979,7 @@ def cod_prescription_payment(request, prescription_upload_id):
                 f'New COD Prescription Order #{order.id}',
                 f'New prescription order with COD. Prescription #{prescription_upload_id}, Order #{order.id}, Patient: {patient.name}',
                 settings.DEFAULT_FROM_EMAIL,
-                [admin_email],
-                fail_silently=True
-            )
+                [admin_email])
 
             # Notify patient
             if patient.email:
@@ -894,8 +988,7 @@ def cod_prescription_payment(request, prescription_upload_id):
                     f'Your prescription order #{order.id} has been confirmed with Cash on Delivery. We will prepare your medicines for {"delivery" if order.delivery_method == "delivery" else "pickup"}.',
                     settings.DEFAULT_FROM_EMAIL,
                     [patient.email],
-                    fail_silently=True
-                )
+                    fail_silently=True)
         except Exception:
             pass
 
@@ -966,8 +1059,7 @@ def send_cod_notification_email(order_type, order):
             message,
             settings.DEFAULT_FROM_EMAIL,
             [admin_email],
-            fail_silently=True
-        )
+            fail_silently=True)
 
     except Exception as e:
         print(f"Error sending COD notification email: {e}")
@@ -1554,3 +1646,195 @@ def lab_test_catalog(request):
         return redirect('patient-dashboard')
 
     return redirect('standalone-test-booking')
+
+
+# Helper functions for production-safe invoice generation
+
+def generate_simple_invoice_pdf(invoice):
+    """Simple PDF generation using minimal dependencies"""
+    try:
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import A4
+        from io import BytesIO
+        
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=A4)
+        width, height = A4
+        
+        # Header
+        p.setFont("Helvetica-Bold", 20)
+        p.drawString(50, height - 50, "MAHIMA MEDICARE")
+        
+        p.setFont("Helvetica", 12)
+        p.drawString(50, height - 80, "Healthcare Management System")
+        p.drawString(50, height - 100, "Email: info@mahimamedicare.com")
+        
+        # Invoice details
+        p.setFont("Helvetica-Bold", 16)
+        p.drawString(50, height - 140, f"INVOICE #{invoice.invoice_number}")
+        
+        p.setFont("Helvetica", 11)
+        y_position = height - 170
+        
+        # Basic invoice info
+        invoice_data = [
+            f"Date: {invoice.created_at.strftime('%B %d, %Y')}",
+            f"Patient: {invoice.payment.patient.name if hasattr(invoice.payment, 'patient') else 'N/A'}",
+            f"Amount: Rs.{invoice.total_amount}",
+            f"Status: {invoice.status}",
+        ]
+        
+        for line in invoice_data:
+            p.drawString(50, y_position, line)
+            y_position -= 20
+        
+        # Footer
+        p.setFont("Helvetica", 10)
+        p.drawString(50, 50, "Thank you for choosing Mahima Medicare!")
+        p.drawString(50, 35, "For support: info@mahimamedicare.com")
+        
+        p.save()
+        buffer.seek(0)
+        return buffer.getvalue()
+        
+    except Exception as e:
+        raise Exception(f"Simple PDF generation failed: {str(e)}")
+
+
+def generate_invoice_text(invoice):
+    """Generate plain text invoice as absolute fallback"""
+    try:
+        content = f"""
+MAHIMA MEDICARE
+Healthcare Management System
+===============================
+
+INVOICE #{invoice.invoice_number}
+
+Date: {invoice.created_at.strftime('%B %d, %Y')}
+Patient: {invoice.payment.patient.name if hasattr(invoice.payment, 'patient') else 'N/A'}
+Amount: Rs.{invoice.total_amount}
+Status: {invoice.status}
+
+===============================
+Thank you for choosing Mahima Medicare!
+For support: info@mahimamedicare.com
+        """
+        return content.strip()
+    except Exception as e:
+        return f"Invoice #{invoice.invoice_number}\\nError generating invoice details: {str(e)}"
+
+
+def generate_simple_pharmacy_pdf(order):
+    """Simple PDF generation for pharmacy orders"""
+    try:
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import A4
+        from io import BytesIO
+        
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=A4)
+        width, height = A4
+        
+        # Header
+        p.setFont("Helvetica-Bold", 20)
+        p.drawString(50, height - 50, "MAHIMA MEDICARE - PHARMACY")
+        
+        p.setFont("Helvetica", 12)
+        p.drawString(50, height - 80, "Healthcare Management System")
+        p.drawString(50, height - 100, "Email: info@mahimamedicare.com")
+        
+        # Order details
+        p.setFont("Helvetica-Bold", 16)
+        p.drawString(50, height - 140, f"PHARMACY INVOICE #{getattr(order, 'pk', 'N/A')}")
+        
+        p.setFont("Helvetica", 11)
+        y_position = height - 170
+        
+        # Basic order info
+        order_data = [
+            f"Date: {order.created.strftime('%B %d, %Y') if hasattr(order, 'created') else 'N/A'}",
+            f"Patient: {order.user.first_name} {order.user.last_name}",
+            f"Delivery Method: {getattr(order, 'delivery_method', 'N/A').title()}",
+        ]
+        
+        for line in order_data:
+            p.drawString(50, y_position, line)
+            y_position -= 20
+        
+        # Items section
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(50, y_position - 10, "Items:")
+        y_position -= 30
+        
+        p.setFont("Helvetica", 10)
+        total = 0
+        
+        try:
+            if hasattr(order, 'orderitems'):
+                for item in order.orderitems.all():
+                    item_total = getattr(item, 'get_total', lambda: 0)()
+                    total += item_total
+                    p.drawString(50, y_position, f"- {item.item.name} x{item.quantity}: Rs.{item_total}")
+                    y_position -= 15
+        except:
+            p.drawString(50, y_position, "Items information not available")
+            y_position -= 15
+        
+        # Total
+        y_position -= 10
+        p.setFont("Helvetica-Bold", 11)
+        p.drawString(50, y_position, f"Total: Rs.{total}")
+        
+        # Footer
+        p.setFont("Helvetica", 10)
+        p.drawString(50, 50, "Thank you for your order!")
+        p.drawString(50, 35, "Mahima Medicare Pharmacy")
+        
+        p.save()
+        buffer.seek(0)
+        return buffer.getvalue()
+        
+    except Exception as e:
+        raise Exception(f"Simple pharmacy PDF generation failed: {str(e)}")
+
+
+def generate_pharmacy_text_invoice(order):
+    """Generate text-based pharmacy invoice"""
+    try:
+        content = f"""
+MAHIMA MEDICARE - PHARMACY
+==========================
+
+PHARMACY INVOICE #{getattr(order, 'pk', 'N/A')}
+
+Date: {order.created.strftime('%B %d, %Y') if hasattr(order, 'created') else 'N/A'}
+Patient: {order.user.first_name} {order.user.last_name}
+Delivery Method: {getattr(order, 'delivery_method', 'N/A').title()}
+
+Items:
+"""
+        
+        total = 0
+        try:
+            if hasattr(order, 'orderitems'):
+                for item in order.orderitems.all():
+                    item_total = getattr(item, 'get_total', lambda: 0)()
+                    total += item_total
+                    content += f"- {item.item.name} x{item.quantity}: Rs.{item_total}\\n"
+        except:
+            content += "Items information not available\\n"
+        
+        content += f"""
+--------------------------
+Total: Rs.{total}
+GST (5%): Rs.{total * 0.05:.2f}
+Final Total: Rs.{getattr(order, 'final_bill', lambda: total)()}
+
+Thank you for your order!
+Mahima Medicare Pharmacy
+        """
+        
+        return content
+    except Exception as e:
+        return f"Pharmacy Invoice #{getattr(order, 'pk', 'N/A')}\\nError generating invoice details: {str(e)}"
